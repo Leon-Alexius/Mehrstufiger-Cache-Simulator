@@ -30,6 +30,15 @@ Briefly describe the contributions of the second group member here.
 ### Member 3
 Briefly describe the contributions of the second group member here.
 
+## Compilation
+All code here needs to be able to be compiled in the remote ssh machine. To avoid any problems, editing, testing, and running the code should be done on the ssh machine.
+
+## Unit Testing
+Running tests everytime you want to push a feature is recommended. For that an option would be to use [doctest](https://github.com/doctest/doctest). However I don't really know how to do that yet :'
+
+## IDE/Code Editor
+A good code editor for this project is VSCode as it is lightweight and can be easily used in the remote ssh machine.
+
 ## Contributing
 To achieve a seamless and easy communication and cooperation between us, some convention/workflow needs to be followed, which can be seen here: https://medium.com/anne-kerrs-blog/using-git-and-github-for-team-collaboration-e761e7c00281.
 
