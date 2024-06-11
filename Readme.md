@@ -4,9 +4,12 @@
 This project aims to investigate the impact of multi-level caches on runtime and latency. It involves researching cache sizes, architectures, and latencies in modern processors, and implementing a cache simulation in SystemC with C++ and a framework program in C.
 
 ## Requirements
-- C version: C17-Standard
-- C++ version: C++14
-- SystemC: 2.3.3
+
+| Language | Version |
+| -------- | ------- |
+| C        | C17     |
+| C++      | C++14   |
+| SystemC  | 2.3.3   |
 
 ## Installation
 Provide instructions on how to install and setup your project here.
