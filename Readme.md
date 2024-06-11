@@ -34,9 +34,6 @@ Briefly describe the contributions of the second group member here.
 Provide instructions on how others can contribute to your project here.
 
 ## License
-
----
-
 All Rights Reserved
 
 Copyright © 2024 Team-150. All Rights Reserved.
