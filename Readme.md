@@ -31,7 +31,61 @@ Briefly describe the contributions of the second group member here.
 Briefly describe the contributions of the second group member here.
 
 ## Contributing
-Provide instructions on how others can contribute to your project here.
+To achieve a seamless and easy communication and cooperation between us, some convention/workflow needs to be followed, which can be seen here: https://medium.com/anne-kerrs-blog/using-git-and-github-for-team-collaboration-e761e7c00281.
+
+#### Branches
+It is generally good practice to push a new feature to a new _branch_ in git. By doing so, each branch will need to be reviewed before merging it into `main`. The reason for this is to generally always have a working `main` branch. I suggest that every time a branch is pushed by someone, 2 other people would review and approve it.
+
+It is good to follow some sort of naming convention for the branches. A new branch should have the name: `your_name`/`feature`
+
+Pushing a new branch through the terminal (let's say pushing a new module):
+
+1. Create a new branch
+```
+$ git checkout -b anthony/moduleA
+```
+2. Create the feature (in `.hpp`):
+```C++
+SC_MODULE(MODULE_A) {
+  ...
+}
+```
+3. Make sure that the feature could be compiled and runs properly
+```
+$ make
+```
+4. Commit and push
+```
+$ git add file_name (do not add more things which are not important to the feature!)
+$ git commit -m "added ModuleA"
+$ git push
+```
+5. Create a pull request
+6. Resolve merge conflicts which may arise
+7. Wait for the pull request to be approved by another team member
+8. After the review the pull request will be merged into the main branch and the feature branch will be deleted
+9. Optional: delete the branch locally
+```
+$ git branch -d create_sumUpTo
+```
+10. Pull latest changes of the main branch locally (including your recently merged feature branch)
+```
+$ git checkout main
+$ git pull origin main
+```
+
+#### GitHub Actions
+With GitHub Actions, pushing a new feature would set off a chain of actions which sets up a linux machine, compiles the code, and runs our written tests. To be set up.
+
+#### Code Style
+It is recommended to indent a code line with two spaces. We do this because a tab `\t` does not always have the same length from machine to machine. You can set this up by pressing `F1` and search for `Indent Using Spaces`. Then choose `2` as the indent size.
+
+We should also comment code which we have written. A good convention would be to first of all write your name, and then describe what it does. Better yet, you could also write for each line what it does. Example:
+```C++
+/*anthony
+(code description)
+*/
+```
 
 ## License
 All Rights Reserved © 2024 Team-150.
