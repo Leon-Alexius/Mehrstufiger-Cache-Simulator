@@ -34,7 +34,14 @@ Briefly describe the contributions of the second group member here.
 Provide instructions on how others can contribute to your project here.
 
 ## License
-Include information about the license here.
+
+---
+
+All Rights Reserved
+
+Copyright © 2024 Team-150. All Rights Reserved.
+
+This project and its contents are the property of Team-150. No reproduction, distribution, or transmission of the copyrighted materials in this project is permitted without the written permission of Team-150.
 
 ## Contact
 Include your contact information here.
