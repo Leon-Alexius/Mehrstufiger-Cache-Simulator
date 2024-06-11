@@ -67,7 +67,7 @@ $ make
 ```
 $ git add file_name (do not add more things which are not important to the feature!)
 $ git commit -m "added ModuleA"
-$ git push
+$ git push (if you are pushing for the first time do $ git push --set-upstream origin anthony/moduleA)
 ```
 5. Create a pull request
 6. Resolve merge conflicts which may arise
