@@ -6,13 +6,13 @@ This project aims to investigate the impact of multi-level caches on runtime and
 ## Requirements
 
 | Language | Version |
-| -------- | ------- |
+|----------|---------|
 | C        | C17     |
 | C++      | C++14   |
 | SystemC  | 2.3.3   |
 
 ## Installation
-Provide instructions on how to install and setup your project here.
+Provide instructions on how to install and set up your project here.
 
 ## Usage
 Provide instructions on how to use your project here.
@@ -34,7 +34,7 @@ Briefly describe the contributions of the second group member here.
 All code here needs to be able to be compiled in the remote ssh machine. To avoid any problems, editing, testing, and running the code should be done on the ssh machine.
 
 ## Unit Testing
-Running tests everytime you want to push a feature is recommended. For that an option would be to use [doctest](https://github.com/doctest/doctest). However I don't really know how to do that yet :'
+Running tests everytime you want to push a feature is recommended. For that an option would be to use [doctest](https://github.com/doctest/doctest). However, I don't really know how to do that yet :'
 
 ## IDE/Code Editor
 A good code editor for this project is VSCode as it is lightweight and can be easily used in the remote ssh machine.
@@ -50,38 +50,38 @@ It is good to follow some sort of naming convention for the branches. A new bran
 Pushing a new branch through the terminal (let's say pushing a new module):
 
 1. Create a new branch
-```
-$ git checkout -b anthony/moduleA
-```
+    ```
+    $ git checkout -b anthony/moduleA
+    ```
 2. Create the feature (in `.hpp`):
-```C++
-SC_MODULE(MODULE_A) {
-  ...
-}
-```
+    ```C++
+    SC_MODULE(MODULE_A) {
+      ...
+    }
+    ```
 3. Make sure that the feature could be compiled and runs properly
-```
-$ make
-```
+    ```
+    $ make
+    ```
 4. Commit and push
-```
-$ git add file_name (do not add more things which are not important to the feature!)
-$ git commit -m "added ModuleA"
-$ git push (if you are pushing for the first time do $ git push --set-upstream origin anthony/moduleA)
-```
+    ```
+    $ git add file_name (do not add more things which are not important to the feature!)
+    $ git commit -m "added ModuleA"
+    $ git push (if you are pushing for the first time do $ git push --set-upstream origin anthony/moduleA)
+    ```
 5. Create a pull request
 6. Resolve merge conflicts which may arise
 7. Wait for the pull request to be approved by another team member
 8. After the review the pull request will be merged into the main branch and the feature branch will be deleted
 9. Optional: delete the branch locally
-```
-$ git branch -d create_sumUpTo
-```
+    ```
+    $ git branch -d create_sumUpTo
+    ```
 10. Pull latest changes of the main branch locally (including your recently merged feature branch)
-```
-$ git checkout main
-$ git pull origin main
-```
+    ```
+    $ git checkout main
+    $ git pull origin main
+    ```
 
 #### GitHub Actions
 With GitHub Actions, pushing a new feature would set off a chain of actions which sets up a linux machine, compiles the code, and runs our written tests. To be set up.
