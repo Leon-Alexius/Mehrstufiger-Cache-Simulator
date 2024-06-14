@@ -75,7 +75,7 @@ Pushing a new branch through the terminal (let's say pushing a new module):
 8. After the review the pull request will be merged into the main branch and the feature branch will be deleted
 9. Optional: delete the branch locally
     ```
-    $ git branch -d create_sumUpTo
+    $ git branch -d anthony/moduleA
     ```
 10. Pull latest changes of the main branch locally (including your recently merged feature branch)
     ```
