@@ -46,6 +46,9 @@ struct CPU_L1_L2 {
         }
     }
 
+    /* anthony
+    MEMORY serves as the main memory of the computer
+    */
     SC_MODULE(MEMORY) {
         sc_in<sc_bv<8*cacheLineSize>> data_in;
         sc_in<sc_bv<32>> address;
@@ -82,7 +85,7 @@ struct CPU_L1_L2 {
                         byte result = memory_blocks[index1][index2];
                         // Convert the result into an array of bits
                         for (int j=0; j<8; j++) buffer_out[j + i] = ((theByte & (1<<(j))) != 0)      
-                                          
+
                         address_u++;
                         index1 = address_u / 4;
                         index2 = address_u % 4;
