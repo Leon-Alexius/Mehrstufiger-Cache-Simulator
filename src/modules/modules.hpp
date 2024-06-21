@@ -46,5 +46,51 @@ struct CPU_L1_L2 {
         }
     }
 
-    
+    SC_MODULE(MEMORY) {
+        sc_in<sc_bv<8*cacheLineSize>> data_in;
+        sc_in<sc_bv<32>> address;
+        sc_in<bool> write_enable;
+        sc_in<bool> clock; 
+        sc_out<sc_bv<8*cacheLineSize>> data_out;
+        
+        byte[][] memory_blocks;
+        int latency;
+        int count = 0;
+        SC_CTOR(MEMORY);
+
+        MEMORY(sc_module_name name, int latency) : sc_module(name), latency(latency) {
+            SC_CTHREAD(update, clk.pos());
+        }
+
+        /*anthony
+        This update() method will wait until the cycle takes 8 ticks, before executing the write/read
+        */
+        void update() {
+            while (true) {
+                /* 
+                    Accessing memory: each cell has 4 bytes, which means that to convert address to index
+                    will be address/4 + address % 4 
+                */
+                unsigned address_u = (address->read()).to_uint();
+                unsigned index1 = address_u / 4;
+                unsigned index2 = address_u % 4;
+
+                if (write_enable->read()) {
+                    bool buffer_out[cacheLineSize*8] = {};
+                    for (int i = 0; i < cacheLineSize*8; i += 8) {
+
+                        byte result = memory_blocks[index1][index2];
+                        // Convert the result into an array of bits
+                        for (int j=0; j<8; j++) buffer_out[j + i] = ((theByte & (1<<(j))) != 0)      
+                                          
+                        address_u++;
+                        index1 = address_u / 4;
+                        index2 = address_u % 4;
+                    }
+                    
+                }
+                wait();
+            }
+        }
+    }
 }
