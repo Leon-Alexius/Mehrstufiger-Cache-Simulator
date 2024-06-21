@@ -1,12 +1,17 @@
 #include <systemc>
 
+// to avoid errors - implement later
+#include "placeHolder.hpp"
+
+// simulation runner
 int run_simulation(
     int cycles, 
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
-    size_t numRequests, struct Request requests,
+    size_t numRequests, struct Request* requests,
     const char* tracefile
-    ) {
+    ) 
+    {
         return 0;
     }
 

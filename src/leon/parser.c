@@ -1,14 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Assuming that the 'Result' and 'Request' structures and the 'run_simulation' function are defined in a header file named 'simulation.h'
-#include "simulation.h"
+// Temporary
+struct Request {
+    
+};
 
+// The run_simulation method in C++
 extern int run_simulation(
     int cycles, 
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
-    size_t numRequests, struct Request requests,
+    size_t numRequests, struct Request* requests,
     const char* tracefile
     );
 
@@ -51,9 +54,11 @@ int main(int argc, char* argv[]) {
 
     // Process the simulation result
     if (result != 0) {
-        
+        printf("Success");
     }
-
+    else {
+        printf("Something is not right!");
+    }
 
     return 0;
 }
