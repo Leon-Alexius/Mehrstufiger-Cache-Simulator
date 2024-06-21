@@ -1,6 +1,7 @@
+// Lie Leon Alexius
 #include <systemc>
 
-// to avoid errors - implement later
+// Request and Result struct
 #include "placeHolder.hpp"
 
 // simulation runner
@@ -12,6 +13,7 @@ int run_simulation(
     const char* tracefile
     ) 
     {
+        // do simulation and return success (0) or failure (!0)
         return 0;
     }
 
