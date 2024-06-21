@@ -1,10 +1,9 @@
 // Lie Leon Alexius
 
-// temporary struct
 struct Request {
     __uint32_t addr;
     __uint32_t data;
-    int we;
+    int we; // write enabled
 };
 
 struct Result {

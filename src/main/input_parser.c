@@ -1,8 +1,10 @@
 // Lie Leon Alexius
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
 
-// Temporary
+// Request and Result struct
 #include "placeHolder.hpp"
 
 // The run_simulation method in C++
@@ -18,6 +20,7 @@ extern int run_simulation(
     The main function is the entry point of the program.
     
     This function parses the user inputs and set the variables accordingly.
+    After that, it will calls the simulator to run the simulation.
 
     Each of the variables has default values:
     1. cycles = 1000000 (default simulation cycles)
@@ -43,24 +46,117 @@ int main(int argc, char* argv[]) {
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
     size_t numRequests = 1000;
-    const char* tracefile = "default_trace.txt";
+    const char* tracefile = "default_trace.vcd";
 
+    // Start parsing the input
     // Override default values if arguments are provided
-    if (argc > 1) cycles = atoi(argv[1]);
-    if (argc > 2) l1CacheLines = atoi(argv[2]);
-    if (argc > 3) l2CacheLines = atoi(argv[3]);
-    if (argc > 4) cacheLineSize = atoi(argv[4]);
-    if (argc > 5) l1CacheLatency = atoi(argv[5]);
-    if (argc > 6) l2CacheLatency = atoi(argv[6]);
-    if (argc > 7) memoryLatency = atoi(argv[7]);
-    if (argc > 8) numRequests = atoi(argv[8]);
-    if (argc > 9) tracefile = argv[9];
+    char* endptr;
 
+    if (argc > 1) {
+        // To distinguish success/failure after call
+        errno = 0; 
+        cycles = strtol(argv[1], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE && (cycles == LONG_MAX || cycles == LONG_MIN)) {
+            perror("Number is out of range of \"long integer\"!");
+            exit(EXIT_FAILURE);
+        }
+        else if (errno != 0 && cycles == 0) {
+            perror("Error happened during strtol(argv[1]) - cycles ");
+            exit(EXIT_FAILURE);
+        }
+
+        // if pointer ends up to argv[1] then no valid input
+        if (endptr == argv[1]) {
+            fprintf(stderr, "No digits were found\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 2) {
+        errno = 0;
+        l1CacheLines = strtoul(argv[2], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for l1CacheLines");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 3) {
+        errno = 0;
+        l2CacheLines = strtoul(argv[3], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for l2CacheLines");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 4) {
+        errno = 0;
+        cacheLineSize = strtoul(argv[4], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for cacheLineSize");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 5) {
+        errno = 0;
+        l1CacheLatency = strtoul(argv[5], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for l1CacheLatency");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 6) {
+        errno = 0;
+        l2CacheLatency = strtoul(argv[6], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for l2CacheLatency");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 7) {
+        errno = 0;
+        memoryLatency = strtoul(argv[7], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for memoryLatency");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 8) {
+        errno = 0;
+        numRequests = strtoul(argv[8], &endptr, 10);
+
+        // Check for errors during conversion then print it
+        if (errno == ERANGE || *endptr != '\0') {
+            perror("Invalid input for numRequests");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 9) {
+        tracefile = argv[9];
+    }
+
+    // the requests
     struct Request requests[numRequests];
-
-    // Initialize the requests array or read from tracefile
-    // Assuming the tracefile provides the request data
-    // Implementation of reading requests from tracefile goes here
 
     // run simulation
     int result = 

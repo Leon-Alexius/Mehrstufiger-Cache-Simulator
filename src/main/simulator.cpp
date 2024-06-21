@@ -1,7 +1,7 @@
 // Lie Leon Alexius
 #include <systemc>
 
-// to avoid errors - implement later
+// Request and Result struct
 #include "placeHolder.hpp"
 
 // simulation runner
