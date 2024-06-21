@@ -1,7 +1,9 @@
+// Lie Leon Alexius
+
 // temporary struct
 struct Request {
-    uint32_t addr;
-    uint32_t data;
+    __uint32_t addr;
+    __uint32_t data;
     int we;
 };
 
