@@ -85,7 +85,7 @@ struct CPU_L1_L2 {
                 unsigned index1 = address_u / 4;
                 unsigned index2 = address_u % 4;
 
-                if (write_enable->read()) {
+                if (!write_enable->read()) {
                     // Read data from memory
                     bool buffer_out[cacheLineSize*8] = {};
 
