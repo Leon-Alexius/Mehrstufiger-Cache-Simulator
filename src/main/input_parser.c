@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <getopt.h>
+#include <string.h>
 
 // Request and Result struct
 #include "placeHolder.hpp"
@@ -14,7 +16,22 @@ extern int run_simulation(
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
     size_t numRequests, struct Request* requests,
     const char* tracefile
-    );
+);
+
+// for -h or --help
+void print_help() {
+    printf("Usage: ./cache [OPTIONS] filename.csv\n");
+    printf("Options:\n");
+    printf("  -c, --cycles <num>           The number of cycles to be simulated (default: 1000000)\n");
+    printf("      --cacheline-size <num>   The size of a cache line in bytes (default: 64)\n");
+    printf("      --l1-lines <num>         The number of cache lines of the L1 cache (default: 64)\n");
+    printf("      --l2-lines <num>         The number of cache lines of the L2 cache (default: 256)\n");
+    printf("      --l1-latency <num>       The latency of the L1 cache in cycles (default: 4)\n");
+    printf("      --l2-latency <num>       The latency of the L2 cache in cycles (default: 12)\n");
+    printf("      --memory-latency <num>   The latency of the main memory in cycles (default: 100)\n");
+    printf("      --tf=<filepath>          Output file for a trace file with all signals (default: default_trace.vcd)\n");
+    printf("  -h, --help                   Display this help and exit\n");
+}
 
 /*  
     The main function is the entry point of the program.
@@ -48,115 +65,181 @@ int main(int argc, char* argv[]) {
     size_t numRequests = 1000;
     const char* tracefile = "default_trace.vcd";
 
-    // Start parsing the input
-    // Override default values if arguments are provided
-    char* endptr;
+    // Filename for the input CSV file
+    const char* input_filename = NULL;
 
-    if (argc > 1) {
-        // To distinguish success/failure after call
-        errno = 0; 
-        cycles = strtol(argv[1], &endptr, 10);
+    // ==========================================================================================
+    // =================================== START PARSING ========================================
+    // ==========================================================================================
 
-        // Check for errors during conversion then print it
-        if (errno == ERANGE && (cycles == LONG_MAX || cycles == LONG_MIN)) {
-            perror("Number is out of range of \"long integer\"!");
-            exit(EXIT_FAILURE);
-        }
-        else if (errno != 0 && cycles == 0) {
-            perror("Error happened during strtol(argv[1]) - cycles ");
-            exit(EXIT_FAILURE);
-        }
+    // Long options array
+    struct option long_options[] = {
+        // {const char *name; int has_arg; int *flag; int val;}
+        {"cycles", required_argument, 0, 'c'},
+        {"cacheline-size", required_argument, 0, 0},
+        {"l1-lines", required_argument, 0, 0},
+        {"l2-lines", required_argument, 0, 0},
+        {"l1-latency", required_argument, 0, 0},
+        {"l2-latency", required_argument, 0, 0},
+        {"memory-latency", required_argument, 0, 0},
+        {"tf", required_argument, 0, 0},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
 
-        // if pointer ends up to argv[1] then no valid input
-        if (endptr == argv[1]) {
-            fprintf(stderr, "No digits were found\n");
-            exit(EXIT_FAILURE);
+    int opt; // option flag input
+    int long_index = 0; // the index for long_options 
+    char* endptr; // parsing error checker
+
+    // (arg count, arg array, legitimate option characters, long options, long options index)
+    // https://linux.die.net/man/3/getopt_long
+    while ((opt = getopt_long(argc, argv, "c:h", long_options, &long_index)) != -1) {
+        switch (opt) {
+            case 'c':
+                errno = 0;
+                cycles = strtol(optarg, &endptr, 10);
+
+                // Check for errors during conversion then print it
+                if (errno != 0 || *endptr != '\0') {
+                    fprintf(stderr, "Invalid input for cycles\n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'h':
+                print_help();
+                exit(EXIT_SUCCESS);
+                break;
+            case 0:
+                if (strcmp("cacheline-size", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    cacheLineSize = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for cacheline-size\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                else if (strcmp("l1-lines", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    l1CacheLines = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for l1-lines\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                else if (strcmp("l2-lines", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    l2CacheLines = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for l2-lines\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                else if (strcmp("l1-latency", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    l1CacheLatency = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for l1-latency\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                else if (strcmp("l2-latency", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    l2CacheLatency = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for l2-latency\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                else if (strcmp("memory-latency", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    memoryLatency = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for memory-latency\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                else if (strcmp("tf", long_options[long_index].name) == 0) {
+                    tracefile = optarg;
+                }
+                break;
+            default:
+                // if flag is undefined, print_help then exit
+                print_help();
+                exit(EXIT_FAILURE);
         }
     }
 
-    if (argc > 2) {
-        errno = 0;
-        l1CacheLines = strtoul(argv[2], &endptr, 10);
-
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for l1CacheLines");
-            exit(EXIT_FAILURE);
-        }
+    // Get the remaining argument: the input filename
+    // The variable optind is the index of the next element to be processed in argv.
+    // https://linux.die.net/man/3/optind
+    if (optind < argc) {
+        input_filename = argv[optind];
+    } 
+    else {
+        fprintf(stderr, "Input filename is required\n");
+        print_help();
+        exit(EXIT_FAILURE);
     }
 
-    if (argc > 3) {
-        errno = 0;
-        l2CacheLines = strtoul(argv[3], &endptr, 10);
-
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for l2CacheLines");
-            exit(EXIT_FAILURE);
-        }
+    // Error checking: Validate input_filename
+    // check if NULL
+    if (input_filename == NULL) {
+        fprintf(stderr, "Input filename is missing\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+    
+    // Check if the filename ends with .csv
+    size_t len = strlen(input_filename);
+    if (len <= 4 || strcmp(input_filename + len - 4, ".csv") != 0) {
+        fprintf(stderr, "Invalid filename. Filename should end with .csv\n");
+        print_help();
+        exit(EXIT_FAILURE);
     }
 
-    if (argc > 4) {
-        errno = 0;
-        cacheLineSize = strtoul(argv[4], &endptr, 10);
+    // ==========================================================================================
+    // ==================================== END PARSING =========================================
+    // ==========================================================================================
 
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for cacheLineSize");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (argc > 5) {
-        errno = 0;
-        l1CacheLatency = strtoul(argv[5], &endptr, 10);
-
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for l1CacheLatency");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (argc > 6) {
-        errno = 0;
-        l2CacheLatency = strtoul(argv[6], &endptr, 10);
-
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for l2CacheLatency");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (argc > 7) {
-        errno = 0;
-        memoryLatency = strtoul(argv[7], &endptr, 10);
-
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for memoryLatency");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (argc > 8) {
-        errno = 0;
-        numRequests = strtoul(argv[8], &endptr, 10);
-
-        // Check for errors during conversion then print it
-        if (errno == ERANGE || *endptr != '\0') {
-            perror("Invalid input for numRequests");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    if (argc > 9) {
-        tracefile = argv[9];
-    }
-
-    // the requests
+    // initialize the struct
     struct Request requests[numRequests];
+
+    // Read requests from the input CSV file
+    FILE* file = fopen(input_filename, "r");
+    if (!file) {
+        // No need to close file here since fopen will return NULL
+        perror("Failed to open input file");
+        exit(EXIT_FAILURE);
+    }
+    else {
+        // Read the requests from the file
+        // setup buffer
+        char rw[10]; 
+        for (int i = 0; i < numRequests && !feof(file); i++) {
+            fscanf(file, "%s %u", rw, &requests[i].addr);
+            if (strcmp(rw, "Write") == 0) {
+                requests[i].we = 1;
+                fscanf(file, "%u", &requests[i].data);
+            } else {
+                requests[i].we = 0;
+                requests[i].data = -76;
+            }
+        }
+
+        fclose(file);
+    }
 
     // run simulation
     int result = 
@@ -171,8 +254,7 @@ int main(int argc, char* argv[]) {
     // Process the simulation result
     if (result == 0) {
         printf("Success\n");
-    }
-    else {
+    } else {
         printf("Something is not right!\n");
     }
 

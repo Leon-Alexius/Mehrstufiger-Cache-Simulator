@@ -13,6 +13,7 @@ int run_simulation(
     const char* tracefile
     ) 
     {
+        // do simulation and return success (0) or failure (!0)
         return 0;
     }
 
