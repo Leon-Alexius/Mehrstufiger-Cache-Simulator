@@ -60,7 +60,7 @@ struct CPU_L1_L2 {
         sc_in<bool> clock; 
         sc_out<sc_bv<8*cacheLineSize>> data_out;
         
-        private char[][] memory_blocks;
+        private char[1000000] memory_blocks;
         int latency;
         int count = 0;
         SC_CTOR(MEMORY);
@@ -82,23 +82,19 @@ struct CPU_L1_L2 {
                 */
 
                 unsigned address_u = (address->read()).to_uint();
-                unsigned index1 = address_u / 4;
-                unsigned index2 = address_u % 4;
 
                 if (!write_enable->read()) {
                     // Read data from memory
                     bool buffer_out[cacheLineSize*8] = {};
 
                     for (int i = 0; i < cacheLineSize*8; i += 8) {
-                        char result = memory_blocks[index1][index2];
+                        char result = memory_blocks[address_u];
 
                         // Convert the result into an array of bits
                         for (int j=0; j<8; j++) buffer_out[j + i] = ((result & (1<<(j))) != 0);
 
                         // Change address
                         address_u++;
-                        index1 = address_u / 4;
-                        index2 = address_u % 4;
                     }
 
                     // Make temporary vector to write to data_out
@@ -128,12 +124,10 @@ struct CPU_L1_L2 {
                         
 
                         // Write to memory
-                        memory_blocks[index1][index2] = c;
+                        memory_blocks[address_u] = c;
 
                         // Change address
                         address_u++;
-                        index1 = address_u / 4;
-                        index2 = address_u % 4;
 
                     }
 
