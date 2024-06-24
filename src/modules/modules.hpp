@@ -30,7 +30,6 @@ struct CPU_L1_L2 {
     unsigned l2CacheLatency;
     unsigned memoryLatency;
     size_t numRequests;
-    private unsigned cache_line_size;
     private char[][] data_blocks;
     private char[][] cache_blocks;
   
@@ -43,7 +42,7 @@ struct CPU_L1_L2 {
         sc_in<bool> clk;
 
         L1(sc_module_name name): sc_module(name){
-            SC_THREAD(behaviour, clk.pos())
+            SC_THREAD(behaviour, clk.pos());
         }
 
         void behaviour(){
