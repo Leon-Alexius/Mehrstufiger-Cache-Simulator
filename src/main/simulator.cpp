@@ -2,7 +2,7 @@
 #include <systemc>
 
 // Request and Result struct
-#include "placeHolder.hpp"
+#include "../modules/modules.hpp"
 
 // simulation runner
 int run_simulation(

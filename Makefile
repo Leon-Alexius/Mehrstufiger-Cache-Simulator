@@ -3,15 +3,15 @@
 # ---------------------------------------
 
 # entry point for the program and target name
-C_SRCS = main.c
-CPP_SRCS = modules.cpp
+C_SRCS = src/main/input_parser.c
+CPP_SRCS = src/main/simulator.cpp
 
 # Object files
 C_OBJS = $(C_SRCS:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
 # assignment task file
-HEADERS := modules.hpp
+HEADERS := src/main/placeHolder.hpp
 
 # target name
 TARGET := cache
@@ -72,6 +72,6 @@ $(TARGET): $(C_OBJS) $(CPP_OBJS)
 # clean up
 clean:
 	rm -f $(TARGET)
-	rm -rf *.o
+	rm -rf src/main/*.o
 
 .PHONY: all debug release clean
