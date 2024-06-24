@@ -53,7 +53,8 @@ struct CPU_L1_L2 {
                 unsigned index_bits_amount = (int) ceil((float)log2(64000/cache_line_size));
                 unsigned tag_bits_amount = 32 - offset_bits_amount - index_bits_amount;
                 unsigned address = (address_input->read()).to_uint();
-                // unsigned address = address<<tag_bits_amount >>offset_bits_amount;
+                unsigned address = address<<tag_bits_amount >>offset_bits_amount;
+
 
                 if (write_enable->read()) {
                     data_block[][] = 
