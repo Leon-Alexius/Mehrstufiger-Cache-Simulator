@@ -2,20 +2,24 @@
 #include <systemc>
 
 // Request and Result struct
-#include "../modules/modules.hpp"
+// #include "../modules/modules.hpp"
+#include "placeHolder.hpp"
 
-// simulation runner
-int run_simulation(
-    int cycles, 
-    unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
-    unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
-    size_t numRequests, struct Request* requests,
-    const char* tracefile
+// prevent the C++ compiler from mangling the function name
+extern "C" {
+    // simulation runner
+    int run_simulation(
+        int cycles, 
+        unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
+        unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
+        size_t numRequests, struct Request* requests,
+        const char* tracefile
     ) 
     {
         // do simulation and return success (0) or failure (!0)
         return 0;
     }
+}
 
 // The default sc_main implementation.
 int sc_main(int argc, char* argv[])

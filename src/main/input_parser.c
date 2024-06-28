@@ -7,18 +7,23 @@
 #include <string.h>
 
 // Request and Result struct
-#include "../modules/modules.hpp"
+// #include "../modules/modules.hpp"
+#include "placeHolder.hpp"
 
 // The run_simulation method in C++
 extern int run_simulation(
-    int cycles, 
+    int cycles,
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
     size_t numRequests, struct Request* requests,
     const char* tracefile
 );
 
-// for -h or --help
+/*
+    DO NOT CHANGE THIS
+    Method for -h or --help
+    Shortest possible input is `./cache filename.csv`
+*/
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
@@ -69,7 +74,7 @@ int main(int argc, char* argv[]) {
     const char* input_filename = NULL;
 
     // ==========================================================================================
-    // =================================== START PARSING ========================================
+    // ============================== START PARSING USER INPUT ==================================
     // ==========================================================================================
 
     // Long options array
@@ -210,8 +215,22 @@ int main(int argc, char* argv[]) {
     }
 
     // ==========================================================================================
-    // ==================================== END PARSING =========================================
+    // =============================== END PARSING USER INPUT ===================================
     // ==========================================================================================
+
+    // ==========================================================================================
+    // ================================= START PARSING CSV ======================================
+    // ==========================================================================================
+
+    /*
+        CSV Data (Strict rule):
+        1. The 1st Column = R || W
+        2. The 2nd Column = Address (either Hexadecimal or Decimal)
+        3. The 3rd Column = Value (empty if R or some(v) if W)
+
+        Exception:
+        Throws Exc at stderr if there are any deviation from the rules
+    */
 
     // initialize the struct
     struct Request requests[numRequests];
@@ -232,7 +251,8 @@ int main(int argc, char* argv[]) {
             if (strcmp(rw, "Write") == 0) {
                 requests[i].we = 1;
                 fscanf(file, "%u", &requests[i].data);
-            } else {
+            }
+            else {
                 requests[i].we = 0;
                 requests[i].data = -76;
             }
@@ -240,6 +260,10 @@ int main(int argc, char* argv[]) {
 
         fclose(file);
     }
+
+    // ==========================================================================================
+    // ================================== END PARSING CSV =======================================
+    // ==========================================================================================
 
     // run simulation
     int result = 
