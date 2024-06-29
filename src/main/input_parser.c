@@ -7,18 +7,23 @@
 #include <string.h>
 
 // Request and Result struct
-#include "../modules/modules.hpp"
+// #include "../modules/modules.hpp"
+#include "placeHolder.hpp"
 
 // The run_simulation method in C++
 extern int run_simulation(
-    int cycles, 
+    int cycles,
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
     size_t numRequests, struct Request* requests,
     const char* tracefile
 );
 
-// for -h or --help
+/*
+    DO NOT CHANGE THIS
+    Method for -h or --help
+    Shortest possible input is `./cache filename.csv`
+*/
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
@@ -31,6 +36,126 @@ void print_help() {
     printf("      --memory-latency <num>   The latency of the main memory in cycles (default: 100)\n");
     printf("      --tf=<filepath>          Output file for a trace file with all signals (default: default_trace.vcd)\n");
     printf("  -h, --help                   Display this help and exit\n");
+}
+
+/*
+    This method parses the .csv file.
+
+    A valid .csv file follows these rules:
+    1. Each Row is in format of `W,Adr,Val` || `R,Adr,` || `R,Adr,<whitespace(s)>`
+    2. New Lines at the end of the file are allowed
+    3. `Adr` is either Decimal or Hexadecimal
+    4. `Val` is either Decimal or Hexadecimal
+    5. Number of Row >= Number of the to be simulated Requests
+
+    TODO: Fix Throw "Error: number of requests parsed does not match numRequests\n"
+*/
+void parse_csv(const char* input_filename, struct Request* requests, int numRequests) {
+    // Open the file
+    FILE* file = fopen(input_filename, "r");
+    if (!file) {
+        // No need to close file here since fopen will return NULL
+        perror("Failed to open input file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize buffer
+    char line[100];
+    char rw[10];
+    char addr_str[20];
+    char data_str[20];
+
+    int i = 0; // request counter
+
+    // Read the requests from the file
+    while (fgets(line, sizeof(line), file)) {
+        // Remove the newline character if present
+        line[strcspn(line, "\n")] = 0;
+
+        // Reset buffers
+        memset(rw, 0, sizeof(rw));
+        memset(addr_str, 0, sizeof(addr_str));
+        memset(data_str, 0, sizeof(data_str));
+
+        // Parse the line
+        int fields = sscanf(line, "%[^,],%[^,],%[^\n]", rw, addr_str, data_str);
+
+        // Handle possible trailing whitespace in the data field for read requests
+        if (fields == 3 && rw[0] == 'R' && data_str[0] == ' ') {
+            data_str[0] = '\0';
+            fields = 2;
+        }
+
+        // Min. valid field in a row = 2
+        if (fields < 2) {
+            fprintf(stderr, "Error in parsing the data - wrong format\n");
+            exit(EXIT_FAILURE);
+        }
+
+        // Case: Write
+        if (strcmp(rw, "W") == 0) {
+            if (fields != 3) {
+                fprintf(stderr, "Error in parsing the data - wrong format for write request\n");
+                exit(EXIT_FAILURE);
+            }
+            requests[i].we = 1;
+            
+            // Parse address
+            if (addr_str[1] == 'x' || addr_str[1] == 'X') {
+                sscanf(addr_str, "%x", &requests[i].addr);
+            } else {
+                sscanf(addr_str, "%u", &requests[i].addr);
+            }
+
+            // Parse data
+            if (data_str[1] == 'x' || data_str[1] == 'X') {
+                sscanf(data_str, "%x", &requests[i].data);
+            } else {
+                sscanf(data_str, "%u", &requests[i].data);
+            }
+
+            i++;
+        } 
+
+        // Case: Read
+        else if (strcmp(rw, "R") == 0) {
+            if (fields != 2) {
+                fprintf(stderr, "Error in parsing the data - wrong format for read request\n");
+                exit(EXIT_FAILURE);
+            }
+
+            requests[i].we = 0;
+            requests[i].data = 0; // Default value for Read
+
+            // Parse address
+            if (addr_str[1] == 'x' || addr_str[1] == 'X') {
+                sscanf(addr_str, "%x", &requests[i].addr);
+            } else {
+                sscanf(addr_str, "%u", &requests[i].addr);
+            }
+
+            i++;
+        } 
+
+        // Case: Unknown Op
+        else {
+            fprintf(stderr, "Error in parsing the data - unrecognized command\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (i >= numRequests) {
+            break;
+        }
+    }
+
+    // Close the file
+    fclose(file);
+
+    // check if numRequests has been fulfilled
+    if (i != numRequests) {
+        fprintf(stderr, "Error: number of requests parsed does not match numRequests\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*  
@@ -62,14 +187,14 @@ int main(int argc, char* argv[]) {
     unsigned l1CacheLatency = 4;
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
-    size_t numRequests = 1000;
+    size_t numRequests = 9; // Should be 1000, but set to 9 to test .csv
     const char* tracefile = "default_trace.vcd";
 
     // Filename for the input CSV file
     const char* input_filename = NULL;
 
     // ==========================================================================================
-    // =================================== START PARSING ========================================
+    // ============================== START PARSING USER INPUT ==================================
     // ==========================================================================================
 
     // Long options array
@@ -210,36 +335,32 @@ int main(int argc, char* argv[]) {
     }
 
     // ==========================================================================================
-    // ==================================== END PARSING =========================================
+    // =============================== END PARSING USER INPUT ===================================
     // ==========================================================================================
+
+    // ==========================================================================================
+    // ================================= START PARSING CSV ======================================
+    // ==========================================================================================
+
+    /*
+        CSV Data (Strict rule):
+        1. The 1st Column = R || W
+        2. The 2nd Column = Address (either Hexadecimal or Decimal)
+        3. The 3rd Column = Value (empty if R or some(v) if W)
+
+        Exception:
+        Throws Exc at stderr if there are any deviation from the rules
+    */
 
     // initialize the struct
     struct Request requests[numRequests];
 
-    // Read requests from the input CSV file
-    FILE* file = fopen(input_filename, "r");
-    if (!file) {
-        // No need to close file here since fopen will return NULL
-        perror("Failed to open input file");
-        exit(EXIT_FAILURE);
-    }
-    else {
-        // Read the requests from the file
-        // setup buffer
-        char rw[10]; 
-        for (int i = 0; i < numRequests && !feof(file); i++) {
-            fscanf(file, "%s %u", rw, &requests[i].addr);
-            if (strcmp(rw, "Write") == 0) {
-                requests[i].we = 1;
-                fscanf(file, "%u", &requests[i].data);
-            } else {
-                requests[i].we = 0;
-                requests[i].data = -76;
-            }
-        }
+    // parse the csv
+    parse_csv(input_filename, requests, numRequests);
 
-        fclose(file);
-    }
+    // ==========================================================================================
+    // ================================== END PARSING CSV =======================================
+    // ==========================================================================================
 
     // run simulation
     int result = 
