@@ -17,6 +17,14 @@ extern "C" {
     ) 
     {
         // do simulation and return success (0) or failure (!0)
+        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency);
+        
+        
+        std::cout << "test" << std::endl;
+        // sc_start();
+        caches.test_memory();
+        // std::cout << caches.test_memory() << std::endl;
+        // std::cout << mem.read() << std::endl;
         return 0;
     }
 }
