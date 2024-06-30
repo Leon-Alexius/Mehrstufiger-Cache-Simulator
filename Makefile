@@ -17,7 +17,7 @@ HEADERS := src/main/placeHolder.hpp
 TARGET := cache
 
 # Path to your systemc installation
-SCPATH = ../../systemc
+SCPATH = ../../../systemc
 
 # Additional flags for the compiler
 CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
