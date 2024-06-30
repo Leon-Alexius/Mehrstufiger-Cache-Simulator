@@ -2,7 +2,9 @@
 #ifndef MODULES_HPP
 #define MODULES_HPP
 
-
+/* anthony
+added #ifdef __cplusplus so that it works as a c header too
+*/
 #ifdef __cplusplus
 #include <vector>
 #include <iostream>
@@ -10,9 +12,7 @@
 #include <systemc>
 #include <string>
 #include <cmath>
-/* anthony
-added #ifdef __cplusplus so that it works as a c header too
-*/
+
 using namespace sc_core;
 using namespace std;
 
@@ -267,98 +267,98 @@ struct CPU_L1_L2 {
         }
     };
 
-    /* anthony
-        MEMORY serves as the main memory of the computer
-    */
-    SC_MODULE(MEMORY) {
-        sc_in<sc_bv<8*cacheLineSize>> data_in;
-        sc_in<sc_bv<32>> address;
-        sc_in<bool> write_enable;
-        sc_in<bool> clock; 
-        sc_out<sc_bv<8*cacheLineSize>> data_out;
+    // /* anthony
+    //     MEMORY serves as the main memory of the computer
+    // */
+    // SC_MODULE(MEMORY) {
+    //     sc_in<sc_bv<8*cacheLineSize>> data_in;
+    //     sc_in<sc_bv<32>> address;
+    //     sc_in<bool> write_enable;
+    //     sc_in<bool> clock; 
+    //     sc_out<sc_bv<8*cacheLineSize>> data_out;
         
-        private char[1000000] memory_blocks;
-        int latency;
-        int count = 0;
-        SC_CTOR(MEMORY);
+    //     private char[1000000] memory_blocks;
+    //     int latency;
+    //     int count = 0;
+    //     SC_CTOR(MEMORY);
 
-        MEMORY(sc_module_name name, int latency) : sc_module(name), latency(latency) {
-            SC_CTHREAD(update, clk.pos());
-        }
+    //     MEMORY(sc_module_name name, int latency) : sc_module(name), latency(latency) {
+    //         SC_CTHREAD(update, clk.pos());
+    //     }
 
-        /* anthony
-            This update() method will wait until the cycle takes 8 ticks, before executing the write/read
-        */
+    //     /* anthony
+    //         This update() method will wait until the cycle takes 8 ticks, before executing the write/read
+    //     */
         
-        void update() {
-            while (true) {
+    //     void update() {
+    //         while (true) {
 
-                /* anthony
-                    Accessing memory: each cell has 4 bytes, which means that to convert address to index
-                    will be address/4 + address % 4 
-                */
+    //             /* anthony
+    //                 Accessing memory: each cell has 4 bytes, which means that to convert address to index
+    //                 will be address/4 + address % 4 
+    //             */
 
-                unsigned address_u = (address->read()).to_uint();
+    //             unsigned address_u = (address->read()).to_uint();
 
-                if (!write_enable->read()) {
-                    // Read data from memory
-                    bool buffer_out[cacheLineSize*8] = {};
+    //             if (!write_enable->read()) {
+    //                 // Read data from memory
+    //                 bool buffer_out[cacheLineSize*8] = {};
 
-                    for (int i = 0; i < cacheLineSize*8; i += 8) {
-                        char result = memory_blocks[address_u];
+    //                 for (int i = 0; i < cacheLineSize*8; i += 8) {
+    //                     char result = memory_blocks[address_u];
 
-                        // Convert the result into an array of bits
-                        for (int j=0; j<8; j++) buffer_out[j + i] = ((result & (1<<(j))) != 0);
+    //                     // Convert the result into an array of bits
+    //                     for (int j=0; j<8; j++) buffer_out[j + i] = ((result & (1<<(j))) != 0);
 
-                        // Change address
-                        address_u++;
-                    }
+    //                     // Change address
+    //                     address_u++;
+    //                 }
 
-                    // Make temporary vector to write to data_out
-                    sc_bv<8*cacheLineSize> buffer_vector;
-                    buffer_vector = buffer_out;
+    //                 // Make temporary vector to write to data_out
+    //                 sc_bv<8*cacheLineSize> buffer_vector;
+    //                 buffer_vector = buffer_out;
                     
-                    // Wait for the latency time
-                    for (int i = 0; i < latency - 1; i++) {
-                        wait();
-                    }
+    //                 // Wait for the latency time
+    //                 for (int i = 0; i < latency - 1; i++) {
+    //                     wait();
+    //                 }
 
-                    // Write to data_out
-                    data_out->write(buffer_vector);
-                } else {
-                    // Write data to memory
-                    sc_bv<8*cacheLineSize> buffer_vector = data_in->read();
-                    std::string temp = buffer_vector.to_string();
+    //                 // Write to data_out
+    //                 data_out->write(buffer_vector);
+    //             } else {
+    //                 // Write data to memory
+    //                 sc_bv<8*cacheLineSize> buffer_vector = data_in->read();
+    //                 std::string temp = buffer_vector.to_string();
 
-                    for (int i = 0; i < cacheLineSize*8; i += 8) {
-                        char c = 0;
+    //                 for (int i = 0; i < cacheLineSize*8; i += 8) {
+    //                     char c = 0;
 
-                        // Convert string to array of bytes which are written directly to temp
-                        for (int j = 0; j < 8; j++) {
-                            c |= (temp[j + i] == "0") ? 0 : (1<<j);
-                        }
+    //                     // Convert string to array of bytes which are written directly to temp
+    //                     for (int j = 0; j < 8; j++) {
+    //                         c |= (temp[j + i] == "0") ? 0 : (1<<j);
+    //                     }
 
                         
 
-                        // Write to memory
-                        memory_blocks[address_u] = c;
+    //                     // Write to memory
+    //                     memory_blocks[address_u] = c;
 
-                        // Change address
-                        address_u++;
+    //                     // Change address
+    //                     address_u++;
 
-                    }
+    //                 }
 
-                    // Stall for the latency time
-                    for (int i = 0; i < latency - 1; i++) {
-                        wait();
-                    }
-                }
+    //                 // Stall for the latency time
+    //                 for (int i = 0; i < latency - 1; i++) {
+    //                     wait();
+    //                 }
+    //             }
 
-                wait();
-            }
-        }
-    }
-}
+    //             wait();
+    //         }
+    //     }
+    // }
+};
 #endif
 
 struct Request {
