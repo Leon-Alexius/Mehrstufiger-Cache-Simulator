@@ -10,7 +10,10 @@
 // #include "../modules/modules.hpp"
 #include "placeHolder.hpp"
 
-// The run_simulation method in C++
+/**
+ * @brief The run_simulation method in C++
+ * @author Lie Leon Alexius
+ */
 extern int run_simulation(
     int cycles,
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
@@ -19,11 +22,12 @@ extern int run_simulation(
     const char* tracefile
 );
 
-/*
-    DO NOT CHANGE THIS
-    Method for -h or --help
-    Shortest possible input is `./cache filename.csv`
-*/
+/**
+ * @brief Method for -h or --help
+ * @note Shortest possible input is `./cache filename.csv`
+ * @warning DO NOT CHANGE THIS
+ * @author Lie Leon Alexius
+ */
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
@@ -38,20 +42,47 @@ void print_help() {
     printf("  -h, --help                   Display this help and exit\n");
 }
 
-/*
-    This method parses the .csv file.
+/**
+ * @brief removes whitespaces from a string
+ * @note `"Le o n"` would be `"Leon"` and `" "` would be `""`
+ * @author Lie Leon Alexius
+ */
+void remove_whitespaces(char* input) {
+    int n = strlen(input);
+    int j = 0;
+    for (int i = 0; i < n; i++) {
+        if (input[i] != ' ') {
+            input[j++] = input[i];
+        }
+    }
+    input[j] = '\0';
+}
 
-    A valid .csv file follows these rules:
-    1. Each Row is in format of `W,Adr,Val` || `R,Adr,` || `R,Adr,<whitespace(s)>`
-    2. New Lines at the end of the file are allowed
-    3. `Adr` is either Decimal or Hexadecimal
-    4. `Val` is either Decimal or Hexadecimal
-    5. Number of Row >= Number of the to be simulated Requests
-
-    TODO: Fix Throw "Error: number of requests parsed does not match numRequests\n"
-*/
+/**
+ * @brief Parses a .csv file and fills the Request struct.
+ *
+ * @note A valid .csv file follows these rules:
+ *  1. A valid row is in the format of `W,Adr,Val` or `R,Adr` or `R,Adr,<whitespace(s)>`.
+ *  2. New lines at the end of the file are allowed.
+ *  3. New lines between valid rows are allowed.
+ *  4. `Adr` can be either decimal or hexadecimal (e.g., 0x123 or 0X123).
+ *  5. `Val` can be either decimal or hexadecimal (e.g., 0x123 or 0X123).
+ *  6. The number of valid rows must be greater than or equal to the number of requests to be simulated.
+ *
+ * @param input_filename The name of the .csv file to parse.
+ * @param requests An array of Request structs to fill.
+ * @param numRequests The number of requests to be simulated.
+ *
+ * @return void
+ *
+ * @todo Adjust the maximum buffer length (need to calculate how much we need).
+ *
+ * @warning DO NOT REMOVE ANY OF THE COMMENTS!
+ * @author Lie Leon Alexius
+ */
 void parse_csv(const char* input_filename, struct Request* requests, int numRequests) {
     // Open the file
+    // Syntax: FILE* fptr; fptr = fopen(filename, mode);
     FILE* file = fopen(input_filename, "r");
     if (!file) {
         // No need to close file here since fopen will return NULL
@@ -60,16 +91,29 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
     }
 
     // Initialize buffer
-    char line[100];
-    char rw[10];
-    char addr_str[20];
-    char data_str[20];
+    char line[100]; // assume a line up to 100 char (max)
+    char rw[10]; // R or W
+    char addr_str[20]; // Hexadecimal or Decimal
+    char data_str[20]; // Hexadecimal or Decimal
 
-    int i = 0; // request counter
+    int i = 0; // request(s) counter
 
     // Read the requests from the file
-    while (fgets(line, sizeof(line), file)) {
-        // Remove the newline character if present
+    // Syntax: fgets(buffer, buffer_size, fptr);
+    /*
+        """
+        my name is John Doe\n
+        my name is Jane Doe\n
+        \n
+        \n
+        """
+        fgets() -> "my name is John Doe\n"
+        fgets() -> "my name is Jane Doe\n"
+        fgets() -> "\n"
+        fgets() -> "\n"
+    */
+    while (fgets(line, sizeof(line), file) != NULL) {
+        // Remove the first occurrence of (\n) replace it with the null character (\0)
         line[strcspn(line, "\n")] = 0;
 
         // Reset buffers
@@ -78,16 +122,38 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
         memset(data_str, 0, sizeof(data_str));
 
         // Parse the line
-        int fields = sscanf(line, "%[^,],%[^,],%[^\n]", rw, addr_str, data_str);
+        // %[^,] matches any sequence of characters except for a comma (stop if see comma)
+        // , is a delimiter marks that next field starts after a comma
+        int fields = sscanf(line, "%[^,],%[^,],%s", rw, addr_str, data_str);
 
-        // Handle possible trailing whitespace in the data field for read requests
-        if (fields == 3 && rw[0] == 'R' && data_str[0] == ' ') {
-            data_str[0] = '\0';
+        /*  Cases
+            1. "Hello,World,!" -> "Hello"; "World"; "!"
+            2. "He,llo,World,!" -> "He"; "llo"; "World,!" (PROBLEM)
+            3. "    " -> "    "; ""; "" (EDGE CASE)
+        */
+
+        // Remove whitespace(s)
+        remove_whitespaces(rw);
+        remove_whitespaces(addr_str);
+        remove_whitespaces(data_str);
+
+        // Check if the third field has no other field
+        // strchr() returns a pointer to the first occurrence of the character c in the string s
+        if (strchr(data_str, ',') != NULL) {
+            fprintf(stderr, "Invalid third collumn: %s\n", data_str);
+            exit(EXIT_FAILURE);
+        }
+        
+        // Case: trailing whitespace in the data field for read requests
+        // Note: remove_whitespaces() should have made 1st char into '\0'
+        if (fields == 3 && rw[0] == 'R' && data_str[0] == '\0') {
             fields = 2;
         }
 
         // Min. valid field in a row = 2
-        if (fields < 2) {
+        // Note: This should be triggered only if the syntax of .csv is false
+        //       We ignore Empty lines (look at if-else if-else)
+        if (fields < 2 && (rw[0] != '\0' || addr_str[0] != '\0' || data_str[0] != '\0')) {
             fprintf(stderr, "Error in parsing the data - wrong format\n");
             exit(EXIT_FAILURE);
         }
@@ -115,7 +181,7 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
             }
 
             i++;
-        } 
+        }
 
         // Case: Read
         else if (strcmp(rw, "R") == 0) {
@@ -135,14 +201,21 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
             }
 
             i++;
-        } 
+        }
 
         // Case: Unknown Op
         else {
-            fprintf(stderr, "Error in parsing the data - unrecognized command\n");
-            exit(EXIT_FAILURE);
+            // ignore empty line with whitespaces (See case-3 in sscanf())
+            if(rw[0] == '\0') {
+                continue;
+            }
+            else {
+                fprintf(stderr, "Error in parsing the data - unrecognized command\n");
+                exit(EXIT_FAILURE);
+            }
         }
 
+        // Case: Enough valid Requests has been read
         if (i >= numRequests) {
             break;
         }
@@ -158,26 +231,27 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
     }
 }
 
-/*  
-    The main function is the entry point of the program.
-    
-    This function parses the user inputs and set the variables accordingly.
-    After that, it will calls the simulator to run the simulation.
-
-    Each of the variables has default values:
-    1. cycles = 1000000 (default simulation cycles)
-    2. l1CacheLines = 64 (default number of lines in L1 cache)
-    3. l2CacheLines = 256 (default number of lines in L2 cache)
-    4. cacheLineSize = 64 (default cache line size in bytes)
-    5. l1CacheLatency = 4 (default latency for L1 cache in cycles)
-    6. l2CacheLatency = 12 (default latency for L2 cache in cycles)
-    7. memoryLatency = 100 (default latency for memory access in cycles)
-    8. numRequests = 1000 (default number of requests)
-    9. tracefile = "default_trace.vcd" (default trace file name)
-
-    Source:
-    https://d-nb.info/978930487/34
-*/
+/**
+ * @brief 
+ * This function parses the user inputs and set the variables accordingly. 
+ * After that, it will calls the simulator to run the simulation.
+ * 
+ * @details
+ * Each of the variables has default values:
+ *  1. cycles = 1000000 (default simulation cycles)
+ *  2. l1CacheLines = 64 (default number of lines in L1 cache)
+ *  3. l2CacheLines = 256 (default number of lines in L2 cache)
+ *  4. cacheLineSize = 64 (default cache line size in bytes)
+ *  5. l1CacheLatency = 4 (default latency for L1 cache in cycles)
+ *  6. l2CacheLatency = 12 (default latency for L2 cache in cycles)
+ *  7. memoryLatency = 100 (default latency for memory access in cycles)
+ *  8. numRequests = 1000 (default number of requests)
+ *  9. tracefile = "default_trace.vcd" (default trace file name) 
+ * 
+ * @note The main function is the entry point of the program.
+ * @link https://d-nb.info/978930487/34 (source for default value)
+ * @author Lie Leon Alexius
+ */
 int main(int argc, char* argv[]) {
     // Default values
     int cycles = 1000000;
@@ -187,7 +261,7 @@ int main(int argc, char* argv[]) {
     unsigned l1CacheLatency = 4;
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
-    size_t numRequests = 9; // Should be 1000, but set to 9 to test .csv
+    size_t numRequests = 1000; // Set to n to test .csv
     const char* tracefile = "default_trace.vcd";
 
     // Filename for the input CSV file
