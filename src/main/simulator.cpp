@@ -10,17 +10,24 @@ extern "C" {
     /**
      * @brief Runs the cache simulation
      *
-     * @param cycles Default value is `1000`.
+     * @param cycles The number of cycles for the simulation. Default value is `1000000`.
+     * @param l1CacheLines The number of lines in L1 cache. Default value is `64`.
+     * @param l2CacheLines The number of lines in L2 cache. Default value is `256`.
+     * @param cacheLineSize The cache line size in bytes. Default value is `64`.
+     * @param l1CacheLatency The latency for L1 cache in cycles. Default value is `4`.
+     * @param l2CacheLatency The latency for L2 cache in cycles. Default value is `12`.
+     * @param memoryLatency The latency for memory access in cycles. Default value is `100`.
+     * @param numRequests The number of requests. Default value is `1000`.
+     * @param requests A pointer to the array of Request structures.
+     * @param tracefile The name of the trace file. Default value is "default_trace.vcd".
      * 
      * @return `0` if the simulation is successful, `!0` else
-     * 
-     * @note Please comment out test(s) if not working. This is used for testing `input_parser`
      * 
      * @warning Not tested yet
      * @bug Not tested yet
      * 
-     * @todo Finish dependency modules (Cache, L1, L2)
      * @todo tracefile shouldn't be written if it is "default_trace.vcd"
+     * 
      * @author Lie Leon Alexius
      */
     int run_simulation(

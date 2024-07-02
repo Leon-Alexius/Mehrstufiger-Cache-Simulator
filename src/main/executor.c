@@ -32,6 +32,9 @@ int main(int argc, char* argv[]) {
     // run parser
     Config config = start_parse(argc, argv);
 
+    // EXPERIMENTAL
+    testPrinter();
+
     // run simulation
     int result = 
     run_simulation(
