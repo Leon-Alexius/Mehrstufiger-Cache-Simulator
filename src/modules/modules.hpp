@@ -2,6 +2,14 @@
 #ifndef MODULES_HPP
 #define MODULES_HPP
 
+
+#ifdef __cplusplus
+#include <vector>
+#include <iostream>
+#include "systemc.h"
+#include <systemc>
+#include <string>
+#include <cmath>
 /* anthony
 added #ifdef __cplusplus so that it works as a c header too
 */
@@ -22,9 +30,14 @@ extern "C" int run_simulation(
     int cycles,
     unsigned l1CacheLines,
     unsigned l2CacheLines,
+    int cycles,
+    unsigned l1CacheLines,
+    unsigned l2CacheLines,
     unsigned cacheLineSize, 
     unsigned l1CacheLatency, 
     unsigned l2CacheLatency, 
+    unsigned memoryLatency,
+    size_t numRequests,
     unsigned memoryLatency,
     size_t numRequests,
     struct Request* requests,
@@ -33,7 +46,9 @@ extern "C" int run_simulation(
 
 struct CPU_L1_L2 {
     
+    
     unsigned l1CacheLines;
+    unsigned l2CacheLines;       
     unsigned l2CacheLines;       
     unsigned cacheLineSize;
     unsigned l1CacheLatency;
@@ -239,6 +254,7 @@ struct CPU_L1_L2 {
         sc_in<char> data_in_from_Mem[cacheLineSize];
 
         sc_in<sc_bv<32>> address;
+        sc_out<sc_bv<32>> address_out;
         sc_out<sc_bv<32>> address_out;
         sc_in<bool> write_enable;
         sc_out<bool> write_enable_out;
@@ -519,3 +535,4 @@ struct Result {
 };
 
 #endif
+
