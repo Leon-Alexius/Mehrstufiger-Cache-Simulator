@@ -2,8 +2,13 @@
 // https://github.com/nothings/stb/blob/master/stb_image.h
 #include <stdio.h>
 #include <stdlib.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize2.h"
+
 #include "printer.h"
 
 /**
@@ -33,18 +38,32 @@ void print_layout() {
 }
 
 // Variables for printing image: pixels, and ASCII (brightness levels)
-unsigned char image_data[100][100];
+// Use Pointer -> Pointer rather than static array
+unsigned char** image_data; 
 char ascii_chars[] = " .:-=+*#%@";
 
 /**
+ * @brief free the memory of the image_data
+ * @param width the width of the image data
+ * @param height the height of the image data
+ * @author Lie Leon Alexius
+ */
+void free_image_data(int width, int height) {
+    for (int i = 0; i < width; i++) {
+        free(image_data[i]);
+    }
+    free(image_data);
+}
+
+/**
  * @brief Prints an image to the terminal
+ * @param width the width of the image data
+ * @param height the height of the image data
  * @warning image must be grayscale before calling this
  * @author Lie Leon Alexius
  */
-void print_image_to_terminal() {
-    int width = 100;
-    int height = 100;
-
+void print_image(int width, int height) {
+    // iterate through the image pixels
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             unsigned char pixel_value = image_data[x][y];
@@ -59,7 +78,15 @@ void print_image_to_terminal() {
 }
 
 /**
- * @brief This function loads the image into image_data array (loaded as grayscale)
+ * @brief load image -> print -> clean up
+ * 
+ * @details
+ * This function loads the image into image_data array (loaded as grayscale)
+ * 
+ * @return
+ * `0` if sucess, `1` if failure
+ * 
+ * @note Auto prints, auto free-up memory
  * @author Lie Leon Alexius
  */
 int load_image(const char *filename) {
@@ -72,18 +99,43 @@ int load_image(const char *filename) {
 
     if (img == NULL) {
         printf("Error loading image\n");
-        return 0;
+        return 1;
     }
 
-    // Resize and copy the image into the image_data array (assuming the image is larger than 100x100)
-    for (int y = 0; y < 100; y++) {
-        for (int x = 0; x < 100; x++) {
-            image_data[x][y] = img[y * width + x];
+    // Best: width = 100, height = 50 (Bigger is better, but need to scroll - terminal too small)
+    int new_width = 100;
+    int new_height = 50;
+
+    // Allocate memory for the resized image
+    unsigned char *resized_img = (unsigned char*)malloc(new_width * new_height);
+
+    // Resize the image
+    stbir_resize_uint8_linear(img, width, height, 0, resized_img, new_width, new_height, 0, STBIR_1CHANNEL);
+    
+    // Allocate memory for the image_data array based on the new image size
+    image_data = (unsigned char**)malloc(new_width * sizeof(unsigned char*));
+    for (int i = 0; i < new_width; i++) {
+        image_data[i] = (unsigned char*)malloc(new_height * sizeof(unsigned char));
+    }
+
+    // Copy the resized image into the image_data array
+    for (int y = 0; y < new_height; y++) {
+        for (int x = 0; x < new_width; x++) {
+            image_data[x][y] = resized_img[y * new_width + x];
         }
     }
 
+    // free the loaded image and temp buffer
     stbi_image_free(img);
-    return 1;
+    free(resized_img);
+
+    // Call the print_image function with the new image size
+    print_image(new_width, new_height);
+
+    // free the buffer
+    free_image_data(new_width, new_height);
+
+    return 0;
 }
 
 /**
@@ -119,11 +171,11 @@ unsigned char* convert_rgb_to_grayscale(unsigned char* img, int width, int heigh
  * @author Lie Leon Alexius
  */
 int testPrinter() {
-    if (!load_image("test.png")) {
-        return 1;
-    }
-    
-    print_image_to_terminal();
+    print_layout();
 
-    return 0;
+    if (!load_image("src/assets/images/Himeko.png")) {
+        return 0;
+    }
+
+    return 1;
 }
