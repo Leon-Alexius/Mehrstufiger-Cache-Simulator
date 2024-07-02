@@ -14,6 +14,9 @@ int run_simulation(
     ) 
     {
         // do simulation and return success (0) or failure (!0)
+        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency);
+
+        caches.test_L2();
         return 0;
     }
 
