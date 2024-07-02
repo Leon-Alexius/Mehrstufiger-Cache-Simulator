@@ -1,3 +1,3 @@
 make clean
 make
-./cache src/main/default_data.csv
+./cache src/assets/csv/default_data_valid.csv

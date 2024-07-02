@@ -237,7 +237,6 @@ struct CPU_L1_L2 {
 
         sc_in<sc_bv<32>> address;
         sc_out<sc_bv<32>> address_out;
-        sc_out<sc_bv<32>> address_out;
         sc_in<bool> write_enable;
         sc_out<bool> write_enable_out;
         sc_out<char> data_out_to_L1[cacheLineSize];

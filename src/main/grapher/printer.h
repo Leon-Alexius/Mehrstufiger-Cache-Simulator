@@ -9,5 +9,6 @@ extern char ascii_chars[];
 void print_layout();
 void print_image_to_terminal();
 int load_image(const char *filename);
+unsigned char* convert_rgb_to_grayscale(unsigned char* img, int width, int height);
 
 #endif // PRINTER_H
