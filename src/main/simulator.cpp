@@ -2,15 +2,15 @@
 #include <systemc>
 
 // Request and Result struct
-// #include "../modules/modules.hpp"
-#include "placeHolder.hpp"
+#include "../modules/modules.hpp"
+// #include "placeHolder.hpp"
 
 // prevent the C++ compiler from mangling the function name
 extern "C" {
     /**
      * @brief Runs the cache simulation
      *
-     * @param[in] cycles Default value is `1000`.
+     * @param cycles Default value is `1000`.
      * 
      * @return `0` if the simulation is successful, `!0` else
      * 
@@ -31,12 +31,8 @@ extern "C" {
         const char* tracefile
     ) 
     {
-        // CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency);
-        // std::cout << "test" << std::endl;
-        // sc_start();
-        // caches.test_memory();
-        // std::cout << caches.test_memory() << std::endl;
-        // std::cout << mem.read() << std::endl;
+        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency);
+        caches.test_L2();
 
         return 0;
     }
