@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <getopt.h>
 #include <string.h>
+#include "printer.h"
 
 // Request and Result struct
 // #include "../modules/modules.hpp"
@@ -435,6 +436,9 @@ int main(int argc, char* argv[]) {
     // ==========================================================================================
     // ================================== END PARSING CSV =======================================
     // ==========================================================================================
+
+    // EXPERIMENT
+    print_layout();
 
     // run simulation
     int result = 
