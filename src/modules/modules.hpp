@@ -46,188 +46,365 @@ struct CPU_L1_L2 {
 
     }
   
-    // SC_MODULE(L1){
-    //     sc_in<char[]> data_in;
-    //     sc_in<sc_bv<32>> address;
-    //     sc_in<sc_bv<32>> address_out;
-    //     sc_in<bool> write_enable;
-    //     sc_in<bool> clk;
-    //     sc_out<bool> write_enable_out;
-    //     sc_out<char[]> data_out;
-    //     sc_out<bool> hit;
+    /*Trang*/
+    template<unsigned cacheLineSize, unsigned l1CacheLines>SC_MODULE(L1){
+
+        sc_in<char> data_in_from_CPU[4];
+        sc_in<char> data_in_from_L2[cacheLineSize];
+
+        sc_in<sc_bv<32>> address;
+        sc_out<sc_bv<32>> address_out;
+
+        sc_in<bool> write_enable;
+        sc_out<bool> write_enable_out;
+
+        sc_out<char> data_out_to_CPU[4];
+        sc_out<char> data_out_to_L2[cacheLineSize];
         
-    //     unsigned l1CacheLines;
-    //     unsigned l1CacheLatency;
-    //     unsigned cacheLineSize;
-    //     vector<bool> valid(l1CacheLines, false);
-    //     vector<bool> dirty(l1CacheLines, false);
-    //     vector<uint32_t> tags;
+        sc_out<bool> hit;
+        sc_in<bool> done_from_L2;
+        sc_in<bool> clk;
 
-    //     unsigned L1latency;
-
-    //     char cache_blocks[][];
-
-    //     SC_CTOR(L1);
+        sc_out<bool> done;
         
-    //     L1(sc_module_name name, unsigned l1CacheLines, unsigned cacheLineSize, unsigned l1CacheLatency) : L1(name), l1CacheLines(l1CacheLines), cacheLineSize(cacheLineSize), l1CacheLatency(l1CacheLatency) { 
-    //         SC_CTHREAD(update, clk.pos());
-    //         cache_blocks = new char[l1CacheLines][cacheLineSize]
-    //     }
 
-    //     void update(){
-
-    //         while (true)
-    //         {
-    //             /*converts address from binary to decimal*/
-    //              unsigned address_int = address->read().to_uint();
-
-    //             /*extracts metadata bits from address*/
-    //             /*using bit casting, because cache line size and number of cache lines are always power of 2*/
-    //             unsigned index = (address >> int(log2(l1CacheLines))) & (l1CacheLines-1);
-    //             unsigned tag = address >> int(log2(cacheLineSize)-1) >> int(log2(l1CacheLines)-1);
-    //             unsigned offset = address & (cacheLineSize-1);
-
-    //             /*write operation*/
-    //             if(write_enable->read()){
-    //                 if (tags[index] == tag && valid[index] == true)
-    //                 /*write hit, write through*/
-    //                 {
-    //                     hit->write(true);
-    //                     for (int i=0; i<cacheLineSize;i++){
-    //                         /*write the input data to the matching cacheline */
-    //                         char data[cacheLineSize] = data_in.read()
-    //                         cache_blocks[index][i]= 0;
-    //                     }
-    //                     dirty[index] = true;
-    //                     break;
-    //                 /*write miss, propagate to L2*/
-    //                 } else{
-    //                     data_out->write(data_in->read());
-    //                     address_out->write(address_in->read());
-    //                     write_enable_out->write(write_enable->read());
-    //                 }
+        char cache_blocks[l1CacheLines][cacheLineSize];
+        
 
 
-    //             /*read operation*/
-    //             } else{
-    //                 /*cache hit*/
-    //                 if (valid[index] && tags[index]==tag)
-    //                 {
-    //                     hit->write(true);
-    //                     /*bring the data from cache back to cpu*/
-    //                     sc_bv<8*cache_line_size> tmp;
-    //                     for (int i = 0; i < cache_line_size; i++)
-    //                     {//copy each byte from the cache line to vector tmp
-    //                         tmp.range(8*(i+1)-1, 8*i) = cache_blocks[index][i];
-    //                     }
-    //                     data_out->write(tmp);
-    //                     break;
-    //                 }
-    //                 /*cache miss, propagate to L2*/
-    //                 else{
-    //                     address_out->write(address_in->read());
-    //                     write_enable_out->write(write_enable->read());
-    //                 }
+        bool valid[l1CacheLines];
+        uint32_t tags[l1CacheLines];
+
+        unsigned l1CacheLatency;
+        unsigned l2CacheLatency;
+        unsigned memoryLatency;
+
+        SC_CTOR(L1);
+        L1(sc_module_name name, unsigned l1CacheLatency): sc_module(name),  l1CacheLatency(l1CacheLatency) {
+            SC_CTHREAD(update, clk.pos());
+        };
+
+
+
+        void update(){
+            while (true)
+            {
+                /*converts address from binary to decimal*/
+                unsigned address_int = address->read().to_uint();
+
+                /*extracts metadata bits from address*/
+                /*using bit casting, because cache line size and number of cache lines are always power of 2*/
+                size_t index = (address_int >> int(log2(l1CacheLines))) & (l1CacheLines-1);
+                unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l1CacheLines)-1);
+                unsigned offset = address_int & (cacheLineSize-1);
+                std::cout << tag << std::endl;
+                /*write operation*/
+                if(write_enable->read()){
+                    if ((tags[index] == tag )&& (valid[index]))
+                    /*write hit, write through*/
+                    {
+                        hit->write(true);
+                        for (int i = 0; i < 4; i++){
+                            /*write the input data to the matching cacheline */
+                            cache_blocks[index][i + offset]= data_in_from_CPU[i].read();
+                            std::cout << cache_blocks[index][i + offset] << std::endl;
+                        }
+                    }
+
+                    /*no matter write miss or write hit, propagate to L2*/
                     
-    //             }
+                    for (int i = 0; i < 4; i++) {
+                        data_out_to_L2[i]->write(data_in_from_CPU[i]->read());
+                    }
+                    // data_out->write(data_in_from_CPU->read());
+                    // std::cout << data_in_from_CPU->read() << std::endl;
 
-    //             /*waits for clock*/
-    //             for (int i = 0; i < L1latency - 1; i++) {
-    //                 wait();
-    //             }
+                    address_out->write(address->read());
+                    write_enable_out->write(write_enable->read());
+
+                /*read operation*/
+                } else{
+                    /*cache hit*/
+                    if (valid[index] && tags[index]==tag)
+                    {
+                        hit->write(true);
+                        /// Bring the data to cpu
+                        for (int i = 0; i < 4; i++) {
+                            data_out_to_CPU[i]->write(cache_blocks[index][i + offset]);
+                        }
+                    }
+                    /*
+                    Read miss, propagate to L2, load cacheline from L2 to L1, and write to data_out_to_CPU
+                    */
+                    else{
+                        address_out->write(address->read());
+                        write_enable_out->write(write_enable->read());
+                        while (!done_from_L2->read()) {
+                            wait();
+                        }
+                        for (int i = 0; i < cacheLineSize; i++) {
+                            cache_blocks[index][i] = data_in_from_L2[i]->read();
+                        }
+                    }
+                   
+                }
+
+                /*waits for clock*/
+                for (int i = 0; i < l1CacheLatency; i++) {
+                    wait();
+                }
+                done->write(true);
                 
-    //         }
-
-    //     }
-    // };
-
+            }
+            
+            
 
 
-    // /*Trang*/
-    // SC_MODULE(L2){
-    //     sc_in<char[]> data_in;
-    //     sc_in<sc_bv<32>> address;
-    //     sc_in<sc_bv<32>> address_out;
-    //     sc_in<bool> write_enable;
-    //     sc_out<bool> write_enable_out;
-    //     sc_out<char[]> data_out;
-    //     sc_bv<bool> hit;
 
-    //     vector<bool> valid (l2CacheLines, false);
-    //     vector<bool> dirty (l2CacheLines, false);
-    //     vector<uint32_t> tags;
+        }
+    };
 
-    //     unsigned L2latency;
+    int test_L1() {
+        L1<64, 4> l1("l1", 1);
+        char data[64] = {'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+                        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+                        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+                        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'};
+        
+        sc_signal<char> data_in[64];
+        
 
-    //     SC_CTOR(L2) { 
-    //         SC_CTHREAD(update, clk.pos());
-    //     }
+        sc_signal<char> data_in_l2[64];
 
-    //     void update(){
+        sc_signal<char> data_out_to_CPU[4];
+        sc_signal<char> data_out_to_L2[64];
 
-    //         while (true)
-    //         {
-    //             /*converts address from binary to decimal*/
-    //              unsigned address_int = address->read().to.uint();
+        sc_signal<bool> hit;
+        sc_signal<bool> done;
+        sc_signal<sc_bv<32>> address;
+        sc_bv<32> address_buffer;
+        sc_signal<sc_bv<32>> address_out;
 
-    //             /*extracts metadata bits from address*/
-    //             /*using bit casting, because cache line size and number of cache lines are always power of 2*/
-    //             unsigned index = (address >> int(log2(l2CacheLines))) & (l2CacheLines-1);
-    //             unsigned tag = address >> int(log2(cache_line_size)-1) >> int(log2(l2CacheLines)-1);
-    //             unsigned offset = address & (cache_line_size-1);
+        
+        sc_clock clk("clk", 1, SC_SEC);
 
-    //             /*write operation*/
-    //             if(write_enable->read()){
-    //                 if (tags[index] == tag && valid[index])
-    //                 /*write hit, write through*/
-    //                 {
-    //                     hit->write(true);
-    //                     for (int i=0; i<cache_line_size;i++){
-    //                         /*write the input data to the matching cacheline */
-    //                         cache_blocks[index][i]= data_in->read().range(8*(i+1)-1,8*1).to_uint();
-    //                     }
-    //                     dirty[index] = true;
-    //                     break;
-    //                 /*write miss, propagate to L2*/
-    //                 } else{
-    //                     data_out->write(data_in->read());
-    //                     address_out->write(address_in->read());
-    //                     write_enable_out->write(write_enable->read());
-    //                 }
+        sc_signal<bool> done_from_L2;
+        done_from_L2 = false;
+        
+        sc_signal<bool> we;
+        we = true;
+        sc_signal<bool> we_out;
+
+        for (int i = 0; i < 4; i++) {
+            data_in[i] = data[i];
+            l1.data_in_from_CPU[i](data_in[i]);
+            l1.data_out_to_CPU[i](data_out_to_CPU[i]);
+        }
+
+        for (int i = 0; i < 64; i++) {
+            
+            l1.data_in_from_L2[i](data_in_l2[i]);
+            l1.data_out_to_L2[i](data_out_to_L2[i]);
+        }
+        
+
+        l1.address(address);
+        l1.address_out(address_out);
+        l1.clk(clk);
+        l1.write_enable(we);
+        l1.write_enable_out(we_out);
+        l1.hit(hit);
+        l1.done(done);
+
+        l1.done_from_L2(done_from_L2);
 
 
-    //             /*read operation*/
-    //             } else{
-    //                 /*cache hit*/
-    //                 if (valid[index] && tags[index]==tag)
-    //                 {
-    //                     hit->write(true);
-    //                     /*bring the data from cache back to cpu*/
-    //                     sc_bv<8*cache_line_size> tmp;
-    //                     for (int i = 0; i < cache_line_size; i++)
-    //                     {//copy each byte from the cache line to vector tmp
-    //                         tmp.range(8*(i+1)-1, 8*i) = cache_blocks[index][i];
-    //                     }
-    //                     data_out->write(tmp);
-    //                     break;
-    //                 }
-    //                 /*cache miss, propagate to L2*/
-    //                 else{
-    //                     address_out->write(address_in->read());
-    //                     write_enable_out->write(write_enable->read());
-    //                 }
+        sc_start(1, SC_SEC);
+        for (int i = 0; i < 4; i++) {
+            std::cout << data_out_to_L2[i];
+        }
+        std::cout << std::endl;
+        // std::cout << data_in << std::endl;
+        return 0;
+    }
+
+
+
+    /*Trang*/
+    template<unsigned cacheLineSize, unsigned l2CacheLines>SC_MODULE(L2){
+        sc_in<char> data_in_from_L1[cacheLineSize];
+        sc_in<char> data_in_from_Mem[cacheLineSize];
+
+        sc_in<sc_bv<32>> address;
+        sc_out<sc_bv<32>> address_out;
+        sc_out<sc_bv<32>> address_out;
+        sc_in<bool> write_enable;
+        sc_out<bool> write_enable_out;
+        sc_out<char> data_out_to_L1[cacheLineSize];
+        sc_out<char> data_out_to_Mem[cacheLineSize];
+        sc_out<bool> hit;
+        sc_in<bool> done_from_Mem;
+
+        sc_out<bool> done;
+
+        sc_in<bool> clk;
+
+        char cache_blocks[l2CacheLines][cacheLineSize] ;
+
+        bool valid[l2CacheLines];
+        uint32_t tags[l2CacheLines];
+      
+        // char data_blocks[l2CacheLines][cacheLineSize];
+
+        unsigned l2CacheLatency;
+
+        SC_CTOR(L2);
+        L2(sc_module_name name, unsigned l2CacheLatency): sc_module(name), l2CacheLatency(l2CacheLatency){
+            SC_CTHREAD(update, clk.pos());
+        }
+
+        void update(){
+
+            while (true)
+            {
+                /*converts address from binary to decimal*/
+                unsigned address_int = address->read().to_uint();
+
+                /*extracts metadata bits from address*/
+                /*using bit casting, because cache line size and number of cache lines are always power of 2*/
+                unsigned index = (address_int >> int(log2(l2CacheLines))) & (l2CacheLines-1);
+                unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l2CacheLines)-1);
+                unsigned offset = address_int & (cacheLineSize-1);
+
+                /*write operation*/
+                if(write_enable->read()){
+                    if (tags[index] == tag && valid[index])
+                    // write hit, write through
+                    {
+                        hit->write(true);
+                        for (int i=0; i<cacheLineSize;i++){
+                            /*write the input data to the matching cacheline */
+                            cache_blocks[index][i+offset]= data_in_from_L1[i]->read();
+                        }
+                    // propagate to Memory
+                    }
+                    for (int i = 0; i < cacheLineSize; i++)
+                    {
+                        data_out_to_Mem[i]->write(data_in_from_L1[i]->read());
+                    }
                     
-    //             }
+                    // data_out_to_Mem->write(data_in_from_L1->read());
+                    address_out->write(address->read());
+                    write_enable_out->write(write_enable->read());
+                    
 
-    //             /*waits for clock*/
-    //             for (int i = 0; i < L2latency - 1; i++) {
-    //                     wait();
-    //             }
+
+                /*read operation*/
+                } else{
+                    /*cache hit*/
+                    if (valid[index] && tags[index]==tag)
+                    {
+                        hit->write(true);
+                        /*bring the data from cache back to cpu*/
+                        for (int i = 0; i < cacheLineSize; i++)
+                        {//copy each byte from the cache line to vector tmp
+                            data_out_to_L1[i]->write(cache_blocks[index][i]);
+                        }
+
+                    }
+                    /*cache miss, propagate to mem*/
+                    else{
+                        address_out->write(address->read());
+                        write_enable_out->write(write_enable->read());
+                        while (!done_from_Mem->read()) {
+                            wait();
+                        }
+
+                        for (int i = 0; i < cacheLineSize; i++) {
+                            cache_blocks[index][i] = data_in_from_Mem[i]->read();
+                        }
+                    }
+                    
+                }
+
+                /*waits for clock*/
+                for (int i = 0; i < l2CacheLatency; i++) {
+                        wait();
+                }
+                done->write(true);
                 
-    //         }
+            }
+            
+            
 
-    //     }
-    // };
+
+
+        }
+    };
+
+    int test_L2() {
+        L2<64, 4> l2("l2", 1);
+        char data[64] = {'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+                        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+                        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+                        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'};
+        
+        sc_signal<char> data_in[64];
+        
+
+        sc_signal<char> data_in_from_Mem[64];
+
+        sc_signal<char> data_out_to_L1[64];
+        sc_signal<char> data_out_to_Mem[64];
+
+        sc_signal<bool> hit;
+        sc_signal<sc_bv<32>> address;
+        sc_bv<32> address_buffer;
+        sc_signal<sc_bv<32>> address_out;
+
+        
+        sc_clock clk("clk", 1, SC_SEC);
+
+        sc_signal<bool> done_from_Mem;
+        done_from_Mem = false;
+        
+        sc_signal<bool> we;
+        we = true;
+        sc_signal<bool> we_out;
+
+        sc_signal<bool> done;
+        
+
+        for (int i = 0; i < 64; i++) {
+            data_in[i] = data[i];
+            l2.data_in_from_L1[i](data_in[i]);
+            l2.data_out_to_Mem[i](data_out_to_Mem[i]);
+            l2.data_in_from_Mem[i](data_in_from_Mem[i]);
+            l2.data_out_to_L1[i](data_out_to_L1[i]);
+        }
+
+        
+
+        l2.address(address);
+        l2.address_out(address_out);
+        l2.clk(clk);
+        l2.write_enable(we);
+        l2.write_enable_out(we_out);
+        l2.hit(hit);
+        l2.done(done);
+
+        l2.done_from_Mem(done_from_Mem);
+
+
+        sc_start(1, SC_SEC);
+        for (int i = 0; i < 64; i++) {
+            std::cout << data_out_to_Mem[i];
+        }
+        std::cout << std::endl;
+        // std::cout << data_in << std::endl;
+        return 0;
+        
+    }
 
 
     /* anthony
