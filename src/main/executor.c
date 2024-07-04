@@ -32,9 +32,6 @@ int main(int argc, char* argv[]) {
     // run parser
     Config config = start_parse(argc, argv);
 
-    // EXPERIMENTAL
-    testPrinter();
-
     // run simulation
     int result = 
     run_simulation(
@@ -51,6 +48,9 @@ int main(int argc, char* argv[]) {
     } else {
         printf("Something is not right!\n");
     }
+
+    // free the Config.requests
+    free(config.requests);
 
     return 0;
 }
