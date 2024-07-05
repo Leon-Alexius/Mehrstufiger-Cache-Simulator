@@ -6,8 +6,7 @@
 #include <getopt.h>
 #include <string.h>
 
-// Request and Result struct (TEMP)
-#include "../placeHolder.hpp"
+#include "csv_parser.h"
 
 /**
  * @brief removes whitespaces from a string
@@ -39,6 +38,7 @@ void remove_whitespaces(char* input) {
  * @param input_filename The name of the .csv file to parse.
  * @param requests An array of Request structs to fill.
  * @param numRequests The number of requests to be simulated.
+ * @param customReq Read to the end of csv if false
  *
  * @return void
  *
@@ -47,7 +47,7 @@ void remove_whitespaces(char* input) {
  * @warning DO NOT REMOVE ANY OF THE COMMENTS!
  * @author Lie Leon Alexius
  */
-void parse_csv(const char* input_filename, struct Request* requests, int numRequests) {
+void parse_csv(const char* input_filename, struct Request* requests, int numRequests, bool customReq) {
     // Open the file
     // Syntax: FILE* fptr; fptr = fopen(filename, mode);
     FILE* file = fopen(input_filename, "r");
@@ -183,7 +183,7 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
         }
 
         // Case: Enough valid Requests has been read
-        if (i >= numRequests) {
+        if (customReq && i >= numRequests) {
             break;
         }
     }
@@ -192,8 +192,13 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
     fclose(file);
 
     // check if numRequests has been fulfilled
-    if (i != numRequests) {
+    if (customReq && i != numRequests) {
         fprintf(stderr, "Error: number of requests parsed does not match numRequests\n");
         exit(EXIT_FAILURE);
     }
+
+    // safety: initialize request[i] as invalid value to know when to stop
+    requests[i].addr = -1;
+    requests[i].data = -1;
+    requests[i].we = -1;
 }

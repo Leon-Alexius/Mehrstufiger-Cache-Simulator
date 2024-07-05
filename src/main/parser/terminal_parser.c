@@ -6,10 +6,7 @@
 #include <getopt.h>
 #include <string.h>
 
-#include "parse.h"
-
-// Request and Result struct (TEMP)
-#include "../placeHolder.hpp"
+#include "terminal_parser.h"
 
 /**
  * @brief Method for -h or --help
@@ -28,6 +25,7 @@ void print_help() {
     printf("      --l2-latency <num>       The latency of the L2 cache in cycles (default: 12)\n");
     printf("      --memory-latency <num>   The latency of the main memory in cycles (default: 100)\n");
     printf("      --tf=<filepath>          Output file for a trace file with all signals (default: default_trace.vcd)\n");
+    printf("      --num-requests <num>     Number of request to read from .csv file, default is all requests\n");
     printf("  -h, --help                   Display this help and exit\n");
 }
 
@@ -60,9 +58,10 @@ Config parse_user_input(int argc, char* argv[]) {
     unsigned l1CacheLatency = 4;
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
-    size_t numRequests = 10; // Set to n to test .csv
+    size_t numRequests = 1000; // Set to n to test .csv
     const char* tracefile = "src/assets/vcd/default_trace.vcd";
     const char* input_filename = NULL;
+    bool customNumRequest = false; // Set to true to test .csv
 
     // ========================================================================================
 
@@ -77,6 +76,7 @@ Config parse_user_input(int argc, char* argv[]) {
         {"l2-latency", required_argument, 0, 0},
         {"memory-latency", required_argument, 0, 0},
         {"tf", required_argument, 0, 0},
+        {"num-requests", required_argument, 0, 0},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -167,8 +167,20 @@ Config parse_user_input(int argc, char* argv[]) {
                     }
                 } 
                 else if (strcmp("tf", long_options[long_index].name) == 0) {
+                    // No conversion needed for tracefile, directly assign optarg - no error check needed
                     tracefile = optarg;
                 }
+                else if (strcmp("num-requests", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    numRequests = strtoul(optarg, &endptr, 10);
+                    customNumRequest = true;
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for num-requests\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
                 break;
             default:
                 // if flag is undefined, print_help then exit
@@ -220,6 +232,7 @@ Config parse_user_input(int argc, char* argv[]) {
     config.numRequests = numRequests;
     config.tracefile = tracefile;
     config.input_filename = input_filename;
+    config.customNumRequest = customNumRequest;
 
     return config;
 }
