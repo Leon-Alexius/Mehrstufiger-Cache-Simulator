@@ -47,10 +47,10 @@ struct CPU_L1_L2 {
     }
   
     /*Trang*/
-    template<unsigned cacheLineSize, unsigned l1CacheLines>SC_MODULE(L1){
+    SC_MODULE(L1){
 
-        sc_in<char> data_in_from_CPU[4];
-        sc_in<char> data_in_from_L2[cacheLineSize];
+        sc_in<vector<char>> data_in_from_CPU;
+        sc_in<vector<char>> data_in_from_L1;
 
         sc_in<sc_bv<32>> address;
         sc_out<sc_bv<32>> address_out;
@@ -58,8 +58,8 @@ struct CPU_L1_L2 {
         sc_in<bool> write_enable;
         sc_out<bool> write_enable_out;
 
-        sc_out<char> data_out_to_CPU[4];
-        sc_out<char> data_out_to_L2[cacheLineSize];
+        sc_out<vector<char>> data_out_to_CPU;
+        sc_out<vector<char>> data_out_to_L2;
         
         sc_out<bool> hit;
         sc_in<bool> done_from_L2;
@@ -68,19 +68,20 @@ struct CPU_L1_L2 {
         sc_out<bool> done;
         
 
-        char cache_blocks[l1CacheLines][cacheLineSize];
+        char** cache_blocks;
         
 
 
-        bool valid[l1CacheLines];
-        uint32_t tags[l1CacheLines];
+        bool* valid;
+        uint32_t* tags;
 
+        unsigned cacheLineSize;
+        unsigned l1CacheLines;
         unsigned l1CacheLatency;
-        unsigned l2CacheLatency;
-        unsigned memoryLatency;
-
+        
         SC_CTOR(L1);
-        L1(sc_module_name name, unsigned l1CacheLatency): sc_module(name),  l1CacheLatency(l1CacheLatency) {
+        L1(sc_module_name name, unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency): sc_module(name), cacheLineSize(cacheLineSize), l1CacheLines(l1CacheLines), l1CacheLatency(l1CacheLatency) {
+            valid = malloc();
             SC_CTHREAD(update, clk.pos());
         };
 
