@@ -16,7 +16,7 @@
  * @brief The run_simulation method in C++
  * @author Lie Leon Alexius
  */
-extern int run_simulation(
+extern struct Result run_simulation(
     int cycles,
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     testPrinter();
 
     // run simulation
-    int result = 
+    struct Result result = 
     run_simulation(
         config.cycles, 
         config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
@@ -46,11 +46,11 @@ int main(int argc, char* argv[]) {
     );
 
     // Process the simulation result
-    if (result == 0) {
-        printf("Success\n");
-    } else {
-        printf("Something is not right!\n");
-    }
+    // if (result) {
+    //     printf("Success\n");
+    // } else {
+    //     printf("Something is not right!\n");
+    // }
 
     return 0;
 }
