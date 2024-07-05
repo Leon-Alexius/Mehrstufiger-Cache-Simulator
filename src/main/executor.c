@@ -24,11 +24,26 @@ extern int run_simulation(
 
 /**
  * @brief Simulation starts here
+ * @warning don't delete the tests
  * @author Lie Leon Alexius
  */
 int main(int argc, char* argv[]) {
     // run parser
     Config config = start_parse(argc, argv);
+
+    // Test (test Request in simulator.cpp) - Don't delete this
+    // 05/07/2024 - Default & Custom Values works perfectly fine
+    printf("Cycles: %d\n", config.cycles); // 1000000
+    printf("L1 Cache Line: %u\n", config.l1CacheLines); // 64
+    printf("L2 Cache Line: %u\n", config.l2CacheLines); // 256
+    printf("Cache Line Size: %u\n", config.cacheLineSize); // 64
+    printf("L1 Cache Latency: %u\n", config.l1CacheLatency); // 4
+    printf("L1 Cache Latency: %u\n", config.l2CacheLatency); // 12
+    printf("Memory Latency: %u\n", config.memoryLatency); // 100
+    printf("Num Requests: %lu\n", config.numRequests); // 1000
+    printf("Tracefile: %s\n", config.tracefile); // "src/assets/vcd/default_trace.vcd"
+    printf("Input Filename: %s\n", config.input_filename); // "src/assets/csv/test_valid.csv"
+    printf("customNumRequest: %d\n", config.customNumRequest); // 0
 
     // run simulation
     int result = 
