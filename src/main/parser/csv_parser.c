@@ -198,7 +198,5 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
     }
 
     // safety: initialize request[i] as invalid value to know when to stop
-    requests[i].addr = -1;
-    requests[i].data = -1;
     requests[i].we = -1;
 }
