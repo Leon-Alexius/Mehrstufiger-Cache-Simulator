@@ -68,7 +68,7 @@ struct CPU_L1_L2 {
         sc_out<bool> done;
         
 
-        char** cache_blocks;
+        char cache_blocks[l1CacheLines][];
         
 
 
