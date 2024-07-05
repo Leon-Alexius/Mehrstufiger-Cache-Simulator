@@ -8,9 +8,7 @@
 
 #include "parser/parse.h"
 #include "grapher/printer.h"
-
-// TEMPORARY
-#include "placeHolder.hpp"
+#include "simulator.hpp"
 
 /**
  * @brief The run_simulation method in C++
@@ -44,7 +42,7 @@ int main(int argc, char* argv[]) {
 
     // Process the simulation result
     if (result == 0) {
-        printf("Success\n");
+        printf("Simulation ended successfuly\n");
     } else {
         printf("Something is not right!\n");
     }
