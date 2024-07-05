@@ -176,8 +176,8 @@ struct CPU_L1_L2 {
         }
     };
 
-    int test_L1() {
-        L1 l1("l1", 64, 4, 1);
+    int test_L1(unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) {
+        L1 l1("l1", cacheLineSize, l1CacheLines, l1CacheLatency);
         char data[64] = {'c', 'b', 'a', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
                         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
                         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',

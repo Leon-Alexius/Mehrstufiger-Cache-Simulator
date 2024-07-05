@@ -39,7 +39,7 @@ extern "C" {
     ) 
     {
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency);
-        caches.test_L2();
+        caches.test_L1(cacheLineSize, l1CacheLines, l1CacheLatency);
 
         return 0;
     }
