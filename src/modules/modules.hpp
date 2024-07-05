@@ -114,14 +114,11 @@ struct CPU_L1_L2 {
                     }
 
                     /*no matter write miss or write hit, propagate to L2*/
-                    char* tmp = new char[cacheLineSize];
+                    char* tmp = new char[4];
 
                     for (int i = 0; i < 4; i++) {
                         tmp[i] = data_in_from_CPU->read()[i];
 
-                    }
-                    for (int i = 4; i < cacheLineSize; i++) {
-                        tmp[i] = '\0';
                     }
 
                     data_out_to_L2->write(tmp);

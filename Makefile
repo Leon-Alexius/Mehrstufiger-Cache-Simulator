@@ -62,10 +62,18 @@ all: debug
 # Debug build
 debug: CXXFLAGS += -g
 debug: $(TARGET)
+debug: 
+	rm -rf src/main/parser/*.o 
+	rm -rf src/main/grapher/*.o
+	rm -rf src/main/*.o 
 
 # Release build
 release: CXXFLAGS += -O2
 release: $(TARGET)
+release:
+	rm -rf src/main/parser/*.o 
+	rm -rf src/main/grapher/*.o
+	rm -rf src/main/*.o 
 
 # Rule to link object files to executable
 $(TARGET): $(C_OBJS) $(CPP_OBJS)

@@ -30,7 +30,7 @@ extern "C" {
      * 
      * @author Lie Leon Alexius
      */
-    int run_simulation(
+    struct Result run_simulation(
         int cycles, 
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
@@ -38,10 +38,34 @@ extern "C" {
         const char* tracefile
     ) 
     {
+        
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency);
-        caches.test_L1(cacheLineSize, l1CacheLines, l1CacheLatency);
 
-        return 0;
+        int cycle_count = 0;
+        int miss_count = 0; 
+        int hit_count = 0;
+        
+        
+        for (int i = 0; i < numRequests; i++) {
+            Request req = requests[i];
+
+            // If req.we == -1, end simulation
+            if (req.we == -1) {
+                break;
+            }
+            
+            // Send request to cache
+            Result res = caches.send_request(req);
+            cycle_count += res.cycles;
+            miss_count += res.misses;
+            hit_count += res.hits;
+        }
+
+        int gate_count = caches.get_gate_count();
+
+        struct Result result = { cycle_count, miss_count, hit_count, gate_count };
+        
+        return result;
     }
 }
 
