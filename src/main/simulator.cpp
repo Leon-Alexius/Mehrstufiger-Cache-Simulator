@@ -7,6 +7,11 @@
 
 // prevent the C++ compiler from mangling the function name
 extern "C" {
+    void print_result() {
+        // Placeholder
+        std::cout << "Leon - Stress" << std::endl;
+    }
+
     /**
      * @brief Runs the cache simulation
      *
@@ -56,11 +61,6 @@ extern "C" {
 
         return 0;
     }
-}
-
-void print_result() {
-    // Placeholder
-    std::cout << "Leon - Stress" << std::endl;
 }
 
 // The default sc_main implementation.
