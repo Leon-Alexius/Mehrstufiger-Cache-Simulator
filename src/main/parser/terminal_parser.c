@@ -6,19 +6,17 @@
 #include <getopt.h>
 #include <string.h>
 
-// Request and Result struct
-#include "../modules/modules.hpp"
+#include "parse.h"
 
-// The run_simulation method in C++
-extern int run_simulation(
-    int cycles, 
-    unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
-    unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
-    size_t numRequests, struct Request* requests,
-    const char* tracefile
-);
+// Request and Result struct (TEMP)
+#include "../placeHolder.hpp"
 
-// for -h or --help
+/**
+ * @brief Method for -h or --help
+ * @note Shortest possible input is `./cache filename.csv`
+ * @warning DO NOT CHANGE THIS
+ * @author Lie Leon Alexius
+ */
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
@@ -33,28 +31,28 @@ void print_help() {
     printf("  -h, --help                   Display this help and exit\n");
 }
 
-/*  
-    The main function is the entry point of the program.
-    
-    This function parses the user inputs and set the variables accordingly.
-    After that, it will calls the simulator to run the simulation.
+/**
+ * @brief 
+ * This function parses the user inputs and set-up the configuration.
+ * 
+ * @details
+ * Each of the variables has default values:
+ *  1. cycles = 1000000 (default simulation cycles)
+ *  2. l1CacheLines = 64 (default number of lines in L1 cache)
+ *  3. l2CacheLines = 256 (default number of lines in L2 cache)
+ *  4. cacheLineSize = 64 (default cache line size in bytes)
+ *  5. l1CacheLatency = 4 (default latency for L1 cache in cycles)
+ *  6. l2CacheLatency = 12 (default latency for L2 cache in cycles)
+ *  7. memoryLatency = 100 (default latency for memory access in cycles)
+ *  8. numRequests = 1000 (default number of requests)
+ *  9. tracefile = "default_trace.vcd" (default trace file name) 
+ * 
+ * @link https://d-nb.info/978930487/34 (source for default value)
+ * @author Lie Leon Alexius
+ */
+Config parse_user_input(int argc, char* argv[]) {
 
-    Each of the variables has default values:
-    1. cycles = 1000000 (default simulation cycles)
-    2. l1CacheLines = 64 (default number of lines in L1 cache)
-    3. l2CacheLines = 256 (default number of lines in L2 cache)
-    4. cacheLineSize = 64 (default cache line size in bytes)
-    5. l1CacheLatency = 4 (default latency for L1 cache in cycles)
-    6. l2CacheLatency = 12 (default latency for L2 cache in cycles)
-    7. memoryLatency = 100 (default latency for memory access in cycles)
-    8. numRequests = 1000 (default number of requests)
-    9. tracefile = "default_trace.vcd" (default trace file name)
-
-    Source:
-    https://d-nb.info/978930487/34
-*/
-int main(int argc, char* argv[]) {
-    // Default values
+    // Default Values
     int cycles = 1000000;
     unsigned l1CacheLines = 64;
     unsigned l2CacheLines = 256;
@@ -62,15 +60,11 @@ int main(int argc, char* argv[]) {
     unsigned l1CacheLatency = 4;
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
-    size_t numRequests = 1000;
-    const char* tracefile = "default_trace.vcd";
-
-    // Filename for the input CSV file
+    size_t numRequests = 10; // Set to n to test .csv
+    const char* tracefile = "src/assets/vcd/default_trace.vcd";
     const char* input_filename = NULL;
 
-    // ==========================================================================================
-    // =================================== START PARSING ========================================
-    // ==========================================================================================
+    // ========================================================================================
 
     // Long options array
     struct option long_options[] = {
@@ -90,6 +84,8 @@ int main(int argc, char* argv[]) {
     int opt; // option flag input
     int long_index = 0; // the index for long_options 
     char* endptr; // parsing error checker
+
+    // ========================================================================================
 
     // (arg count, arg array, legitimate option characters, long options, long options index)
     // https://linux.die.net/man/3/getopt_long
@@ -209,54 +205,21 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // ==========================================================================================
-    // ==================================== END PARSING =========================================
-    // ==========================================================================================
+    // ========================================================================================
 
-    // initialize the struct
-    struct Request requests[numRequests];
+    Config config;
 
-    // Read requests from the input CSV file
-    FILE* file = fopen(input_filename, "r");
-    if (!file) {
-        // No need to close file here since fopen will return NULL
-        perror("Failed to open input file");
-        exit(EXIT_FAILURE);
-    }
-    else {
-        // Read the requests from the file
-        // setup buffer
-        char rw[10]; 
-        for (int i = 0; i < numRequests && !feof(file); i++) {
-            fscanf(file, "%s %u", rw, &requests[i].addr);
-            if (strcmp(rw, "Write") == 0) {
-                requests[i].we = 1;
-                fscanf(file, "%u", &requests[i].data);
-            } else {
-                requests[i].we = 0;
-                requests[i].data = -76;
-            }
-        }
+    // set-up the config
+    config.cycles = cycles;
+    config.l1CacheLines = l1CacheLines;
+    config.l2CacheLines = l2CacheLines;
+    config.cacheLineSize = cacheLineSize;
+    config.l1CacheLatency = l1CacheLatency;
+    config.l2CacheLatency = l2CacheLatency;
+    config.memoryLatency = memoryLatency;
+    config.numRequests = numRequests;
+    config.tracefile = tracefile;
+    config.input_filename = input_filename;
 
-        fclose(file);
-    }
-
-    // run simulation
-    int result = 
-    run_simulation(
-        cycles, 
-        l1CacheLines, l2CacheLines, cacheLineSize, 
-        l1CacheLatency, l2CacheLatency, memoryLatency, 
-        numRequests, requests, 
-        tracefile
-    );
-
-    // Process the simulation result
-    if (result == 0) {
-        printf("Success\n");
-    } else {
-        printf("Something is not right!\n");
-    }
-
-    return 0;
+    return config;
 }

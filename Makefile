@@ -3,11 +3,13 @@
 # ---------------------------------------
 
 # entry point for the program and target name
-C_SRCS = src/main/input_parser.c
+C_SRCS = src/main/executor.c 
+PARSER = src/main/parser/csv_parser.c src/main/parser/parse.c src/main/parser/terminal_parser.c
+GRAPHER = src/main/grapher/printer.c
 CPP_SRCS = src/main/simulator.cpp
 
 # Object files
-C_OBJS = $(C_SRCS:.c=.o)
+C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
 # assignment task file
@@ -72,6 +74,8 @@ $(TARGET): $(C_OBJS) $(CPP_OBJS)
 # clean up
 clean:
 	rm -f $(TARGET)
+	rm -rf src/main/parser/*.o 
+	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o
 
 .PHONY: all debug release clean

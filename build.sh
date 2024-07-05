@@ -1,1 +1,3 @@
-echo "Hello World"
+make clean
+make
+./cache src/assets/csv/default_data_valid.csv
