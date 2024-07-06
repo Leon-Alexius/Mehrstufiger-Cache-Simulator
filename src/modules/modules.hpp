@@ -13,7 +13,11 @@
 /* anthony
 added #ifdef __cplusplus so that it works as a c header too
 */
-
+#ifdef __cplusplus
+#include <systemc>
+#include "systemc.h"
+#include <string>
+#include "../main/simulator.hpp" // the struct moved here - cleaner - Leon
 
 using namespace sc_core;
 using namespace std;
@@ -705,19 +709,4 @@ struct CPU_L1_L2 {
 
     
 };
-#endif
-
-struct Request {
-    __uint32_t addr;
-    __uint32_t data;
-    int we;
-};
-
-struct Result {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t primitiveGateCount;
-};
-
 #endif

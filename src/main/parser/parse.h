@@ -2,9 +2,10 @@
 #define PARSE_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
-// Request and Result struct (TEMP)
-#include "../placeHolder.hpp"
+// Request and Result struct
+#include "../simulator.hpp"
 
 // Config struct
 typedef struct {
@@ -19,6 +20,7 @@ typedef struct {
     const char* tracefile;
     const char* input_filename;
     struct Request* requests;
+    bool customNumRequest;
 } Config;
 
 Config start_parse(int argc, char* argv[]);

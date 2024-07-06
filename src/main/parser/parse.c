@@ -10,9 +10,6 @@
 #include "csv_parser.h"
 #include "terminal_parser.h"
 
-// Request and Result struct (TEMP)
-#include "../placeHolder.hpp"
-
 Config start_parse(int argc, char* argv[]) {
 
     // Parse User Input
@@ -22,12 +19,12 @@ Config start_parse(int argc, char* argv[]) {
 
     // Parse .csv
     // Allocate memory for the requests array
-    config.requests = malloc(config.numRequests * sizeof(struct Request));
+    config.requests = malloc(config.numRequests * sizeof(struct Request)); // default = 1000
     if (config.requests == NULL) {
         fprintf(stderr, "Error when initializing Request Struct in Config\n");
         exit(EXIT_FAILURE);
     }
-    parse_csv(config.input_filename, config.requests, config.numRequests);
+    parse_csv(config.input_filename, config.requests, config.numRequests, config.customNumRequest);
 
     // ========================================================================================
 
