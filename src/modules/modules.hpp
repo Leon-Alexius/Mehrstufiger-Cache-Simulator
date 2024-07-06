@@ -31,6 +31,29 @@ extern "C" struct Result run_simulation(
     const char* tracefile
 );
 
+void trace(sc_trace_file*& f, char* arr, size_t amount, std::string name) {
+    int i = 0;
+    while (amount > 0) {
+        // int temp = 0;
+        // for (int j = 0; j < 4; j++) {
+        //     std::cout << j << std::endl;
+        //     if (i + j >= amount) break;
+        //     temp += (arr[j] << (8*j));
+        // }
+        if (amount == 2) {
+            sc_trace(f, (short *) &arr[i], name + "_" + to_string(i));
+            break;
+        } else { 
+            sc_trace(f, (int *) &arr[i], name + "_" + to_string(i));
+        }
+        amount -= 4;
+        i += 4;
+    }
+
+    // for (int i = 0; i < amount; i++) {
+    //     sc_trace(f, arr[i], name + "_" + to_string(i));
+    // }
+}
 
 
 /*Trang*/
@@ -45,8 +68,8 @@ SC_MODULE(L1){
     sc_in<bool> write_enable;
     sc_out<bool> write_enable_out;
 
-    sc_out<char*> data_out_to_CPU;
-    sc_out<char*> data_out_to_L2;
+    sc_in<char*> data_out_to_CPU;
+    sc_in<char*> data_out_to_L2;
     
     sc_out<bool> hit;
     sc_in<bool> done_from_L2;
@@ -104,14 +127,14 @@ SC_MODULE(L1){
                 }
 
                 /*no matter write miss or write hit, propagate to L2*/
-                char* tmp = new char[4];
+                // char* tmp = new char[4];
 
                 for (int i = 0; i < 4; i++) {
-                    tmp[i] = data_in_from_CPU->read()[i];
+                    data_out_to_L2->read()[i] = data_in_from_CPU->read()[i];
 
                 }
 
-                data_out_to_L2->write(tmp);
+                // data_out_to_L2->write(tmp);
 
                 address_out->write(address->read());
                 write_enable_out->write(write_enable->read());
@@ -129,7 +152,8 @@ SC_MODULE(L1){
                 Read miss, propagate to L2, load cacheline from L2 to L1, and write to data_out_to_CPU
                 */
                 else{
-                    address_out->write(address->read());
+                    uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
+                    address_out->write(temp_address);
                     write_enable_out->write(write_enable->read());
                     while (!done_from_L2->read()) {
                         wait();
@@ -140,12 +164,12 @@ SC_MODULE(L1){
             
                 }
                 // std::cout << "read" << std::endl;
-                char* tmp = new char[4];
+                // char* tmp = new char[4];
                 for (int i = 0; i < 4; i++) {
-                    tmp[i] = cache_blocks[index][i];
+                    data_out_to_CPU->read()[i] = cache_blocks[index][i];
                 }
                     
-                data_out_to_CPU->write(tmp);
+                // data_out_to_CPU->write(tmp);
             }
 
             /*waits for clock*/
@@ -155,10 +179,7 @@ SC_MODULE(L1){
             done->write(true);
             
         }
-        
-        
-
-
+    
 
     }
 };
@@ -174,8 +195,8 @@ SC_MODULE(L2){
     sc_in<bool> write_enable;
     sc_out<bool> write_enable_out;
 
-    sc_out<char*> data_out_to_L1;
-    sc_out<char*> data_out_to_Mem;
+    sc_in<char*> data_out_to_L1;
+    sc_in<char*> data_out_to_Mem;
 
     sc_out<bool> hit;
     sc_in<bool> done_from_Mem;
@@ -237,13 +258,13 @@ SC_MODULE(L2){
                 // propagate to Memory
                 }
                 /*no matter write miss or hit, continues to propagate to Memory*/
-                char* tmp = new char[cacheLineSize];
+                // char* tmp = new char[cacheLineSize];
 
                 for (int i=0; i<4;i++){
-                    tmp[i] = data_in_from_L1->read()[i];
+                    data_out_to_Mem->read()[i] = data_in_from_L1->read()[i];
                 }
 
-                data_out_to_Mem->write(tmp);
+                // data_out_to_Mem->write(tmp);
 
                 
                 // data_out_to_Mem->write(data_in_from_L1->read());
@@ -262,7 +283,9 @@ SC_MODULE(L2){
                 }
                 /*cache miss, propagate to mem*/
                 else{
-                    address_out->write(address->read());
+                    uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
+                    address_out->write(address->read()); 
+                    
                     write_enable_out->write(write_enable->read());
                     while (!done_from_Mem->read()) {
                         wait();
@@ -275,26 +298,23 @@ SC_MODULE(L2){
 
                 }
                 //bring the read data back to L1
-                char* tmp = new char[4];
+                // char* tmp = new char[4];
                 for (int i = 0; i < 4; i++) {
-                    tmp[i] = cache_blocks[index][i];
+                    data_out_to_L1->read()[i] = cache_blocks[index][i];
                 }
                     
-                data_out_to_L1->write(tmp);
+                // data_out_to_L1->write(tmp);
                 
             }
 
             /*waits for clock*/
-            for (int i = 0; i < l2CacheLatency; i++) {
-                    wait();
+            for (int i = 0; i < l2CacheLatency - 1; i++) {
+                wait();
             }
             done->write(true);
+            wait();
             
         }
-        
-        
-
-
 
     }
 };
@@ -307,7 +327,7 @@ SC_MODULE(MEMORY) {
     sc_in<uint32_t> address;
     sc_in<bool> write_enable;
     sc_in<bool> clock; 
-    sc_out<char*> data_out_to_L2;
+    sc_in<char*> data_out_to_L2;
 
     sc_out<bool> done;
 
@@ -346,14 +366,14 @@ SC_MODULE(MEMORY) {
                 }
                 char* tmp = new char[cacheLineSize];
                 for (int i = 0; i < cacheLineSize; i++) {
-                    tmp[i] = memory_blocks[address_u];
+                    data_out_to_L2->read()[i] = memory_blocks[address_u];
 
                     // Change address
                     address_u++;
                 }
 
                 // Write the result into data_outs
-                data_out_to_L2->write(tmp);
+                // data_out_to_L2->write(tmp);
                 
             } else {
                 // Write data to memory
@@ -427,6 +447,8 @@ struct CPU_L1_L2 {
     sc_signal<bool> hit_from_L1;
     sc_signal<bool> hit_from_L2;
 
+    sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
+
     CPU_L1_L2( const unsigned l1CacheLines, const unsigned l2CacheLines,
         const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
@@ -442,6 +464,12 @@ struct CPU_L1_L2 {
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
 
         data_in = new char[4];
+        data_out = new char[4];
+
+        data_from_L1_to_L2 = new char[cacheLineSize];
+        data_from_L2_to_L1 = new char[cacheLineSize];
+        data_from_L2_to_Memory = new char[cacheLineSize];
+        data_from_Memory_to_L2 = new char[cacheLineSize];
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -492,6 +520,15 @@ struct CPU_L1_L2 {
         l1->hit(hit_from_L1);
         l2->hit(hit_from_L2);
 
+        // 7. Bind clock
+        l1->clk(*clk);
+        l2->clk(*clk);
+        memory->clock(*clk);
+
+        sc_start(0, SC_SEC);
+
+        // Bind to trace
+
     }
     
     // struct Result send_request(struct Request request) {
@@ -525,72 +562,84 @@ struct CPU_L1_L2 {
    
 
     int test_L1(unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) {
-        L1 l1("l1", cacheLineSize, l1CacheLines, l1CacheLatency);
+        // L1 l1("l1", cacheLineSize, l1CacheLines, l1CacheLatency);
         char data[64] = {'c', 'b', 'a', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
                         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
                         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
                         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'};
         
-        sc_signal<char*> data_in;
+        // sc_signal<char*> data_in;
+        // data_in = new char[4];
          
 
-        sc_signal<char*> data_in_l2;
+        // sc_signal<char*> data_in_l2;
 
-        sc_signal<char*> data_out_to_CPU;
-        sc_signal<char*> data_out_to_L2;
+        // sc_signal<char*> data_out_to_CPU;
+        // sc_signal<char*> data_out_to_L2;
 
-        sc_signal<bool> hit;
-        sc_signal<bool> done;
+        // sc_signal<bool> hit;
+        // sc_signal<bool> done;
 
-        sc_signal<uint32_t> address;
-        sc_signal<uint32_t> address_out;
+        // sc_signal<uint32_t> address;
+        // sc_signal<uint32_t> address_out;
         
-        sc_clock clk("clk", 1, SC_SEC);
+        // sc_clock clk("clk", 1, SC_SEC);
 
-        sc_signal<bool> done_from_L2;
-        done_from_L2 = true;
+        // sc_signal<bool> done_from_L2;
+        // done_from_L2 = true;
         
-        sc_signal<bool> we;
-        we = true;
-        sc_signal<bool> we_out;
-        char* tmp = new char[5];
+        // sc_signal<bool> we;
+        // we = true;
+        // sc_signal<bool> we_out;
+        // char* tmp = new char[4];
+        // for (int i = 0; i < 4; i++) {
+        //     tmp[i] = data[i];
+        // }
+        // // tmp[4] = '\0';
+        // data_in = tmp;
+        // sc_start(0, SC_SEC);
         for (int i = 0; i < 4; i++) {
-            tmp[i] = data[i];
+            data_in[i] = data[i];
         }
-        tmp[4] = '\0';
-        data_in = tmp;
-        l1.data_in_from_CPU(data_in);
-        l1.data_out_to_CPU(data_out_to_CPU);
+        // l1.data_in_from_CPU(data_in);
+        // l1.data_out_to_CPU(data_out_to_CPU);
     
-        l1.data_in_from_L2(data_in_l2);
-        l1.data_out_to_L2(data_out_to_L2);
+        // l1.data_in_from_L2(data_in_l2);
+        // l1.data_out_to_L2(data_out_to_L2);
         
-        sc_trace_file * trace_file = sc_create_vcd_trace_file("trace");
-        sc_trace(trace_file, data_in.read(), "Data In");
+       
 
-        l1.address(address);
-        l1.address_out(address_out);
-        l1.clk(clk);
-        l1.write_enable(we);
-        l1.write_enable_out(we_out);
-        l1.hit(hit);
-        l1.done(done);
+        // l1.address(address);
+        // l1.address_out(address_out);
+        // l1.clk(clk);
+        // l1.write_enable(we);
+        // l1.write_enable_out(we_out);
+        // l1.hit(hit);
+        // l1.done(done);
 
-        l1.done_from_L2(done_from_L2);
-
+        // l1.done_from_L2(done_from_L2);
+        
     
+        // sc_start(0, SC_SEC);
+        sc_trace_file * trace_file = sc_create_vcd_trace_file("trace1");
+        trace(trace_file, data_in, 4, "Data In");
+        
+        // sc_trace(trace_file, data_in, "Data In");
         sc_start(1, SC_SEC);
-        data_in_l2 = data_out_to_L2.read();
+        data[0] = 'K';
+        char* data_in_l2 = data_from_L1_to_L2.read();
         // std::cout << "Pointer " << reinterpret_cast<void *>(data_in_l2.read()) << std::endl;
-        we = false;
+        write_enable = false;
         sc_start(1, SC_SEC);
 
-        char* vec = data_out_to_CPU.read();
+        char* vec = data_out.read();
         // std::cout << "Pointer " << reinterpret_cast<void *>(vec) << std::endl;
 
         for (int i = 0; i < 4; i++) {
             std::cout << vec[i];
         }
+
+        sc_close_vcd_trace_file(trace_file);
         
         std::cout << std::endl;
         // std::cout << data_in << std::endl;
