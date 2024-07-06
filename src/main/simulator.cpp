@@ -75,7 +75,7 @@ extern "C" {
         */
         
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
-
+        caches.test_L1(64, 4, 1);
         // int cycle_count = 0;
         // int miss_count = 0; 
         // int hit_count = 0;
@@ -92,7 +92,7 @@ extern "C" {
         //     // Send request to cache
         //     Result res = caches.send_request(req);
         //     cycle_count += res.cycles;
-        print_result(numRequests, requests);
+        // print_result(numRequests, requests);
 
         //     miss_count += res.misses;
         //     hit_count += res.hits;

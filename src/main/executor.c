@@ -56,11 +56,11 @@ int main(int argc, char* argv[]) {
     );
 
     // Process the simulation result
-    if (result == 0) {
-        printf("Simulation ended successfuly\n");
-    } else {
-        printf("Something is not right!\n");
-    }
+    // if (result == 0) {
+    //     printf("Simulation ended successfuly\n");
+    // } else {
+    //     printf("Something is not right!\n");
+    // }
 
     // free the Config.requests
     free(config.requests);

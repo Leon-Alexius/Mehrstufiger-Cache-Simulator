@@ -13,10 +13,6 @@
 /* anthony
 added #ifdef __cplusplus so that it works as a c header too
 */
-#ifdef __cplusplus
-#include <systemc>
-#include "systemc.h"
-#include <string>
 #include "../main/simulator.hpp" // the struct moved here - cleaner - Leon
 
 using namespace sc_core;
@@ -34,6 +30,8 @@ extern "C" struct Result run_simulation(
     struct Request* requests,
     const char* tracefile
 );
+
+
 
 /*Trang*/
 SC_MODULE(L1){
@@ -398,6 +396,37 @@ struct CPU_L1_L2 {
     L2* l2;
     MEMORY* memory;
 
+    // Bus between CPU and Cache
+    sc_signal<char*> data_in;
+    sc_signal<char*> data_out;
+
+    // Signal between L1 and L2
+    sc_signal<char*> data_from_L1_to_L2;
+    sc_signal<char*> data_from_L2_to_L1;
+
+    // Signal between L2 and Memory
+    sc_signal<char*> data_from_L2_to_Memory;
+    sc_signal<char*> data_from_Memory_to_L2;
+
+    // Address
+    sc_signal<uint32_t> address;
+    sc_signal<uint32_t> address_from_L1_to_L2;
+    sc_signal<uint32_t> address_from_L2_to_Memory;
+
+    // Write enable flags
+    sc_signal<bool> write_enable;
+    sc_signal<bool> write_enable_from_L1_to_L2;
+    sc_signal<bool> write_enable_from_L2_to_Memory;
+    
+    // Done flags
+    sc_signal<bool> done_from_L1;
+    sc_signal<bool> done_from_L2;
+    sc_signal<bool> done_from_Memory;
+
+    // Hit flags
+    sc_signal<bool> hit_from_L1;
+    sc_signal<bool> hit_from_L2;
+
     CPU_L1_L2( const unsigned l1CacheLines, const unsigned l2CacheLines,
         const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
@@ -412,36 +441,7 @@ struct CPU_L1_L2 {
         l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency);
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
 
-        // Bus between CPU and Cache
-        sc_signal<char*> data_in;
-        sc_signal<char*> data_out;
-
-        // Signal between L1 and L2
-        sc_signal<char*> data_from_L1_to_L2;
-        sc_signal<char*> data_from_L2_to_L1;
-
-        // Signal between L2 and Memory
-        sc_signal<char*> data_from_L2_to_Memory;
-        sc_signal<char*> data_from_Memory_to_L2;
-
-        // Address
-        sc_signal<uint32_t> address;
-        sc_signal<uint32_t> address_from_L1_to_L2;
-        sc_signal<uint32_t> address_from_L2_to_Memory;
-
-        // Write enable flags
-        sc_signal<bool> write_enable;
-        sc_signal<bool> write_enable_from_L1_to_L2;
-        sc_signal<bool> write_enable_from_L2_to_Memory;
-        
-        // Done flags
-        sc_signal<bool> done_from_L1;
-        sc_signal<bool> done_from_L2;
-        sc_signal<bool> done_from_Memory;
-
-        // Hit flags
-        sc_signal<bool> hit_from_L1;
-        sc_signal<bool> hit_from_L2;
+        data_in = new char[4];
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -493,7 +493,35 @@ struct CPU_L1_L2 {
         l2->hit(hit_from_L2);
 
     }
-  
+    
+    // struct Result send_request(struct Request request) {
+    //     sc_vector<sc_signal<char>> data;
+    //     uint32_t data_req = request.data;
+    //     size_t cycle_count = 0;
+        
+    //     for (int i = 0; i < 4; i++) {
+    //         data[i] = data_req % 16;
+    //         data_req /= 16;
+    //     }
+
+    //     data_in = data;
+    //     write_enable = request.we;
+    //     address = request.addr;
+        
+    //     while (!done_from_L1.read()) {
+    //         sc_start(1, SC_SEC);
+    //         std::cout << done_from_L1.read() << std::endl;
+    //         cycle_count++;
+    //     }
+
+    //     struct Result res = {cycle_count, 0, 0, 0};
+    //     delete[] data;
+    //     return res;
+    // }
+
+    // size_t get_gate_count() {
+    //     return 10;
+    // }
    
 
     int test_L1(unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) {
@@ -504,7 +532,7 @@ struct CPU_L1_L2 {
                         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'};
         
         sc_signal<char*> data_in;
-        
+         
 
         sc_signal<char*> data_in_l2;
 
@@ -525,10 +553,11 @@ struct CPU_L1_L2 {
         sc_signal<bool> we;
         we = true;
         sc_signal<bool> we_out;
-        char* tmp = new char[4];
+        char* tmp = new char[5];
         for (int i = 0; i < 4; i++) {
             tmp[i] = data[i];
         }
+        tmp[4] = '\0';
         data_in = tmp;
         l1.data_in_from_CPU(data_in);
         l1.data_out_to_CPU(data_out_to_CPU);
@@ -536,7 +565,8 @@ struct CPU_L1_L2 {
         l1.data_in_from_L2(data_in_l2);
         l1.data_out_to_L2(data_out_to_L2);
         
-        
+        sc_trace_file * trace_file = sc_create_vcd_trace_file("trace");
+        sc_trace(trace_file, data_in.read(), "Data In");
 
         l1.address(address);
         l1.address_out(address_out);
@@ -548,7 +578,7 @@ struct CPU_L1_L2 {
 
         l1.done_from_L2(done_from_L2);
 
-
+    
         sc_start(1, SC_SEC);
         data_in_l2 = data_out_to_L2.read();
         // std::cout << "Pointer " << reinterpret_cast<void *>(data_in_l2.read()) << std::endl;
@@ -709,4 +739,5 @@ struct CPU_L1_L2 {
 
     
 };
+#endif
 #endif
