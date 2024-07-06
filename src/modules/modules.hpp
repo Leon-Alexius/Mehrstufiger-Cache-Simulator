@@ -174,11 +174,10 @@ SC_MODULE(L1){
             }
 
             /*waits for clock*/
-            for (int i = 0; i < l1CacheLatency - 1; i++) {
+            for (int i = 0; i < l1CacheLatency; i++) {
                 wait();
             }
             done->write(true);
-            wait();
             
         }
     
@@ -395,9 +394,9 @@ SC_MODULE(MEMORY) {
                     wait();
                 }
             }
-            done->write(true);
+
             wait();
-            
+            done->write(true);
         }
     }
 };
@@ -465,13 +464,13 @@ struct CPU_L1_L2 {
         l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency);
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
 
-        data_in = new char[4] {};
-        data_out = new char[4] {};
+        data_in = new char[4];
+        data_out = new char[4];
 
-        data_from_L1_to_L2 = new char[cacheLineSize] {};
-        data_from_L2_to_L1 = new char[cacheLineSize] {};
-        data_from_L2_to_Memory = new char[cacheLineSize] {};
-        data_from_Memory_to_L2 = new char[cacheLineSize] {};
+        data_from_L1_to_L2 = new char[cacheLineSize];
+        data_from_L2_to_L1 = new char[cacheLineSize];
+        data_from_L2_to_Memory = new char[cacheLineSize];
+        data_from_Memory_to_L2 = new char[cacheLineSize];
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -530,9 +529,36 @@ struct CPU_L1_L2 {
         sc_start(0, SC_SEC);
 
         // Bind to trace
+        sc_trace_file * trace_file = sc_create_vcd_trace_file("tracefile");
+        trace(trace_file, data_in, cacheLineSize, "Data In");
+        trace(trace_file, data_out, cacheLineSize, "Data Out");
 
+        trace(trace_file, data_from_L1_to_L2, cacheLineSize, "Data from L1 to L2");
+        trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data from L2 to L1");
+
+        trace(trace_file, data_from_L2_to_Memory, cacheLineSize, "Data from L2 to Memory");
+        trace(trace_file, data_from_Memory_to_L2, cacheLineSize, "Data from Memory to L2");
+
+        sc_trace(trace_file, address, "Address");
+        sc_trace(trace_file, address_from_L1_to_L2, "Address from L1 to L2");
+        sc_trace(trace_file, address_from_L2_to_Memory, "Address from L2 to Memory");
+
+        sc_trace(trace_file, write_enable, "WE");
+        sc_trace(trace_file, write_enable_from_L1_to_L2, "WE from L1 to L2");
+        sc_trace(trace_file, write_enable_from_L2_to_Memory, "WE from L2 to Memory");
+
+        sc_trace(trace_file, done_from_L1, "Done from L1");
+        sc_trace(trace_file, done_from_L2, "Done from L2");
+        sc_trace(trace_file, done_from_Memory, "Done from memory");
+         
+        sc_trace(trace_file, hit_from_L1, "Hit from L1");
+        sc_trace(trace_file, hit_from_L2, "Hit from L2");
+
+        sc_start(10, SC_SEC);
+        sc_close_vcd_trace_file(trace_file);
     }
     
+
     struct Result send_request(struct Request request) {
         // sc_signal<char*> data;
         uint32_t data_req = request.data;
@@ -566,10 +592,7 @@ struct CPU_L1_L2 {
         // delete[] data;
         return res;
     }
-
-    size_t get_gate_count() {
-        return 10;
-    }
+  
    
 
     int test_L1(unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) {
