@@ -104,16 +104,16 @@ SC_MODULE(L1){
             hit->write(false);
             done->write(false);
             
-            /*converts address from binary to decimal*/
+            //converts address from binary to decimal
             unsigned address_int = address->read();
 
-            /*extracts metadata bits from address*/
-            /*using bit casting, because cache line size and number of cache lines are always power of 2*/
+            //extracts metadata bits from address
+            //using bit casting, because cache line size and number of cache lines are always power of 2
             size_t index = (address_int >> int(log2(l1CacheLines))) & (l1CacheLines-1);
             unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l1CacheLines)-1);
             unsigned offset = address_int & (cacheLineSize-1);
 
-            /*write operation*/
+            //write operation
             if(write_enable->read()){
                 std::cout << "write" << std::endl;
                 if ((tags[index] == tag )&& (valid[index]))
@@ -121,13 +121,13 @@ SC_MODULE(L1){
                 {
                     hit->write(true);
                     for (int i = 0; i < 4; i++){
-                        /*write the input data to the matching cacheline */
+                        //write the input data to the matching cacheline
                         cache_blocks[index][i + offset] = data_in_from_CPU->read()[i];
                         // std::cout << "|" << cache_blocks[index][i + offset] << std::endl;
                     }
                 }
 
-                /*no matter write miss or write hit, propagate to L2*/
+                //no matter write miss or write hit, propagate to L2
                 // char* tmp = new char[4];
 
                 for (int i = 0; i < 4; i++) {
@@ -140,19 +140,17 @@ SC_MODULE(L1){
                 address_out->write(address->read());
                 write_enable_out->write(write_enable->read());
 
-            /*read operation*/
+            //read operation
             } else{
                 std::cout << "read" << std::endl;
                 /*cache hit*/
                 if (valid[index] && tags[index]==tag)
                 {
                     hit->write(true);
-                    /// Bring the data to cpu
+                    // Bring the data to cpu
                     
                 }
-                /*
-                Read miss, propagate to L2, load cacheline from L2 to L1, and write to data_out_to_CPU
-                */
+                //Read miss, propagate to L2, load cacheline from L2 to L1, and write to data_out_to_CPU
                 else{
                     uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
                     address_out->write(temp_address);
@@ -175,7 +173,7 @@ SC_MODULE(L1){
                 // data_out_to_CPU->write(tmp);
             }
 
-            /*waits for clock*/
+            //waits for clock
             for (int i = 0; i < l1CacheLatency; i++) {
                 wait();
             }
@@ -214,7 +212,7 @@ SC_MODULE(L2){
     vector<bool> valid;
     vector<uint32_t> tags;
     
-    // char data_blocks[l2CacheLines];
+    //char data_blocks[l2CacheLines];
 
     unsigned cacheLineSize;
     unsigned l2CacheLines;
@@ -239,28 +237,28 @@ SC_MODULE(L2){
             hit->write(false);
             done->write(false);
 
-            /*converts address from binary to decimal*/
+            //converts address from binary to decimal
             unsigned address_int = address->read();
 
-            /*extracts metadata bits from address*/
-            /*using bit casting, because cache line size and number of cache lines are always power of 2*/
+            //extracts metadata bits from address
+            //using bit casting, because cache line size and number of cache lines are always power of 2
             unsigned index = (address_int >> int(log2(l2CacheLines))) & (l2CacheLines-1);
             unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l2CacheLines)-1);
             unsigned offset = address_int & (cacheLineSize-1);
 
-            /*write operation*/
+            //write operation
             if(write_enable->read()){
                 if (tags[index] == tag && valid[index])
                 // write hit, write through
                 {
                     hit->write(true);
                     for (int i=0; i<4;i++){
-                        /*write the input data to the matching cacheline */
+                        //write the input data to the matching cacheline 
                         cache_blocks[index][i+offset]= data_in_from_L1->read()[i];
                     }
                 // propagate to Memory
                 }
-                /*no matter write miss or hit, continues to propagate to Memory*/
+                //no matter write miss or hit, continues to propagate to Memory
                 // char* tmp = new char[cacheLineSize];
 
                 for (int i=0; i<4;i++){
@@ -276,15 +274,15 @@ SC_MODULE(L2){
                 
 
 
-            /*read operation*/
+            //read operation
             } else{
-                /*cache hit*/
+                //cache hit
                 if (valid[index] && tags[index]==tag)
                 {
                     hit->write(true);
 
                 }
-                /*cache miss, propagate to mem*/
+                //cache miss, propagate to mem
                 else{
                     uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
                     address_out->write(address->read()); 
@@ -310,7 +308,7 @@ SC_MODULE(L2){
                 
             }
 
-            /*waits for clock*/
+            //waits for clock
             for (int i = 0; i < l2CacheLatency - 1; i++) {
                 wait();
             }
@@ -532,6 +530,8 @@ struct CPU_L1_L2 {
 
         // Bind to trace
         sc_trace_file * trace_file = sc_create_vcd_trace_file("tracefile");
+        trace(trace_file, data_in, 4, "Data In");
+        trace(trace_file, data_out, 4, "Data Out");
         trace(trace_file, data_in, 4, "Data In");
         trace(trace_file, data_out, 4, "Data Out");
 
