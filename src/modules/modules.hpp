@@ -115,6 +115,7 @@ SC_MODULE(L1){
 
             /*write operation*/
             if(write_enable->read()){
+                std::cout << "write" << std::endl;
                 if ((tags[index] == tag )&& (valid[index]))
                 /*write hit, write through*/
                 {
@@ -141,6 +142,7 @@ SC_MODULE(L1){
 
             /*read operation*/
             } else{
+                std::cout << "read" << std::endl;
                 /*cache hit*/
                 if (valid[index] && tags[index]==tag)
                 {
@@ -530,8 +532,8 @@ struct CPU_L1_L2 {
 
         // Bind to trace
         sc_trace_file * trace_file = sc_create_vcd_trace_file("tracefile");
-        trace(trace_file, data_in, cacheLineSize, "Data In");
-        trace(trace_file, data_out, cacheLineSize, "Data Out");
+        trace(trace_file, data_in, 4, "Data In");
+        trace(trace_file, data_out, 4, "Data Out");
 
         trace(trace_file, data_from_L1_to_L2, cacheLineSize, "Data from L1 to L2");
         trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data from L2 to L1");
@@ -591,6 +593,10 @@ struct CPU_L1_L2 {
         struct Result res = {cycle_count, 0, 0, 0};
         // delete[] data;
         return res;
+    }
+
+    size_t get_gate_count() {
+        return 10;
     }
   
    
