@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     printf("L2 Cache Line: %u\n", config.l2CacheLines); // 256
     printf("Cache Line Size: %u\n", config.cacheLineSize); // 64
     printf("L1 Cache Latency: %u\n", config.l1CacheLatency); // 4
-    printf("L1 Cache Latency: %u\n", config.l2CacheLatency); // 12
+    printf("L2 Cache Latency: %u\n", config.l2CacheLatency); // 12
     printf("Memory Latency: %u\n", config.memoryLatency); // 100
     printf("Num Requests: %lu\n", config.numRequests); // 1000
     printf("Tracefile: %s\n", config.tracefile); // "src/assets/vcd/default_trace.vcd"

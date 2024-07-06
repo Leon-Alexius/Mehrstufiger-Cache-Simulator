@@ -75,30 +75,31 @@ extern "C" {
         */
         
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
-        caches.test_L1(64, 4, 1);
-        // int cycle_count = 0;
-        // int miss_count = 0; 
-        // int hit_count = 0;
+        // caches.test_L1(64, 4, 1);
+        int cycle_count = 0;
+        int miss_count = 0; 
+        int hit_count = 0;
         
         
-        // for (int i = 0; i < numRequests; i++) {
-        //     Request req = requests[i];
+        for (int i = 0; i < numRequests; i++) {
+            Request req = requests[i];
+            std::cout << req.we << std::endl;
 
-        //     // If req.we == -1, end simulation
-        //     if (req.we == -1) {
-        //         break;
-        //     }
+            // If req.we == -1, end simulation
+            if (req.we == -1) {
+                break;
+            }
             
-        //     // Send request to cache
-        //     Result res = caches.send_request(req);
-        //     cycle_count += res.cycles;
+            // Send request to cache
+            Result res = caches.send_request(req);
+            cycle_count += res.cycles;
         // print_result(numRequests, requests);
 
-        //     miss_count += res.misses;
-        //     hit_count += res.hits;
-        // }
+            miss_count += res.misses;
+            hit_count += res.hits;
+        }
 
-        // int gate_count = caches.get_gate_count();
+        int gate_count = caches.get_gate_count();
 
         struct Result result = {0, 0, 0, 0};
         

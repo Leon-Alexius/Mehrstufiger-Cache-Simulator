@@ -173,10 +173,11 @@ SC_MODULE(L1){
             }
 
             /*waits for clock*/
-            for (int i = 0; i < l1CacheLatency; i++) {
+            for (int i = 0; i < l1CacheLatency - 1; i++) {
                 wait();
             }
             done->write(true);
+            wait();
             
         }
     
@@ -393,9 +394,9 @@ SC_MODULE(MEMORY) {
                     wait();
                 }
             }
-
-            wait();
             done->write(true);
+            wait();
+            
         }
     }
 };
@@ -463,13 +464,13 @@ struct CPU_L1_L2 {
         l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency);
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
 
-        data_in = new char[4];
-        data_out = new char[4];
+        data_in = new char[4] {};
+        data_out = new char[4] {};
 
-        data_from_L1_to_L2 = new char[cacheLineSize];
-        data_from_L2_to_L1 = new char[cacheLineSize];
-        data_from_L2_to_Memory = new char[cacheLineSize];
-        data_from_Memory_to_L2 = new char[cacheLineSize];
+        data_from_L1_to_L2 = new char[cacheLineSize] {};
+        data_from_L2_to_L1 = new char[cacheLineSize] {};
+        data_from_L2_to_Memory = new char[cacheLineSize] {};
+        data_from_Memory_to_L2 = new char[cacheLineSize] {};
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -531,34 +532,42 @@ struct CPU_L1_L2 {
 
     }
     
-    // struct Result send_request(struct Request request) {
-    //     sc_vector<sc_signal<char>> data;
-    //     uint32_t data_req = request.data;
-    //     size_t cycle_count = 0;
+    struct Result send_request(struct Request request) {
+        // sc_signal<char*> data;
+        uint32_t data_req = request.data;
+        size_t cycle_count = 0;
         
-    //     for (int i = 0; i < 4; i++) {
-    //         data[i] = data_req % 16;
-    //         data_req /= 16;
-    //     }
+        for (int i = 0; i < 4; i++) {
+            data_in[i] = data_req % 16;
+            data_req /= 16;
+        }
 
-    //     data_in = data;
-    //     write_enable = request.we;
-    //     address = request.addr;
+       
+        write_enable = request.we;
         
-    //     while (!done_from_L1.read()) {
-    //         sc_start(1, SC_SEC);
-    //         std::cout << done_from_L1.read() << std::endl;
-    //         cycle_count++;
-    //     }
+        address = request.addr;
+        
+        while (!done_from_L1.read()) {
+            sc_start(1, SC_SEC);
+            cycle_count++;
+        }
 
-    //     struct Result res = {cycle_count, 0, 0, 0};
-    //     delete[] data;
-    //     return res;
-    // }
+        for (int i = 0; i < cacheLineSize; i++) std::cout << data_from_L1_to_L2[i];
+        
+        std::cout << std::endl;
+        uint32_t res_temp = 0;
+        for (int i = 0; i < 4; i++) {
+            res_temp += (data_out.read()[i] << (8*i));
+        }
+        std::cout << res_temp << std::endl;
+        struct Result res = {cycle_count, 0, 0, 0};
+        // delete[] data;
+        return res;
+    }
 
-    // size_t get_gate_count() {
-    //     return 10;
-    // }
+    size_t get_gate_count() {
+        return 10;
+    }
    
 
     int test_L1(unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) {
