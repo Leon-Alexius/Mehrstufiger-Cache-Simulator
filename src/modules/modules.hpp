@@ -131,7 +131,7 @@ SC_MODULE(L1){
 
                 for (int i = 0; i < 4; i++) {
                     data_out_to_L2->read()[i] = data_in_from_CPU->read()[i];
-
+                    std::cout << "b" << data_in_from_CPU->read()[i];
                 }
 
                 // data_out_to_L2->write(tmp);
@@ -167,6 +167,7 @@ SC_MODULE(L1){
                 // char* tmp = new char[4];
                 for (int i = 0; i < 4; i++) {
                     data_out_to_CPU->read()[i] = cache_blocks[index][i];
+                    std::cout << data_out_to_CPU->read()[i];
                 }
                     
                 // data_out_to_CPU->write(tmp);
@@ -547,6 +548,7 @@ struct CPU_L1_L2 {
         
         address = request.addr;
         
+        sc_start(0, SC_SEC);
         while (!done_from_L1.read()) {
             sc_start(1, SC_SEC);
             cycle_count++;
