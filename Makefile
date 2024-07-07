@@ -31,11 +31,11 @@ SCPATH = systemc
 # 3. paths to library files (-L$(SCPATH)/lib)
 # 4. libraries to link against (-lsystemc -lm)
 # 5. Warnings (-W -Wall -Wextra)
-CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm -W -Wall -Wextra
+CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
 
 # Flags for the C compiler
 # 1. Address Sanitizer
-CFLAGS := -fsanitize=address
+# CFLAGS := -fsanitize=address
 
 # ---------------------------------------
 # CONFIGURATION END
