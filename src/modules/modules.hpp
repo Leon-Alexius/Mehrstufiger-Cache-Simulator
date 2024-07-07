@@ -175,7 +175,7 @@ SC_MODULE(L1){
                         wait();
                     }
                     valid_out->write(false);
-                    for (int i = 0; i < cacheLineSize; i++) {
+                    for (unsigned i = 0; i < cacheLineSize; i++) {
                         cache_blocks[index][i] = data_in_from_L2->read()[i];
                     }
                     valid[index] = true;
@@ -183,7 +183,7 @@ SC_MODULE(L1){
                 }
                 // std::cout << "read" << std::endl;
                 // char* tmp = new char[4];
-                for (int i = 0; i < 4; i++) {
+                for (unsigned i = 0; i < 4; i++) {
                     data_out_to_CPU->read()[i] = cache_blocks[index][i + offset];
                     std::cout << "read from L1 cache: " << data_out_to_CPU->read()[i] << std::endl;
                 }
@@ -192,7 +192,7 @@ SC_MODULE(L1){
             }
 
             //waits for clock
-            for (int i = 0; i < l1CacheLatency - 1; i++) {
+            for (unsigned i = 0; i < l1CacheLatency - 1; i++) {
                 wait();
             }
             done->write(true);
@@ -289,7 +289,7 @@ SC_MODULE(L2){
                 // write hit, write through
                 {
                     hit->write(true);
-                    for (int i=0; i<4;i++){
+                    for (unsigned i=0; i<4;i++){
                         //write the input data to the matching cacheline 
                         cache_blocks[index][i+offset]= data_in_from_L1->read()[i];
                     }
@@ -299,7 +299,7 @@ SC_MODULE(L2){
                 // char* tmp = new char[cacheLineSize];
 
                 
-                for (int i=0; i<4;i++){
+                for (unsigned i=0; i<4;i++){
                     
                     data_out_to_Mem->read()[i] = data_in_from_L1->read()[i];
                 }
@@ -329,7 +329,7 @@ SC_MODULE(L2){
                 //cache miss, propagate to mem
                 else{
                     uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
-                    address_out->write(address->read()); 
+                    address_out->write(temp_address); 
                     
                     write_enable_out->write(write_enable->read());
                     
@@ -339,7 +339,7 @@ SC_MODULE(L2){
                     }
                     valid_out->write(false);
 
-                    for (int i = 0; i < cacheLineSize; i++) {
+                    for (unsigned i = 0; i < cacheLineSize; i++) {
                         cache_blocks[index][i] = data_in_from_Mem->read()[i];
                     }
                     valid[index] = true;
@@ -348,7 +348,7 @@ SC_MODULE(L2){
                 }
                 //bring the read data back to L1
                 // char* tmp = new char[4];
-                for (int i = 0; i < 4; i++) {
+                for (unsigned i = 0; i < 4; i++) {
                     data_out_to_L1->read()[i] = cache_blocks[index][i];
                 }
                     
@@ -357,7 +357,7 @@ SC_MODULE(L2){
             }
 
             //waits for clock
-            for (int i = 0; i < l2CacheLatency - 1; i++) {
+            for (unsigned i = 0; i < l2CacheLatency - 1; i++) {
                 wait();
             }
             done->write(true);
@@ -382,13 +382,12 @@ SC_MODULE(MEMORY) {
     sc_in<bool> valid_in;
 
     char memory_blocks[1000000];
-    int latency;
-    int count = 0;
+    unsigned latency;
 
     unsigned cacheLineSize;
 
     SC_CTOR(MEMORY);
-    MEMORY(sc_module_name name,  unsigned cacheLineSize, int latency) : sc_module(name), latency(latency), cacheLineSize(cacheLineSize) {
+    MEMORY(sc_module_name name,  unsigned cacheLineSize, unsigned latency) : sc_module(name), latency(latency), cacheLineSize(cacheLineSize) {
         SC_THREAD(update);
         sensitive << clock.pos();
     }
@@ -415,13 +414,12 @@ SC_MODULE(MEMORY) {
 
             if (!write_enable->read()) {
                 // Read data from memory
-                char buffer_out;
 
-                for (int i = 0; i < latency - 1; i++) {
+                for (unsigned i = 0; i < latency - 1; i++) {
                     wait();
                 }
-                char* tmp = new char[cacheLineSize];
-                for (int i = 0; i < cacheLineSize; i++) {
+
+                for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
                     std::cout << "read from memory: " << memory_blocks[address_u] << std::endl;
                     // Change address
@@ -437,7 +435,7 @@ SC_MODULE(MEMORY) {
                 // char* temp = buffer_vector;
                 
 
-                for (int i = 0; i < 4; i++) {
+                for (unsigned i = 0; i < 4; i++) {
                     // Write to memory
                     memory_blocks[address_u] = data_in_from_L2->read()[i];
                     std::cout << "in memory: " << memory_blocks[address_u] << std::endl;
@@ -447,7 +445,7 @@ SC_MODULE(MEMORY) {
                 }
 
                 // Stall for the latency time
-                for (int i = 0; i < latency - 1; i++) {
+                for (unsigned i = 0; i < latency - 1; i++) {
                     wait();
                 }
             }
@@ -669,8 +667,14 @@ struct CPU_L1_L2 {
     }
 
     void close_trace_file() {
-        sc_pause();
+        sc_stop();
         std::cout << reinterpret_cast<void *> (trace_file) << std::endl;
+        delete[] data_in.read();
+        delete[] data_out.read();
+        delete[] data_from_L1_to_L2.read();
+        delete[] data_from_L2_to_L1.read();
+        delete[] data_from_L2_to_Memory.read();
+        delete[] data_from_Memory_to_L2.read();
         sc_close_vcd_trace_file(trace_file);
     }
 

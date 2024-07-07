@@ -12,8 +12,7 @@ CPP_SRCS = src/main/simulator.cpp
 C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
-# assignment task file
-HEADERS := src/main/placeHolder.hpp
+HEADERS := src/modules/module.hpp
 
 # target name
 TARGET := cache
@@ -22,7 +21,7 @@ TARGET := cache
 SCPATH = systemc
 
 # Additional flags for the compiler
-CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
+CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm -W -Wall -Wextra
 
 
 # ---------------------------------------

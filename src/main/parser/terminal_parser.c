@@ -59,7 +59,7 @@ Config parse_user_input(int argc, char* argv[]) {
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
     size_t numRequests = 1000; // Set to n to test .csv
-    const char* tracefile = "src/assets/vcd/default_trace.vcd";
+    const char* tracefile = "src/assets/vcd/default_trace";
     const char* input_filename = NULL;
     bool customNumRequest = false; // Set to true to test .csv
 

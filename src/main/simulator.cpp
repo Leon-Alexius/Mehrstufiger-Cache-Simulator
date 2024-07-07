@@ -79,10 +79,18 @@ extern "C" {
         size_t cycle_count = 0;
         size_t miss_count = 0; 
         size_t hit_count = 0;
+
+        Request reqs[3];
+        
+        for (int i = 0; i < 3; i++) {
+            reqs[i].addr = 0x2;
+            reqs[1].data = 0xFFFFFF;
+            reqs[i].we = 0;
+        }
         
         
-        for (int i = 0; i < numRequests; i++) {
-            Request req = requests[i];
+        for (size_t i = 0; i < 3; i++) {
+            Request req = reqs[i];
             std::cout << "Request num: " << i << std::endl;
 
             // If req.we == -1, end simulation
@@ -99,11 +107,11 @@ extern "C" {
             hit_count += res.hits;
         }
 
-        int gate_count = caches.get_gate_count();
+        size_t gate_count = caches.get_gate_count();
         std::cout << "Cycles: " << cycle_count << std::endl;
         caches.close_trace_file();
 
-        struct Result result = {cycle_count, 0, 0, 0};
+        struct Result result = {cycle_count, 0, 0, gate_count};
         
         
         return result;

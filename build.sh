@@ -1,3 +1,7 @@
 make clean
 make
-./cache --l1-lines 4 --cacheline-size 64 --l1-latency 1 --num-requests 2 src/assets/csv/test_valid.csv
+./cache --num-requests 3 src/assets/csv/test_valid.csv
+
+# errors:
+# free() invalid pointer: 7, 11, 15, 19, 23
+# munmap_chunk(): 8, 12, 16, 20
