@@ -42,8 +42,6 @@ void remove_whitespaces(char* input) {
  *
  * @return void
  *
- * @todo Adjust the maximum buffer length (need to calculate how much we need).
- *
  * @warning DO NOT REMOVE ANY OF THE COMMENTS!
  * @author Lie Leon Alexius
  */

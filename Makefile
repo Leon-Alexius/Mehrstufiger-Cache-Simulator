@@ -2,54 +2,65 @@
 # CONFIGURATION BEGIN
 # ---------------------------------------
 
-# entry point for the program and target name
+# Entry point for the program and target name
+# Determine variables that holds the paths to the source files that need to be compiled
 C_SRCS = src/main/executor.c 
 PARSER = src/main/parser/csv_parser.c src/main/parser/parse.c src/main/parser/terminal_parser.c
 GRAPHER = src/main/grapher/printer.c
 CPP_SRCS = src/main/simulator.cpp
 
 # Object files
+# variables to the paths of the object files that will be generated from the C and C++ source files
+# Pattern substitution: replace the .c and .cpp extensions with .o
 C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
+# Variable to the paths of the header files that the source files depend on
 HEADERS := src/modules/module.hpp
 
-# target name
+# Target name
+# The name of the final executable that will be generated
 TARGET := cache
 
-# Path to your systemc installation
+# The path to SystemC installation (this project included Systemc to standardize the path)
 SCPATH = systemc
 
-# Additional flags for the compiler
+# Flags for the C++ compiler
+# 1. C++ standard 14 (-std=c++14)
+# 2. paths to include files (-I$(SCPATH)/include) 
+# 3. paths to library files (-L$(SCPATH)/lib)
+# 4. libraries to link against (-lsystemc -lm)
+# 5. Warnings (-W -Wall -Wextra)
 CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm -W -Wall -Wextra
 
+# Flags for the C compiler
+# 1. Address Sanitizer
+CFLAGS := -fsanitize=address
 
 # ---------------------------------------
 # CONFIGURATION END
 # ---------------------------------------
 
 # Determine if clang or gcc is available
+# CXX run the C++ compiler
 CXX := $(shell command -v g++ || command -v clang++)
 ifeq ($(strip $(CXX)),)
     $(error Neither clang++ nor g++ is available. Exiting.)
 endif
 
+# CC run the C compiler
 CC := $(shell command -v gcc || command -v clang)
 ifeq ($(strip $(CC)),)
     $(error Neither clang nor g is available. Exiting.)
 endif
 
-# Add rpath except for MacOS
-UNAME_S := $(shell uname -s)
-
+# Add flag to CXXFLAGS if not MacOS
+UNAME_S := $(shell uname -s) #  Get the name of the operating system currently in use
 ifneq ($(UNAME_S), Darwin)
     CXXFLAGS += -Wl,-rpath=$(SCPATH)/lib
 endif
 
-
-# Default to release build for both app and library
-all: debug
-
+# Pattern rules for make: build .o files from .c and .cpp files
 # Rule to compile .c files to .o files
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -58,8 +69,14 @@ all: debug
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Targets in Makefile
+.PHONY: all debug release clean
+
+# Default to release build for both app and library
+all: debug
+
 # Debug build
-debug: CXXFLAGS += -g
+debug: CXXFLAGS += -g  # include debugging information in the output file -fsanitize=address
 debug: $(TARGET)
 debug: 
 	rm -rf src/main/parser/*.o 
@@ -67,16 +84,16 @@ debug:
 	rm -rf src/main/*.o 
 
 # Release build
-release: CXXFLAGS += -O2
+release: CXXFLAGS += -O2 # optimize the code using O2
 release: $(TARGET)
 release:
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o 
 
-# Rule to link object files to executable
+# Rule to link object files to executables, flags, etc.
 $(TARGET): $(C_OBJS) $(CPP_OBJS)
-	$(CXX) $(CXXFLAGS) $(C_OBJS) $(CPP_OBJS) $(LDFLAGS) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(LDFLAGS) -o $(TARGET)
 
 # clean up
 clean:
@@ -84,5 +101,3 @@ clean:
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o
-
-.PHONY: all debug release clean

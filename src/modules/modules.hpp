@@ -1,35 +1,20 @@
-// temporary struct
 #ifndef MODULES_HPP
 #define MODULES_HPP
 
-
-#ifdef __cplusplus
-#include <vector>
-#include <iostream>
-#include "systemc.h"
-#include <systemc>
-#include <string>
-#include <cmath>
 /* anthony
 added #ifdef __cplusplus so that it works as a c header too
 */
-#include "../main/simulator.hpp" // the struct moved here - cleaner - Leon
+#ifdef __cplusplus
+#include <vector>
+#include <iostream>
+#include <systemc>
+#include <string>
+#include <cmath>
+
+#include "../main/simulator.hpp" // the struct moved here - Leon
 
 using namespace sc_core;
 using namespace std;
-
-extern "C" struct Result run_simulation(
-    int cycles,
-    unsigned l1CacheLines,
-    unsigned l2CacheLines,
-    unsigned cacheLineSize, 
-    unsigned l1CacheLatency, 
-    unsigned l2CacheLatency, 
-    unsigned memoryLatency,
-    size_t numRequests,
-    struct Request* requests,
-    const char* tracefile
-);
 
 void trace(sc_trace_file*& f, char* arr, size_t amount, std::string name) {
     int i = 0;
@@ -108,7 +93,7 @@ SC_MODULE(L1){
         {
             
             wait(SC_ZERO_TIME);
-            std::cout << "Done write false" << std::endl;
+            // std::cout << "Done write false" << std::endl;
             
             hit->write(false);
             done->write(false);
@@ -421,7 +406,7 @@ SC_MODULE(MEMORY) {
 
                 for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
-                    std::cout << "read from memory: " << memory_blocks[address_u] << std::endl;
+                    // std::cout << "read from memory: " << memory_blocks[address_u] << std::endl;
                     // Change address
                     address_u++;
                 }
@@ -438,7 +423,7 @@ SC_MODULE(MEMORY) {
                 for (unsigned i = 0; i < 4; i++) {
                     // Write to memory
                     memory_blocks[address_u] = data_in_from_L2->read()[i];
-                    std::cout << "in memory: " << memory_blocks[address_u] << std::endl;
+                    // std::cout << "in memory: " << memory_blocks[address_u] << std::endl;
                     // Change address
                     address_u++;
 
@@ -669,13 +654,16 @@ struct CPU_L1_L2 {
     void close_trace_file() {
         sc_stop();
         std::cout << reinterpret_cast<void *> (trace_file) << std::endl;
+        sc_close_vcd_trace_file(trace_file);
         delete[] data_in.read();
         delete[] data_out.read();
         delete[] data_from_L1_to_L2.read();
         delete[] data_from_L2_to_L1.read();
         delete[] data_from_L2_to_Memory.read();
         delete[] data_from_Memory_to_L2.read();
-        sc_close_vcd_trace_file(trace_file);
+        
+    
+        
     }
 
     size_t get_gate_count() {

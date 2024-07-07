@@ -23,11 +23,18 @@ extern "C" {
      * Adr: 3 Data: 300 WE: 1
      * Adr: 4 Data: 0 WE: 0
      * Adr: 0 Data: 0 WE: -1
+     * 
+     * @author Lie Leon Alexius
      */
     void print_result(size_t numRequests, struct Request* requests) {
         for (size_t i = 0; i < numRequests; i++) {
             struct Request r = requests[i];
             std::cout << "Adr: " << r.addr << " Data: " << r.data << " WE: " << r.we << std::endl;
+
+            // stop printing
+            if (r.we == -1) {
+                break;
+            }
         }  
     }
 
@@ -45,12 +52,10 @@ extern "C" {
      * @param requests A pointer to the array of Request structures.
      * @param tracefile The name of the trace file. Default value is "default_trace.vcd".
      * 
-     * @return `0` if the simulation is successful, `!0` else
+     * @return Result struct
      * 
      * @warning Not tested yet
      * @bug Not tested yet
-     * 
-     * @todo tracefile shouldn't be written if it is "default_trace.vcd"
      * 
      * @author Lie Leon Alexius
      */
@@ -62,36 +67,17 @@ extern "C" {
         const char* tracefile
     ) 
     {
-        /*  Don't delete this! - Leon
-
-            1. Read the struct Request, do the simulation
-            End simulation is when you meet Request with {.we = -1}
-
-            2. Assign result to the struct Result
-
-            3. write tracefile IF AND ONLY IF filename is NOT "src/assets/vcd/default_trace.vcd"
-
-            4. Don't forget to print Result and free Result that is made here. 
-        */
-        
+        // Initialize the Components        
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
-        // caches.test_L1(64, 4, 1);
-        size_t cycle_count = 0;
-        size_t miss_count = 0; 
-        size_t hit_count = 0;
+        size_t cycleCount = 0;
+        size_t missCount = 0; 
+        size_t hitCount = 0;
 
-        Request reqs[3];
+        // ========================================================================================
         
-        for (int i = 0; i < 3; i++) {
-            reqs[i].addr = 0x2;
-            reqs[1].data = 0xFFFFFF;
-            reqs[i].we = 0;
-        }
-        
-        
-        for (size_t i = 0; i < 3; i++) {
-            Request req = reqs[i];
-            std::cout << "Request num: " << i << std::endl;
+        // Process the request
+        for (size_t i = 0; i < numRequests; i++) {
+            Request req = requests[i];
 
             // If req.we == -1, end simulation
             if (req.we == -1) {
@@ -99,21 +85,25 @@ extern "C" {
             }
             
             // Send request to cache
-            Result res = caches.send_request(req);
-            cycle_count += res.cycles;
-        // print_result(numRequests, requests);
-
-            miss_count += res.misses;
-            hit_count += res.hits;
+            Result tempResult = caches.send_request(req);
+            cycleCount += tempResult.cycles;
+            missCount += tempResult.misses;
+            hitCount += tempResult.hits;
         }
 
-        size_t gate_count = caches.get_gate_count();
-        std::cout << "Cycles: " << cycle_count << std::endl;
+        // close the trace file
         caches.close_trace_file();
 
-        struct Result result = {cycle_count, 0, 0, gate_count};
+        // ========================================================================================
+
+        // assign Result
+        struct Result result;
+        result.cycles = cycleCount;
+        result.hits = hitCount;
+        result.misses = missCount;
+        result.primitiveGateCount = caches.get_gate_count();
         
-        
+        // return the result
         return result;
     }
 }
