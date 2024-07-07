@@ -1,0 +1,268 @@
+$date
+     Jul 07, 2024       20:16:16
+$end
+
+$version
+ SystemC 2.3.4-Accellera --- May 24 2024 22:14:56
+$end
+
+$timescale
+     1 ps
+$end
+
+$scope module SystemC $end
+$var wire   32  aaaaa  Data_In_0 [31:0]  $end
+$var wire   32  aaaab  Data_Out_0 [31:0]  $end
+$var wire   32  aaaac  Data-from_L1_to_L2_0 [31:0]  $end
+$var wire   32  aaaad  Data_from_L2_to_L1_0 [31:0]  $end
+$var wire   32  aaaae  Data_from_L2_to_L1_4 [31:0]  $end
+$var wire   32  aaaaf  Data_from_L2_to_L1_8 [31:0]  $end
+$var wire   32  aaaag  Data_from_L2_to_L1_12 [31:0]  $end
+$var wire   32  aaaah  Data_from_L2_to_L1_16 [31:0]  $end
+$var wire   32  aaaai  Data_from_L2_to_L1_20 [31:0]  $end
+$var wire   32  aaaaj  Data_from_L2_to_L1_24 [31:0]  $end
+$var wire   32  aaaak  Data_from_L2_to_L1_28 [31:0]  $end
+$var wire   32  aaaal  Data_from_L2_to_L1_32 [31:0]  $end
+$var wire   32  aaaam  Data_from_L2_to_L1_36 [31:0]  $end
+$var wire   32  aaaan  Data_from_L2_to_L1_40 [31:0]  $end
+$var wire   32  aaaao  Data_from_L2_to_L1_44 [31:0]  $end
+$var wire   32  aaaap  Data_from_L2_to_L1_48 [31:0]  $end
+$var wire   32  aaaaq  Data_from_L2_to_L1_52 [31:0]  $end
+$var wire   32  aaaar  Data_from_L2_to_L1_56 [31:0]  $end
+$var wire   32  aaaas  Data_from_L2_to_L1_60 [31:0]  $end
+$var wire   32  aaaat  Data_from_L2_to_Memory_0 [31:0]  $end
+$var wire   32  aaaau  Data_from_Memory_to_L2_0 [31:0]  $end
+$var wire   32  aaaav  Data_from_Memory_to_L2_4 [31:0]  $end
+$var wire   32  aaaaw  Data_from_Memory_to_L2_8 [31:0]  $end
+$var wire   32  aaaax  Data_from_Memory_to_L2_12 [31:0]  $end
+$var wire   32  aaaay  Data_from_Memory_to_L2_16 [31:0]  $end
+$var wire   32  aaaaz  Data_from_Memory_to_L2_20 [31:0]  $end
+$var wire   32  aaaba  Data_from_Memory_to_L2_24 [31:0]  $end
+$var wire   32  aaabb  Data_from_Memory_to_L2_28 [31:0]  $end
+$var wire   32  aaabc  Data_from_Memory_to_L2_32 [31:0]  $end
+$var wire   32  aaabd  Data_from_Memory_to_L2_36 [31:0]  $end
+$var wire   32  aaabe  Data_from_Memory_to_L2_40 [31:0]  $end
+$var wire   32  aaabf  Data_from_Memory_to_L2_44 [31:0]  $end
+$var wire   32  aaabg  Data_from_Memory_to_L2_48 [31:0]  $end
+$var wire   32  aaabh  Data_from_Memory_to_L2_52 [31:0]  $end
+$var wire   32  aaabi  Data_from_Memory_to_L2_56 [31:0]  $end
+$var wire   32  aaabj  Data_from_Memory_to_L2_60 [31:0]  $end
+$var wire   32  aaabk  Address [31:0]  $end
+$var wire   32  aaabl  Address_from_L1_to_L2 [31:0]  $end
+$var wire   32  aaabm  Address_from_L2_to_Memory [31:0]  $end
+$var wire    1  aaabn  WE       $end
+$var wire    1  aaabo  WE_from_L1_to_L2       $end
+$var wire    1  aaabp  WE_from_L2_to_Memory       $end
+$var wire    1  aaabq  Done_from_L1       $end
+$var wire    1  aaabr  Done_from_L2       $end
+$var wire    1  aaabs  Done_from_memory       $end
+$var wire    1  aaabt  Hit_from_L1       $end
+$var wire    1  aaabu  Hit_from_L2       $end
+$upscope $end
+$enddefinitions  $end
+
+$comment
+All initial values are dumped below at time 0 sec = 0 timescale units.
+$end
+
+$dumpvars
+b0 aaaaa
+b0 aaaab
+b0 aaaac
+b0 aaaad
+b0 aaaae
+b0 aaaaf
+b0 aaaag
+b0 aaaah
+b0 aaaai
+b0 aaaaj
+b0 aaaak
+b0 aaaal
+b0 aaaam
+b0 aaaan
+b0 aaaao
+b0 aaaap
+b0 aaaaq
+b0 aaaar
+b0 aaaas
+b0 aaaat
+b0 aaaau
+b0 aaaav
+b0 aaaaw
+b0 aaaax
+b0 aaaay
+b0 aaaaz
+b0 aaaba
+b0 aaabb
+b0 aaabc
+b0 aaabd
+b0 aaabe
+b0 aaabf
+b0 aaabg
+b0 aaabh
+b0 aaabi
+b0 aaabj
+b1 aaabk
+b0 aaabl
+b0 aaabm
+0aaabn
+0aaabo
+0aaabp
+0aaabq
+0aaabr
+0aaabs
+0aaabt
+0aaabu
+$end
+
+#100000000000000
+b10111110101111101011111010111110 aaaau
+b10111110101111101011111010111110 aaaav
+b10111110101111101011111010111110 aaaaw
+b10111110101111101011111010111110 aaaax
+b10111110101111101011111010111110 aaaay
+b10111110101111101011111010111110 aaaaz
+b10111110101111101011111010111110 aaaba
+b10111110101111101011111010111110 aaabb
+b10111110101111101011111010111110 aaabc
+b10111110101111101011111010111110 aaabd
+b10111110101111101011111010111110 aaabe
+b10111110101111101011111010111110 aaabf
+b10111110101111101011111010111110 aaabg
+b10111110101111101011111010111110 aaabh
+b10111110101111101011111010111110 aaabi
+b10111110101111101011111010111110 aaabj
+1aaabs
+
+#101000000000000
+b10111110101111101011111010111110 aaaad
+0aaabs
+
+#112000000000000
+1aaabr
+
+#113000000000000
+b101111101011111010111110 aaaab
+0aaabr
+
+#116000000000000
+1aaabq
+
+#117000000000000
+b1100100 aaaaa
+b1100100 aaaac
+b10 aaabk
+b10 aaabl
+1aaabn
+1aaabo
+0aaabq
+1aaabt
+
+#118000000000000
+b1100100 aaaat
+b10 aaabm
+1aaabp
+1aaabu
+
+#218000000000000
+1aaabs
+
+#219000000000000
+0aaabs
+
+#230000000000000
+1aaabr
+
+#231000000000000
+0aaabr
+0aaabu
+
+#234000000000000
+1aaabq
+
+#235000000000000
+b0 aaaaa
+b0 aaaab
+b11 aaabk
+0aaabn
+0aaabq
+
+#238000000000000
+1aaabq
+
+#239000000000000
+b1100100 aaaaa
+b100 aaabk
+b100 aaabl
+1aaabn
+0aaabq
+
+#240000000000000
+b100 aaabm
+1aaabu
+
+#340000000000000
+1aaabs
+
+#341000000000000
+0aaabs
+
+#352000000000000
+1aaabr
+
+#353000000000000
+0aaabr
+0aaabu
+
+#356000000000000
+1aaabq
+
+#357000000000000
+b0 aaaaa
+b101 aaabk
+0aaabn
+0aaabq
+
+#360000000000000
+1aaabq
+
+#361000000000000
+b11001000 aaaaa
+b11001000 aaaac
+b110 aaabk
+b110 aaabl
+1aaabn
+0aaabq
+
+#362000000000000
+b11001000 aaaat
+b110 aaabm
+1aaabu
+
+#462000000000000
+1aaabs
+
+#463000000000000
+0aaabs
+
+#474000000000000
+1aaabr
+
+#475000000000000
+0aaabr
+0aaabu
+
+#478000000000000
+1aaabq
+
+#479000000000000
+b0 aaaaa
+b11001000000000001100100 aaaab
+b10 aaabk
+0aaabn
+0aaabq
+
+#482000000000000
+1aaabq
+
+#483000000000000

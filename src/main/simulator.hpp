@@ -17,6 +17,10 @@ struct Request {
     int we; // write enabled 1 or write disabled 0
 };
 
+/**
+ * @brief Result contains `cycles`, `misses`, `hits`, `primitiveGateCount`
+ * @author Task Pdf
+ */
 struct Result {
     size_t cycles;
     size_t misses;

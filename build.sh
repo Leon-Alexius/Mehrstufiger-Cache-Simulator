@@ -1,3 +1,6 @@
 make clean
 make
-./cache src/assets/csv/default_data_valid.csv
+
+./cache --num-requests 7 src/assets/csv/test_valid.csv
+
+echo "finished"
