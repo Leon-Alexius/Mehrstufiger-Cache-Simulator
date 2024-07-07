@@ -76,14 +76,14 @@ extern "C" {
         
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
         // caches.test_L1(64, 4, 1);
-        int cycle_count = 0;
-        int miss_count = 0; 
-        int hit_count = 0;
+        size_t cycle_count = 0;
+        size_t miss_count = 0; 
+        size_t hit_count = 0;
         
         
         for (int i = 0; i < numRequests; i++) {
             Request req = requests[i];
-            std::cout << req.we << std::endl;
+            std::cout << "Request num: " << i << std::endl;
 
             // If req.we == -1, end simulation
             if (req.we == -1) {
@@ -100,8 +100,11 @@ extern "C" {
         }
 
         int gate_count = caches.get_gate_count();
+        std::cout << "Cycles: " << cycle_count << std::endl;
+        caches.close_trace_file();
 
-        struct Result result = {0, 0, 0, 0};
+        struct Result result = {cycle_count, 0, 0, 0};
+        
         
         return result;
     }
