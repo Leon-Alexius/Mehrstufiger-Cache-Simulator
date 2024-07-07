@@ -26,7 +26,7 @@ extern "C" {
      * 
      * @author Lie Leon Alexius
      */
-    void print_result(size_t numRequests, struct Request* requests) {
+    void print_requests(size_t numRequests, struct Request* requests) {
         for (size_t i = 0; i < numRequests; i++) {
             struct Request r = requests[i];
             std::cout << "Adr: " << r.addr << " Data: " << r.data << " WE: " << r.we << std::endl;
@@ -57,7 +57,7 @@ extern "C" {
      * @warning Not tested yet
      * @bug Not tested yet
      * 
-     * @author Lie Leon Alexius
+     * @author Anthony, Leon, Trang
      */
     struct Result run_simulation(
         int cycles, 
