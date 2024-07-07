@@ -232,6 +232,21 @@ void free_matrix(float* matrix) {
 /**
  * @brief Do test on various cache behavior
  * @param n The size of the matrix (n x n)
+ * 
+ * @details
+ * With n = 1000
+ * | Method     | Time (s)   |
+ * |------------|------------|
+ * | ijk        | 3.635000   |
+ * | jik        | 2.981000   |
+ * | ikj        | 3.726000   |
+ * | jki        | 12.075000  |
+ * | kij        | 3.323000   |
+ * | kji        | 11.565000  |
+ * 
+ * From best to worst:
+ * jik > kij > ijk > ikj > kji > jki
+ * 
  * @author Lie Leon Alexius
  */
 void test_matrix_multiplication() {
