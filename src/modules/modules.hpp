@@ -16,8 +16,20 @@ added #ifdef __cplusplus so that it works as a c header too
 using namespace sc_core;
 using namespace std;
 
+/**
+* @brief custom sc_trace method for pointer values
+*
+* @param f Trace file.
+* @param arr Array to be traced.
+* @param amount Number of elements to be traced.
+* @param name Name of traced value
+*
+* @author Alexander Anthony Tang
+*/
+
 void trace(sc_trace_file*& f, char* arr, size_t amount, std::string name) {
     int i = 0;
+    //check if there is any value in array to trace
     while (amount > 0) {
         // int temp = 0;
         // for (int j = 0; j < 4; j++) {
@@ -41,39 +53,56 @@ void trace(sc_trace_file*& f, char* arr, size_t amount, std::string name) {
 }
 
 
-/*Trang*/
+/**
+* @brief L1 represents a L1 cache in a memory hierarchy system
+* @details This L1 module handles read and write operations to and from CPU and L2 cache
+*
+* @author Van Trang Nguyen
+*/
+
 SC_MODULE(L1){
 
-    sc_in<char*> data_in_from_CPU;
-    sc_in<char*> data_in_from_L2;
+    sc_in<char*> data_in_from_CPU;      ///< Data input from CPU for write
+    sc_in<char*> data_in_from_L2;       ///< Data input from L2 cache to L1
 
-    sc_in<uint32_t> address;
-    sc_out<uint32_t> address_out;
+    sc_in<uint32_t> address;            ///< Address input for read/write 
+    sc_out<uint32_t> address_out;       ///< Address propagated to L2
 
-    sc_in<bool> write_enable;
-    sc_out<bool> write_enable_out;
+    sc_in<bool> write_enable;           ///< Write-enable signal for a write operation
+    sc_out<bool> write_enable_out;      ///< Write-enable signal propagated to L2 cache
 
-    sc_in<char*> data_out_to_CPU;
-    sc_in<char*> data_out_to_L2;
+    sc_in<char*> data_out_to_CPU;       ///< Read data to the CPU
+    sc_in<char*> data_out_to_L2;        ///< Data propagated from CPU to the L2 cache
     
-    sc_out<bool> hit;
-    sc_in<bool> done_from_L2;
-    sc_in<bool> clk;
+    sc_out<bool> hit;                   ///< Cache hit signal
+    sc_in<bool> done_from_L2;           ///< Signal indicating the completion operation in L2
+    sc_in<bool> clk;                    ///< Clock signal for synchronization
 
-    sc_out<bool> done;
-    sc_in<bool> valid_in;
+    sc_out<bool> done;                  ///< Signal indicating the completion of an operation in the current L1
+    sc_in<bool> valid_in;               
     sc_out<bool> valid_out;
     
 
-    vector<vector<char>> cache_blocks;
+    vector<vector<char>> cache_blocks;  ///< Cache blocks represented in a 2D vector
     
-    vector<bool> valid;
-    vector<uint32_t> tags;
+    vector<bool> valid;                 ///< Vector indicating the validity of cache lines
+    vector<uint32_t> tags;              ///< Vector storing the tags for each cache line
 
-    unsigned cacheLineSize;
-    unsigned l1CacheLines;
-    unsigned l1CacheLatency;
+    unsigned cacheLineSize;             ///< Size of each cache line
+    unsigned l1CacheLines;              ///< Number of cache lines in the L1 cache
+    unsigned l1CacheLatency;            ///< Latency of L1 cache in clock cycles
     
+    /**
+     * @brief Constructor for L1 cache module.
+     *
+     * @param name The name of the module.
+     * @param cacheLineSize The size of each cache line.
+     * @param l1CacheLines The number of cache lines in the L1 cache.
+     * @param l1CacheLatency The latency of the L1 cache in clock cycles.
+     *
+     * @author Van Trang Nguyen
+     */
+
     SC_CTOR(L1);
     L1(sc_module_name name, unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency): sc_module(name), cacheLineSize(cacheLineSize), l1CacheLines(l1CacheLines), l1CacheLatency(l1CacheLatency) {
         cache_blocks.resize(l1CacheLines, vector<char> (cacheLineSize));
@@ -86,7 +115,11 @@ SC_MODULE(L1){
     };
 
 
-
+    /**
+     * @brief Main update method for the L1 cache.
+     * @details This method implements the main functionality of the cache, which is handling read and write operations while maintaining cache coherence.
+     * The operations are synchronized with the clock signal.
+     */
     void update(){
         wait();
         while (true)
@@ -112,7 +145,7 @@ SC_MODULE(L1){
             if(write_enable->read()){
                 // std::cout << "write" << std::endl;
                 if ((tags[index] == tag )&& (valid[index]))
-                /*write hit, write through*/
+                //write hit, write through
                 {
                     hit->write(true);
                     for (int i = 0; i < 4; i++){
@@ -190,43 +223,58 @@ SC_MODULE(L1){
     }
 };
 
-/*Trang*/
+/**
+ * @brief L2 represents an L2 cache in a memory hierarchy system.
+ * @details L2 handles read and write operations to and from L1 cache and main memory.
+ *
+ * @author Van Trang Nguyen
+ */
+
 SC_MODULE(L2){
-    sc_in<char*> data_in_from_L1;
-    sc_in<char*> data_in_from_Mem;
+    sc_in<char*> data_in_from_L1;           ///< Data input from L1 cache for write
+    sc_in<char*> data_in_from_Mem;          ///< Data input from memory to L2
 
-    sc_in<uint32_t> address;
-    sc_out<uint32_t> address_out;
+    sc_in<uint32_t> address;                ///< Address input for read/write operations
+    sc_out<uint32_t> address_out;           ///< Address propagated to memory
 
-    sc_in<bool> write_enable;
-    sc_out<bool> write_enable_out;
+    sc_in<bool> write_enable;               ///< Write-enable signal for a write operation
+    sc_out<bool> write_enable_out;          ///< Write-enable signal propagated to memory
 
-    sc_in<char*> data_out_to_L1;
-    sc_in<char*> data_out_to_Mem;
+    sc_in<char*> data_out_to_L1;            ///< Data output to L1 cache
+    sc_in<char*> data_out_to_Mem;           ///< Data output to memory
 
-    sc_out<bool> hit;
-    sc_in<bool> done_from_Mem;
-    sc_in<bool> clk;
+    sc_out<bool> hit;                       ///< Cache hit signal
+    sc_in<bool> done_from_Mem;              ///< Signal indicating the completion of an operation in memory
+    sc_in<bool> clk;                        ///< Clock signal for synchronization
 
-    sc_out<bool> done;
+    sc_out<bool> done;                      ///< Signal indicating the completion of an operation in L2 cache
     sc_in<bool> valid_in;
     sc_out<bool> valid_out;
 
 
 
-    vector<vector<char>> cache_blocks;
+    vector<vector<char>> cache_blocks;      ///< A 2D vector representing the cache blocks
 
-    vector<bool> valid;
-    vector<uint32_t> tags;
+    vector<bool> valid;                     ///< Vector indicating the validity of cache lines
+    vector<uint32_t> tags;                  ///< Vector storing the tags for each cache line
     
     //char data_blocks[l2CacheLines];
 
-    unsigned cacheLineSize;
-    unsigned l2CacheLines;
-    unsigned l2CacheLatency;
+    unsigned cacheLineSize;                 ///< Size of each cache line
+    unsigned l2CacheLines;                  ///< Number of cache lines in the L2 cache
+    unsigned l2CacheLatency;                ///< Latency of L2 cache in clock cycles
 
 
-
+   /**
+    * @brief Constructor for L2 cache module.
+    *
+    * @param name The name of the module.
+    * @param cacheLineSize The size of each cache line.
+    * @param l2CacheLines The number of cache lines in the L2 cache.
+    * @param l2CacheLatency The latency of the L2 cache in clock cycles.
+    *
+    * @author Van Trang Nguyen
+    */
     SC_CTOR(L2);
     L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency): sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency)    {
 
@@ -237,6 +285,12 @@ SC_MODULE(L2){
         SC_THREAD(update);
         sensitive << clk.pos();
     }
+
+   /**
+    * @brief Main update method for the L2 cache.
+    * @details This method implements the main functionality of the cache, handling read and write operations while maintaining cache coherence.
+    * The operations are synchronized with the clock signal.
+    */
 
     void update(){
         wait();
@@ -353,23 +407,38 @@ SC_MODULE(L2){
     }
 };
 
-/* anthony
-    MEMORY serves as the main memory of the computer
-*/
-SC_MODULE(MEMORY) {
-    sc_in<char*> data_in_from_L2;
-    sc_in<uint32_t> address;
-    sc_in<bool> write_enable;
-    sc_in<bool> clock; 
-    sc_in<char*> data_out_to_L2;
+/**
+ * @brief MEMORY represents the main memory in a memory hierarchy system.
+ * @details MEMORY handles read and write operations directly from L2 cache.
+ *
+ * @author Alexander Anthony Tang
+ */
 
-    sc_out<bool> done;
+SC_MODULE(MEMORY) {
+    sc_in<char*> data_in_from_L2;       ///< Data input from L2 cache for write
+    sc_in<char*> data_out_to_L2;        ///< Data output to L2 cache for read  
+    sc_in<uint32_t> address;            ///< Address input for read/write operations
+    sc_in<bool> write_enable;           ///< Write-enable signal for a write operation
+    sc_in<bool> clock;                  ///< Clock signal for synchronization
+
+
+    sc_out<bool> done;                  ///< Signal indicating the completion of an operation in the current memory
     sc_in<bool> valid_in;
 
-    char memory_blocks[1000000];
-    unsigned latency;
+    char memory_blocks[1000000];        ///< Memory blocks represented by an array of char
+    unsigned latency;                   ///< Latency of memory in clock cycles
 
-    unsigned cacheLineSize;
+    unsigned cacheLineSize;             ///< Size of each cache line
+
+   /**
+    * @brief Constructor for MEMORY module.
+    *
+    * @param name Name of the module.
+    * @param cacheLineSize Size of each cache line.
+    * @param memoryLatency Latency of the memory in clock cycles.
+    *
+    * @author Alexander Anthony Tang
+    */
 
     SC_CTOR(MEMORY);
     MEMORY(sc_module_name name,  unsigned cacheLineSize, unsigned latency) : sc_module(name), latency(latency), cacheLineSize(cacheLineSize) {
@@ -377,10 +446,14 @@ SC_MODULE(MEMORY) {
         sensitive << clock.pos();
     }
 
-    /* anthony
-        This update() method will wait until the cycle takes 8 ticks, before executing the write/read
+   /**
+    * @brief Main update method for the MEMORY.
+    * @details This method implements the main functionality of the memory, handling read and write operations while maintaining memory coherence.
+    * The operations are synchronized with the clock signal.
+    * This update() method will wait until the cycle takes 8 ticks, before executing the write/read
+    *
+    * @author Alexander Anthony Tang
     */
-    
     void update() {
         while (true) {
             wait(SC_ZERO_TIME);
@@ -390,11 +463,8 @@ SC_MODULE(MEMORY) {
                 wait();
             }
 
-            /* anthony
-                Accessing memory: each cell has 4 bytes, which means that to convert address to index
-                will be address/4 + address % 4 
-            */
-
+            // Accessing memory: each cell has 4 bytes, which means that to convert address to index
+            // will be address/4 + address % 4
             unsigned address_u = (address->read());
 
             if (!write_enable->read()) {
@@ -441,21 +511,29 @@ SC_MODULE(MEMORY) {
     }
 };
 
+/**
+ * @brief CPU_L1_L2 simulates a CPU with L1 and L2 caches and main memory.
+ *
+ * @authors
+ * Alexander Anthony Tang
+ * Van Trang Nguyen
+ */
+
 struct CPU_L1_L2 {
     
-    unsigned l1CacheLines;
-    unsigned l2CacheLines;       
-    unsigned cacheLineSize;
-    unsigned l1CacheLatency;
-    unsigned l2CacheLatency;
-    unsigned memoryLatency;
-    size_t numRequests;
-    struct Request* requests;
-    const char* tracefile;
+    unsigned l1CacheLines;      ///< Number of cache lines in L1 cache
+    unsigned l2CacheLines;      ///< Number of cache lines in L2 cache  
+    unsigned cacheLineSize;     ///< Size of each cache line
+    unsigned l1CacheLatency;    ///< Latency of L1 cache
+    unsigned l2CacheLatency;    ///< Latency of L2 cache
+    unsigned memoryLatency;     ///< Latency of main memory
+    size_t numRequests;         ///< Number of requests
+    struct Request* requests;   ///< Array of requests
+    const char* tracefile;      ///< Tracefile name
  
-    L1* l1;
-    L2* l2;
-    MEMORY* memory;
+    L1* l1;                     ///< Pointer to L1 cache
+    L2* l2;                     ///< Pointer to L2 cache
+    MEMORY* memory;             ///< Pointer to main memory
 
     // Bus between CPU and Cache
     sc_signal<char*> data_in;
@@ -495,6 +573,23 @@ struct CPU_L1_L2 {
 
     sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
     sc_trace_file* trace_file;
+
+
+   /**
+    * @brief Constructor for memory hierarchy system CPU_L1_L2.
+    *
+    * @param l1CacheLines Number of cache lines in L1 cache.
+    * @param l2CacheLines Number of cache lines in L2 cache.
+    * @param cacheLineSize Size of each cache line in L1 and L2.
+    * @param l1CacheLatency Latency of L1 cache.
+    * @param l2CacheLatency Latency of L2 cache.
+    * @param memoryLatency Latency of main memory.
+    * @param tracefile Name of trace file.
+    *
+    * @authors
+    * Alexander Anthony Tang
+    * Van Trang Nguyen
+    */
 
     CPU_L1_L2( const unsigned l1CacheLines, const unsigned l2CacheLines,
         const unsigned cacheLineSize,
@@ -621,6 +716,15 @@ struct CPU_L1_L2 {
         // sc_close_vcd_trace_file(trace_file);
     }
     
+
+    /**
+     * @brief Send a request to the simulated memory hierarchy system.
+     *
+     * @param request The request to send.
+     * @return Result structure containing cycle count and other data.
+     *
+     * @author Alexander Anthony Tang
+     */
 
     struct Result send_request(struct Request request) {
         // sc_signal<char*> data;
