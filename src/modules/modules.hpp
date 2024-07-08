@@ -117,16 +117,20 @@ SC_MODULE(L1){
             //converts address from binary to decimal
             unsigned address_int = address->read();
 
-            // extracts metadata bits from address
-            // using bit casting, because cache line size and number of cache lines are always power of 2
-            size_t index = (address_int >> int(log2(l1CacheLines))) & (l1CacheLines-1);
-            unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l1CacheLines)-1);
+            //extracts metadata bits from address
+            //using bit casting, because cache line size and number of cache lines are always power of 2
             unsigned offset = address_int & (cacheLineSize-1);
+            unsigned index = (address_int >> int(log2(cacheLineSize))) & (l1CacheLines-1);
+            unsigned tag = address_int >> int(log2(cacheLineSize)) >> int(log2(l1CacheLines));
+            // std::cout << "Tag: " << tag << " Index: " << index << " Offset : " << offset << " Address : " << address_int << " Hit: " << (valid[index] && tags[index]==tag) << " WE: " << write_enable->read() << std::endl;
+
+
 
             // write operation
             if(write_enable->read()){
-                if ((tags[index] == tag ) && (valid[index]))
-                // write hit, write through
+                // std::cout << "write" << std::endl;
+                if ((tags[index] == tag) && (valid[index]))
+                //write hit, write through
                 {
                     hit->write(true);
                     for (int i = 0; i < 4; i++){
@@ -159,11 +163,10 @@ SC_MODULE(L1){
                     // Bring the data to cpu
                     
                 }
-
-                // Read miss, propagate to L2, load cacheline from L2 to L1, and write to data_out_to_CPU
-                else {
-                    uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
-                    address_out->write(temp_address);
+                //Read miss, propagate to L2, load cacheline from L2 to L1, and write to data_out_to_CPU
+                else{
+                    // uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
+                    address_out->write(address->read());
                     write_enable_out->write(write_enable->read());
                     valid_out->write(true);
                     wait(SC_ZERO_TIME);
@@ -259,44 +262,44 @@ SC_MODULE(L2){
     */
     void update(){
         wait();
-        while (true)
-        {    
+
+        while (true) { 
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
            
             done->write(false);
-            
+            hit->write(false);
+
             while (!valid_in->read()) {
                 wait();
             }
-     
-            hit->write(false);
 
-            // converts address from binary to decimal
+            //converts address from binary to decimal
             unsigned address_int = address->read();
 
-            // extracts metadata bits from address
-            // using bit casting, because cache line size and number of cache lines are always power of 2
-            unsigned index = (address_int >> int(log2(l2CacheLines))) & (l2CacheLines-1);
-            unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l2CacheLines)-1);
+            //extracts metadata bits from address
+            //using bit casting, because cache line size and number of cache lines are always power of 2
             unsigned offset = address_int & (cacheLineSize-1);
+            unsigned index = (address_int >> int(log2(cacheLineSize))) & (l2CacheLines-1);
+            unsigned tag = address_int >> int(log2(cacheLineSize)) >> int(log2(l2CacheLines));
+            
+            
 
             // write operation
             if(write_enable->read()){
                 if (tags[index] == tag && valid[index])
                 // write hit, write through
                 {
-                    // hit->write(true);
+                    hit->write(true);
                     for (unsigned i=0; i<4;i++){
                         // write the input data to the matching cacheline 
                         cache_blocks[index][i+offset]= data_in_from_L1->read()[i];
                     }
                 // propagate to Memory
                 }
-
-                // no matter write miss or hit, continues to propagate to Memory
-                for (unsigned i=0; i<4;i++){
-                    
+                //no matter write miss or hit, continues to propagate to Memory
+               
+                for (unsigned i = 0; i < 4; i++){    
                     data_out_to_Mem->read()[i] = data_in_from_L1->read()[i];
                 }
 
@@ -309,16 +312,16 @@ SC_MODULE(L2){
                 valid_out->write(false);
             } 
 
-            // read operation
-            else{
-                
-                // cache hit
+            //read operation
+            } else {
+                //cache hit
                 if (valid[index] && tags[index]==tag)
                 {
                     hit->write(true);
                 }
-                // cache miss, propagate to mem
-                else{
+                //cache miss, propagate to mem
+                else 
+                {
                     uint32_t temp_address = ((address->read())/cacheLineSize) * cacheLineSize;
                     address_out->write(temp_address); 
                     
@@ -337,10 +340,10 @@ SC_MODULE(L2){
                     tags[index] = tag;
                 }
 
-                // bring the read data back to L1
+                //bring the read data back to L1
                 for (unsigned i = 0; i < 4; i++) {
                     data_out_to_L1->read()[i] = cache_blocks[index][i];
-                }     
+                }
             }
 
             // waits for clock
@@ -423,8 +426,14 @@ SC_MODULE(MEMORY) {
                     // Change address
                     address_u++;
                 }
-            } 
-            else {
+
+                // Write the result into data_outs
+                // data_out_to_L2->write(tmp);
+                
+            } else {
+                // Write data to memory
+                
+
                 for (unsigned i = 0; i < 4; i++) {
                     // Write to memory
                     memory_blocks[address_u] = data_in_from_L2->read()[i];
@@ -437,6 +446,7 @@ SC_MODULE(MEMORY) {
                     wait();
                 }
             }
+
             done->write(true);
             wait();
         }
@@ -659,13 +669,20 @@ struct CPU_L1_L2 {
 
         write_enable = request.we;
         address = request.addr;
-        
+      
+        bool valided = false;
+        size_t hit_L2 = 0;
+
         do {
             sc_start(1, SC_SEC);
+            if (valid_from_L1_to_L2) {
+                valided = true;
+            }
+            hit_L2 |= hit_from_L2.read();
             cycle_count++;
         } while (!done_from_L1.read());
         
-        struct Result res = {cycle_count, hit_from_L2.read(), !(hit_from_L2.read()), 0};
+        struct Result res = {cycle_count, !(hit_from_L1) + ((valided) ? (1 - hit_L2) : 0), hit_from_L1 + ((valided) ? hit_L2 : 0), 0};
  
         return res;
     }
