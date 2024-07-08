@@ -106,7 +106,7 @@ SC_MODULE(L1){
             size_t index = (address_int >> int(log2(l1CacheLines))) & (l1CacheLines-1);
             unsigned tag = address_int >> int(log2(cacheLineSize)-1) >> int(log2(l1CacheLines)-1);
             unsigned offset = address_int & (cacheLineSize-1);
-            std::cout << "Write enable L1: " << write_enable->read() << std::endl;
+            // std::cout << "Write enable L1: " << write_enable->read() << std::endl;
 
             //write operation
             if(write_enable->read()){
@@ -164,13 +164,14 @@ SC_MODULE(L1){
                         cache_blocks[index][i] = data_in_from_L2->read()[i];
                     }
                     valid[index] = true;
+                    tags[index] = tag;
             
                 }
                 // std::cout << "read" << std::endl;
                 // char* tmp = new char[4];
                 for (unsigned i = 0; i < 4; i++) {
                     data_out_to_CPU->read()[i] = cache_blocks[index][i + offset];
-                    std::cout << "read from L1 cache: " << data_out_to_CPU->read()[i] << std::endl;
+                    // std::cout << "read from L1 cache: " << data_out_to_CPU->read()[i] << std::endl;
                 }
                     
                 // data_out_to_CPU->write(tmp);
@@ -246,8 +247,6 @@ SC_MODULE(L2){
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
            
-            
-            hit->write(false);
             done->write(false);
             
 
@@ -255,7 +254,10 @@ SC_MODULE(L2){
                 wait();
             }
 
-            std::cout << "Write Enable L2: " << write_enable->read() << std::endl;
+                        
+            hit->write(false);
+
+            // std::cout << "Write Enable L2: " << write_enable->read() << std::endl;
 
             
 
@@ -273,7 +275,7 @@ SC_MODULE(L2){
                 if (tags[index] == tag && valid[index])
                 // write hit, write through
                 {
-                    hit->write(true);
+                    // hit->write(true);
                     for (unsigned i=0; i<4;i++){
                         //write the input data to the matching cacheline 
                         cache_blocks[index][i+offset]= data_in_from_L1->read()[i];
@@ -328,6 +330,8 @@ SC_MODULE(L2){
                         cache_blocks[index][i] = data_in_from_Mem->read()[i];
                     }
                     valid[index] = true;
+                    tags[index] = tag;
+
 
 
                 }
@@ -514,6 +518,7 @@ struct CPU_L1_L2 {
         // data_in = temp_data_in;
         // char* temp_data_out = new char[4] ();
         // data_out = temp_data_out;
+        std::cout << cacheLineSize << std::endl;
 
         data_in = new char[4]();
         data_out = new char[4]();
@@ -592,7 +597,7 @@ struct CPU_L1_L2 {
 
         // Bind to trace
         trace_file = sc_create_vcd_trace_file(tracefile);
-        std::cout << reinterpret_cast<void *> (trace_file) << std::endl;
+        // std::cout << reinterpret_cast<void *> (trace_file) << std::endl;
         trace(trace_file, data_in, 4, "Data_In");
         trace(trace_file, data_out, 4, "Data_Out");
 
@@ -626,7 +631,7 @@ struct CPU_L1_L2 {
         // sc_signal<char*> data;
         uint32_t data_req = request.data;
         size_t cycle_count = 0;
-        std::cout << "test" << std::endl;
+        // std::cout << "test" << std::endl;
         for (int i = 0; i < 4; i++) {
             data_in[i] = (char) data_req % 256;
             data_req /= 256;
@@ -642,18 +647,19 @@ struct CPU_L1_L2 {
             sc_start(1, SC_SEC);
             cycle_count++;
         } while (!done_from_L1.read());
+
     
-        for (int i = 0; i < 1; i++) std::cout << data_out[0] << data_out[1] << data_out[2] << data_out[3] << std::endl;
+        // for (int i = 0; i < 1; i++) std::cout << data_out[0] << data_out[1] << data_out[2] << data_out[3] << std::endl;
         
         
-        struct Result res = {cycle_count, 0, 0, 0};
+        struct Result res = {cycle_count, hit_from_L2.read(), !(hit_from_L2.read()), 0};
  
         return res;
     }
 
     void close_trace_file() {
         sc_stop();
-        std::cout << reinterpret_cast<void *> (trace_file) << std::endl;
+        // std::cout << reinterpret_cast<void *> (trace_file) << std::endl;
         sc_close_vcd_trace_file(trace_file);
         delete[] data_in.read();
         delete[] data_out.read();

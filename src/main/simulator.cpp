@@ -67,6 +67,7 @@ extern "C" {
         const char* tracefile
     ) 
     {
+        std::cout << "Cache size: " << cacheLineSize << std::endl;
         // Initialize the Components        
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
         size_t cycleCount = 0;
