@@ -25,5 +25,3 @@ echo "==========================================================================
 
 echo "JKI"
 ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jki.csv
-
-echo "Simulation Ended"
