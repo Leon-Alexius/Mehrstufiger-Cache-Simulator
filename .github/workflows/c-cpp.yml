@@ -12,14 +12,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
+    - name: Setup environment
+      run: bash setup.sh
     - name: make
       run: make
     - name: make check
       run: make check
-    - name: make distcheck
-      run: make distcheck
     - name: Run bash script
       run: |
         make clean
