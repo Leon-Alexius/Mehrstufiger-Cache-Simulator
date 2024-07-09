@@ -64,12 +64,20 @@ int main(int argc, char* argv[]) {
         config.tracefile
     );
 
-    // Process the simulation result
-    printf("Simulation has ended\n");
+    // Print the layout and result
+    print_layout(
+        config.cycles, 
+        config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
+        config.l1CacheLatency, config.l2CacheLatency, config.memoryLatency, 
+        config.numRequests
+    );
+
     printf("Number of Cycles: %lu \n", result.cycles);
     printf("Number of Hits: %lu   \n", result.hits);
     printf("Number of Misses: %lu \n", result.misses);
     printf("Number of Gates: %lu  \n", result.primitiveGateCount);
+
+    printf("Simulation has ended\n");
 
     // free the Config.requests
     free(config.requests);
