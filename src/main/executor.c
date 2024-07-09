@@ -43,8 +43,17 @@ void test_config(Config config) {
 }
 
 /**
- * @brief Simulation starts here
+ * @brief Simulation starts here.
+ *
+ * @details
+ * The executor program is responsible for executing a given command with the specified arguments.
+ * It takes command-line arguments as input and returns an exit status.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv An array of strings representing the command-line arguments.
+ * 
  * @warning don't delete the tests
+ * 
  * @author Lie Leon Alexius
  */
 int main(int argc, char* argv[]) {
