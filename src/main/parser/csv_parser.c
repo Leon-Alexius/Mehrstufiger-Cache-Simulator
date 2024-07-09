@@ -56,7 +56,11 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
     }
 
     // Initialize buffer
-    char line[100]; // assume a line up to 100 char (max)
+    /*
+        __uint32_t max = 4_294_967_295 = 0xFFFFFFFF (10 char)
+        Max 1 Line = 1 + 1 + 1 + 10 + 1 + 1 + 10 = 25 char
+    */
+    char line[100]; // assume a line up to 100 char (user is high on whitespaces)
     char rw[10]; // R or W
     char addr_str[20]; // Hexadecimal or Decimal
     char data_str[20]; // Hexadecimal or Decimal

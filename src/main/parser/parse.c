@@ -12,8 +12,8 @@
 
 /**
  * @brief Count total lines in CSV
- * @note Empty row will be counted as a line
- * @warning this returns `Number_Of_Request` remember to add `1` for `.we = -1`
+ * @note this returns `Number_Of_Request` remember to add `1` for `.we = -1`
+ * @warning Empty row will be counted as a line (a request)
  * @author Lie Leon Alexius
  */
 int calculateLines(const char* input_filename) {
@@ -47,12 +47,10 @@ Config start_parse(int argc, char* argv[]) {
     // ========================================================================================
 
     // Parse .csv
-    // Edge case: Not customNumRequest but Requests > 1000 (default config.numRequests)
+    // Get numRequest of the file - Read Warning calculateLines()
     if (!(config.customNumRequest)) {
         int totalRequest = calculateLines(config.input_filename);
-        if (totalRequest > 1000) {
-            config.numRequests = totalRequest;
-        }
+        config.numRequests = totalRequest;
     }
 
     // Allocate (numRequests + 1) for the .we = -1 marker

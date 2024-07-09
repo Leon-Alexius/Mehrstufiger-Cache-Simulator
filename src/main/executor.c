@@ -27,7 +27,7 @@ extern struct Result run_simulation(
  * @author Lie Leon Alexius
  */
 void test_config(Config config) {
-    // 05/07/2024 - Default & Custom Values works perfectly fine
+    printf(" ================================= START TEST CONFIG =================================\n");
     printf("Cycles: %d\n", config.cycles); // 1000000
     printf("L1 Cache Line: %u\n", config.l1CacheLines); // 64
     printf("L2 Cache Line: %u\n", config.l2CacheLines); // 256
@@ -38,7 +38,8 @@ void test_config(Config config) {
     printf("Num Requests: %lu\n", config.numRequests); // 1000
     printf("Tracefile: %s\n", config.tracefile); // "src/assets/vcd/default_trace.vcd"
     printf("Input Filename: %s\n", config.input_filename); // "src/assets/csv/test_valid.csv"
-    printf("customNumRequest: %d\n", config.customNumRequest); // 0
+    printf("customNumRequest: %d\n", config.customNumRequest); // 0 (false)
+    printf(" ================================== END TEST CONFIG ==================================\n\n");
 }
 
 /**
