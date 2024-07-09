@@ -15,25 +15,30 @@
  * @brief
  * Prints the layout of the simulator and its initial attributes.
  * 
- * @warning don't remove this!
- * @todo complete this
+ * @warning don't remove this! It's used for the initial layout of the simulator
  * @author Lie Leon Alexius
  */
-void print_layout() {
+void print_layout(int cycles, int l1CacheLines, int l2CacheLines, int cacheLineSize, int l1CacheLatency, int l2CacheLatency, int memoryLatency, int numRequests) {
     printf(
         "Team 150 - Cache Simulator\n"
         "An Overview of our simulation:\n\n"
-        "┌─────────────────┐\n"
-        "|    Processor    |\n"
-        "| ┌─────┐ ┌─────┐ |\n"
-        "| | L1  | | L2  | |\n"
-        "| └─────┘ └─────┘ |\n"
-        "└────────┬────────┘\n"
-        "         ↓         \n"
-        "┌─────────────────┐\n"
-        "|       RAM       |\n"
-        "└─────────────────┘\n\n"
-        "Attribute values:  \n"
+        "┌────────────────────────────────────────────────────────────────┐\n"
+        "|                            Processor                           |\n"
+        "| ┌────────────────────────────────────────────────────────────┐ |\n"
+        "| | Cycles: %-50d | |\n"
+        "| |────────────────────────────────────────────────────────────| |\n"
+        "| | L1 Cache       | L2 Cache       | Cache Line Size: %-7d | |\n"
+        "| | Lines: %-5d   | Lines: %-5d   |                          | |\n"
+        "| | Latency: %-5d | Latency: %-5d |                          | |\n"
+        "| └────────────────────────────────────────────────────────────┘ |\n"
+        "└────────────────────────────────┬───────────────────────────────┘\n"
+        "                                 ↓                                \n"
+        "┌────────────────────────────────────────────────────────────────┐\n"
+        "|                               RAM                              |\n"
+        "| Memory Latency: %-46d |\n"
+        "| Number of Requests: %-42d |\n"
+        "└────────────────────────────────────────────────────────────────┘\n\n",
+        cycles, cacheLineSize, l1CacheLines, l2CacheLines, l1CacheLatency, l2CacheLatency, memoryLatency, numRequests
     );
 }
 
@@ -171,7 +176,6 @@ unsigned char* convert_rgb_to_grayscale(unsigned char* img, int width, int heigh
  * @author Lie Leon Alexius
  */
 int testPrinter() {
-    print_layout();
 
     if (!load_image("src/assets/images/Himeko.png")) {
         return 0;
