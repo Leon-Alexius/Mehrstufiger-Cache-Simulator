@@ -12,9 +12,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup environment
-      run: bash setup.sh
-    - name: make
+    # - name: Setup environment
+    #   run: bash setup.sh
+    - name: Make Test
       run: make
     - name: Run bash script
       run: |
