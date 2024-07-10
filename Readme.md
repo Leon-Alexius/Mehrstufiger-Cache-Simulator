@@ -41,7 +41,7 @@ Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `fi
 | Flag              | Description                                                        | Default Value      |
 |-------------------|--------------------------------------------------------------------|--------------------|
 | `-c`, `--cycles`  | The number of cycles to be simulated                               | `1000000`          |
-| `--cacheline-size`| The size of a cache line in bytes                                  |`64`                |
+| `--cacheline-size`| The size of a cache line in bytes                                  | `64`               |
 | `--l1-lines`      | The number of cache lines of the L1 cache                          | `64`               |
 | `--l2-lines`      | The number of cache lines of the L2 cache                          | `256`              |
 | `--l1-latency`    | The latency of the L1 cache in cycles                              | `4`                |
