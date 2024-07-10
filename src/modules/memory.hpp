@@ -32,7 +32,7 @@ SC_MODULE(MEMORY) {
     sc_out<bool> done;                  // Signal indicating the completion of an operation in the current memory
     sc_in<bool> valid_in;               // Whether Signal propagated from L2 to Memory is valid
 
-    char memory_blocks[4294967296];     // Memory blocks represented by an array of char
+    char memory_blocks[4294967296];     // Memory blocks represented by an array of char -> canonically 1 Mebibyte = 1048576 Bytes
     unsigned int latency;               // Latency of memory in clock cycles
 
     unsigned int cacheLineSize;         // Size of each cache line
@@ -63,13 +63,22 @@ SC_MODULE(MEMORY) {
     * @author Alexander Anthony Tang
     */
     void update() {
+        wait();
         while (true) {
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
 
+            
+
             // mark as not done, and wait for signal from L2 is valid
             done->write(false);
             while(!valid_in->read()) {
+                wait();
+                wait(SC_ZERO_TIME);
+            }
+
+            // Wait to sync with latency
+            for (unsigned i = 0; i < latency; i++) {
                 wait();
             }
 
@@ -94,10 +103,7 @@ SC_MODULE(MEMORY) {
                 }
             }
 
-            // Wait to sync with latency
-            for (unsigned i = 0; i < latency - 1; i++) {
-                wait();
-            }
+            
 
             // Signal as done, and wait for next clk
             done->write(true);
