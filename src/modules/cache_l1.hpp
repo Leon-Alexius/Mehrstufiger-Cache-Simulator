@@ -110,10 +110,8 @@ SC_MODULE(L1){
      */
     void update(){
         wait(); // wait for next clk event (refer to SC_START(ZERO) in CPU_L1_L2)
-        // wait();
         while (true)
         {
-            // std::cout << "bruh again?" << std::endl;
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
             
@@ -122,7 +120,6 @@ SC_MODULE(L1){
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
-                std::cout << "bruh awbdabsdiagain?" << std::endl;
                 wait();
             }
             

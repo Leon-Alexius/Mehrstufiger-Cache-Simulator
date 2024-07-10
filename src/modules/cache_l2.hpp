@@ -101,7 +101,6 @@ SC_MODULE(L2){
             while (!valid_in->read()) {
                 wait();
                 wait(SC_ZERO_TIME);
-                // std::cout << "WAIT " << sc_time_stamp().to_seconds() << std::endl;
             }
 
             unsigned address_int = address->read();

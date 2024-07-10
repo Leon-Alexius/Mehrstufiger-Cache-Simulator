@@ -264,7 +264,6 @@ struct CPU_L1_L2 {
             https://www.learnsystemc.com/basic/simu_stage
         */
 
-
         // Bind to trace - only if tracefile is not NULL
         if (tracefile != NULL) {
             trace_file = sc_create_vcd_trace_file(tracefile);
@@ -296,7 +295,6 @@ struct CPU_L1_L2 {
             sc_trace(trace_file, hit_from_L2, "Hit_from_L2");
         }
     }
-    
 
     /**
      * @brief Send a request to the simulated memory hierarchy system.
@@ -358,10 +356,6 @@ struct CPU_L1_L2 {
             */
             
         } while (!done_from_L1.read());
-
-        
-        
-
 
         /*
             Calculating the misses and hits
