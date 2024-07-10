@@ -23,6 +23,6 @@ typedef struct {
     bool customNumRequest;
 } Config;
 
-Config start_parse(int argc, char* argv[]);
+Config* start_parse(int argc, char* argv[]);
 
 #endif // PARSE_H

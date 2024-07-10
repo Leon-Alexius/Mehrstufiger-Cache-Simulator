@@ -18,7 +18,7 @@
  * @warning don't remove this! It's used for the initial layout of the simulator
  * @author Lie Leon Alexius
  */
-void print_layout(int cycles, int l1CacheLines, int l2CacheLines, int cacheLineSize, int l1CacheLatency, int l2CacheLatency, int memoryLatency, int numRequests) {
+void print_layout(Config* config, Result* result) {
     printf(
         "Team 150 - Cache Simulator\n"
         "An Overview of our simulation:\n\n"
@@ -36,10 +36,18 @@ void print_layout(int cycles, int l1CacheLines, int l2CacheLines, int cacheLineS
         "┌────────────────────────────────────────────────────────────────┐\n"
         "|                               RAM                              |\n"
         "| Memory Latency: %-46d |\n"
-        "| Number of Requests: %-42d |\n"
+        "| Number of Requests: %-42ld |\n"
         "└────────────────────────────────────────────────────────────────┘\n\n",
-        cycles, cacheLineSize, l1CacheLines, l2CacheLines, l1CacheLatency, l2CacheLatency, memoryLatency, numRequests
+        config->cycles, 
+        config->cacheLineSize, config->l1CacheLines, config->l2CacheLines, 
+        config->l1CacheLatency, config->l2CacheLatency, config->memoryLatency, 
+        config->numRequests
     );
+
+    printf("Number of Cycles: %lu \n", result->cycles);
+    printf("Number of Hits: %lu   \n", result->hits);
+    printf("Number of Misses: %lu \n", result->misses);
+    printf("Number of Gates: %lu  \n", result->primitiveGateCount);
 }
 
 // Variables for printing image: pixels, and ASCII (brightness levels)

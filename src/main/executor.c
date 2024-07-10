@@ -14,7 +14,7 @@
  * @brief The run_simulation method in C++
  * @author Lie Leon Alexius
  */
-extern struct Result run_simulation(
+extern Result* run_simulation(
     int cycles,
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
@@ -58,38 +58,34 @@ void test_config(Config config) {
  */
 int main(int argc, char* argv[]) {
     // run parser
-    Config config = start_parse(argc, argv);
+    Config* config = start_parse(argc, argv);
 
     // Test (test Request is in simulator.cpp)
     // test_config(config);
 
     // run simulation
-    struct Result result = 
+    Result* result =
     run_simulation(
-        config.cycles, 
-        config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
-        config.l1CacheLatency, config.l2CacheLatency, config.memoryLatency, 
-        config.numRequests, config.requests, 
-        config.tracefile
+        config->cycles, 
+        config->l1CacheLines, config->l2CacheLines, config->cacheLineSize, 
+        config->l1CacheLatency, config->l2CacheLatency, config->memoryLatency, 
+        config->numRequests, config->requests, 
+        config->tracefile
     );
 
     // Print the layout and result
-    print_layout(
-        config.cycles, 
-        config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
-        config.l1CacheLatency, config.l2CacheLatency, config.memoryLatency, 
-        config.numRequests
-    );
+    print_layout(config, result);
 
-    printf("Number of Cycles: %lu \n", result.cycles);
-    printf("Number of Hits: %lu   \n", result.hits);
-    printf("Number of Misses: %lu \n", result.misses);
-    printf("Number of Gates: %lu  \n", result.primitiveGateCount);
-
+    // Print End of Simulation
     printf("Simulation has ended\n");
 
-    // free the Config.requests
-    free(config.requests);
+    // cleanup
+    free(config->requests);
+    config->requests = NULL;
+    free(config);
+    config = NULL;
+    free(result);
+    result = NULL;
 
     return 0;
 }

@@ -61,7 +61,7 @@ extern "C" {
      * Lie Leon Alexius
      * Anthony Tang
      */
-    struct Result run_simulation(
+    Result* run_simulation(
         int cycles, 
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
@@ -83,7 +83,7 @@ extern "C" {
         
         // Process the request
         for (size_t i = 0; i < numRequests; i++) {
-            Request req = requests[i];
+            struct Request req = requests[i];
 
             // If req.we == -1, end simulation
             if (req.we == -1) {
@@ -104,11 +104,11 @@ extern "C" {
         // ========================================================================================
 
         // assign Result
-        struct Result result;
-        result.cycles = cycleCount;
-        result.hits = hitCount;
-        result.misses = missCount;
-        result.primitiveGateCount = gateCount;
+        Result* result = (Result*) malloc(sizeof(Result));
+        result->cycles = cycleCount;
+        result->hits = hitCount;
+        result->misses = missCount;
+        result->primitiveGateCount = gateCount;
         
         // return the result
         return result;

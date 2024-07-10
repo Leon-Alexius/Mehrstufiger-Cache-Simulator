@@ -48,7 +48,7 @@ void print_help() {
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
  */
-Config parse_user_input(int argc, char* argv[]) {
+Config* parse_user_input(int argc, char* argv[]) {
 
     // Default Values
     int cycles = 1000000;
@@ -219,20 +219,21 @@ Config parse_user_input(int argc, char* argv[]) {
 
     // ========================================================================================
 
-    Config config;
+    Config* config = (Config*) malloc(sizeof(Config));
 
     // set-up the config
-    config.cycles = cycles;
-    config.l1CacheLines = l1CacheLines;
-    config.l2CacheLines = l2CacheLines;
-    config.cacheLineSize = cacheLineSize;
-    config.l1CacheLatency = l1CacheLatency;
-    config.l2CacheLatency = l2CacheLatency;
-    config.memoryLatency = memoryLatency;
-    config.numRequests = numRequests;
-    config.tracefile = tracefile;
-    config.input_filename = input_filename;
-    config.customNumRequest = customNumRequest;
+    config->cycles = cycles;
+    config->l1CacheLines = l1CacheLines;
+    config->l2CacheLines = l2CacheLines;
+    config->cacheLineSize = cacheLineSize;
+    config->l1CacheLatency = l1CacheLatency;
+    config->l2CacheLatency = l2CacheLatency;
+    config->memoryLatency = memoryLatency;
+    config->numRequests = numRequests;
+    config->tracefile = tracefile;
+    config->input_filename = input_filename;
+    config->requests = NULL;
+    config->customNumRequest = customNumRequest;
 
     return config;
 }

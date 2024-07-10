@@ -300,7 +300,7 @@ struct CPU_L1_L2 {
      * Alexander Anthony Tang
      * Lie Leon Alexius
      */
-    struct Result send_request(struct Request request) {
+    Result send_request(struct Request request) {
 
         uint32_t data_req = request.data;
 
@@ -359,7 +359,7 @@ struct CPU_L1_L2 {
         size_t hits = hit_from_L1 + ((cache_l2_executes) ? hit_L2 : 0);
         
         // create Result and send back
-        struct Result res = { 
+        Result res = { 
             cycle_count, // cycles
             misses, // misses
             hits, // hits

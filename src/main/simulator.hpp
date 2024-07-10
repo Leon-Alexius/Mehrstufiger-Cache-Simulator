@@ -19,13 +19,13 @@ struct Request {
 
 /**
  * @brief Result contains `cycles`, `misses`, `hits`, `primitiveGateCount`
- * @author Task Pdf
+ * @author Task Pdf - edited Leon
  */
-struct Result {
+typedef struct {
     size_t cycles;
     size_t misses;
     size_t hits;
     size_t primitiveGateCount;
-};
+} Result;
 
 #endif
