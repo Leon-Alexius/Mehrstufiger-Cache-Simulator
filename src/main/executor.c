@@ -27,7 +27,7 @@ extern struct Result run_simulation(
  * @author Lie Leon Alexius
  */
 void test_config(Config config) {
-    // 05/07/2024 - Default & Custom Values works perfectly fine
+    printf(" ================================= START TEST CONFIG =================================\n");
     printf("Cycles: %d\n", config.cycles); // 1000000
     printf("L1 Cache Line: %u\n", config.l1CacheLines); // 64
     printf("L2 Cache Line: %u\n", config.l2CacheLines); // 256
@@ -38,12 +38,22 @@ void test_config(Config config) {
     printf("Num Requests: %lu\n", config.numRequests); // 1000
     printf("Tracefile: %s\n", config.tracefile); // "src/assets/vcd/default_trace.vcd"
     printf("Input Filename: %s\n", config.input_filename); // "src/assets/csv/test_valid.csv"
-    printf("customNumRequest: %d\n", config.customNumRequest); // 0
+    printf("customNumRequest: %d\n", config.customNumRequest); // 0 (false)
+    printf(" ================================== END TEST CONFIG ==================================\n\n");
 }
 
 /**
- * @brief Simulation starts here
+ * @brief Simulation starts here.
+ *
+ * @details
+ * The executor program is responsible for executing a given command with the specified arguments.
+ * It takes command-line arguments as input and returns an exit status.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv An array of strings representing the command-line arguments.
+ * 
  * @warning don't delete the tests
+ * 
  * @author Lie Leon Alexius
  */
 int main(int argc, char* argv[]) {
@@ -63,12 +73,20 @@ int main(int argc, char* argv[]) {
         config.tracefile
     );
 
-    // Process the simulation result
-    printf("Simulation has ended\n");
+    // Print the layout and result
+    print_layout(
+        config.cycles, 
+        config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
+        config.l1CacheLatency, config.l2CacheLatency, config.memoryLatency, 
+        config.numRequests
+    );
+
     printf("Number of Cycles: %lu \n", result.cycles);
     printf("Number of Hits: %lu   \n", result.hits);
     printf("Number of Misses: %lu \n", result.misses);
     printf("Number of Gates: %lu  \n", result.primitiveGateCount);
+
+    printf("Simulation has ended\n");
 
     // free the Config.requests
     free(config.requests);

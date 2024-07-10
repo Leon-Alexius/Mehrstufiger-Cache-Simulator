@@ -5,104 +5,72 @@ This project aims to investigate the impact of multi-level caches on runtime and
 
 ## Requirements
 
+Ensure you have the following software installed on your system:
+
 | Language | Version |
 |----------|---------|
 | C        | C17     |
 | C++      | C++14   |
 | SystemC  | 2.3.3   |
 
-## Installation
-Provide instructions on how to install and set up your project here.
+More Details:
+- C Compiler (GCC recommended) supporting C17 standard
+- C++ Compiler (G++ recommended) supporting C++14 standard
+- SystemC library version 2.3.3
 
-## Usage
-Provide instructions on how to use your project here.
+If you do not have these prerequisites installed, please refer to the respective documentation for installation instructions.
+
+## Installation
+
+1. **Clone the Repository**: Begin by cloning the project repository to your local machine. Open a terminal and execute the following command:
+`git clone https://github.com/Dark-Rosaleen/GRA-Abschlussprojekt.git`
+
+2. **Verify Installation of Prerequisites**: Ensure that the required versions of C, C++, and SystemC are installed on your system. If you are unsure or need to install the prerequisites, run the provided `setup.sh` script by executing: `./setup.sh`
+This script will guide you through the installation of any missing prerequisites.
+
+3. **Build the Project**: With the prerequisites in place, compile the project using the `make` command. In the terminal, navigate to the project directory and execute: `make`
+
+## Running the Simulation
+
+After successfully compiling the project, you can run the cache simulation with the following command: `./cache [FLAG(s)] filename.csv`
+
+Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `filename.csv` with the path to your input CSV file containing the simulation requests.
+
+### List of Available Flags
+
+| Flag              | Description                                                        | Default Value      |
+|-------------------|--------------------------------------------------------------------|--------------------|
+| `-c`, `--cycles`  | The number of cycles to be simulated                               | `1000000`          |
+| `--cacheline-size`| The size of a cache line in bytes                                  |`64`                |
+| `--l1-lines`      | The number of cache lines of the L1 cache                          | `64`               |
+| `--l2-lines`      | The number of cache lines of the L2 cache                          | `256`              |
+| `--l1-latency`    | The latency of the L1 cache in cycles                              | `4`                |
+| `--l2-latency`    | The latency of the L2 cache in cycles                              | `12`               |
+| `--memory-latency`| The latency of the main memory in cycles                           | `100`              |
+| `--tf=<filepath>` | Output file for a trace file with all signals                      | `default_trace.vcd`|
+| `--num-requests`  | Number of request to read from .csv file, default is all requests  | All requests       |
+| `-h`, `--help`    | Display this help and exit                                         | N/A                |
 
 ## Theoretical Results
 Document the results of the theoretical part of your project here. This could include findings from your research on cache sizes, architectures, and latencies in modern processors.
 
-## Personal Contributions
-### Member 1
-Briefly describe the contributions of the first group member here.
+## Contributors
+For more details, the `@author(s)` is included in each file's Docstring
 
-### Member 2
-Briefly describe the contributions of the second group member here.
+### Alexander Anthony Tang
+- `src/modules`
+- Documentation
 
-### Member 3
-Briefly describe the contributions of the second group member here.
+### Lie Leon Alexius
+- `src/main`
+- `src/assets`
+- Documentation
 
-## Compilation
-All code here needs to be able to be compiled in the remote ssh machine. To avoid any problems, editing, testing, and running the code should be done on the ssh machine.
-
-## Unit Testing
-Running tests everytime you want to push a feature is recommended. For that an option would be to use [doctest](https://github.com/doctest/doctest). However, I don't really know how to do that yet :'
-
-## IDE/Code Editor
-A good code editor for this project is VSCode as it is lightweight and can be easily used in the remote ssh machine.
-
-## Contributing
-To achieve a seamless and easy communication and cooperation between us, some convention/workflow needs to be followed, which can be seen here: https://medium.com/anne-kerrs-blog/using-git-and-github-for-team-collaboration-e761e7c00281.
-
-#### Branches
-It is generally good practice to push a new feature to a new _branch_ in git. By doing so, each branch will need to be reviewed before merging it into `main`. The reason for this is to generally always have a working `main` branch. I suggest that every time a branch is pushed by someone, 2 other people would review and approve it.
-
-It is good to follow some sort of naming convention for the branches. A new branch should have the name: `your_name`/`feature`
-
-Pushing a new branch through the terminal (let's say pushing a new module):
-
-1. Create a new branch
-    ```
-    $ git checkout -b anthony/moduleA
-    ```
-2. Create the feature (in `.hpp`):
-    ```C++
-    SC_MODULE(MODULE_A) {
-      ...
-    }
-    ```
-3. Make sure that the feature could be compiled and runs properly
-    ```
-    $ make
-    ```
-4. Commit and push
-    ```
-    $ git add file_name (do not add more things which are not important to the feature!)
-    $ git commit -m "added ModuleA"
-    $ git push (if you are pushing for the first time do $ git push --set-upstream origin anthony/moduleA)
-    ```
-5. Create a pull request
-6. Resolve merge conflicts which may arise
-7. Wait for the pull request to be approved by another team member
-8. After the review the pull request will be merged into the main branch and the feature branch will be deleted
-9. Optional: delete the branch locally
-    ```
-    $ git branch -d anthony/moduleA
-    ```
-10. Pull latest changes of the main branch locally (including your recently merged feature branch)
-    ```
-    $ git checkout main
-    $ git pull origin main
-    ```
-
-#### GitHub Actions
-With GitHub Actions, pushing a new feature would set off a chain of actions which sets up a linux machine, compiles the code, and runs our written tests. To be set up.
-
-#### Code Style
-It is recommended to indent a code line with two spaces. We do this because a tab `\t` does not always have the same length from machine to machine. You can set this up by pressing `F1` and search for `Indent Using Spaces`. Then choose `2` as the indent size.
-
-We should also comment code which we have written. A good convention would be to first of all write your name, and then describe what it does. Better yet, you could also write for each line what it does. Example:
-```C++
-/*anthony
-(code description)
-*/
-```
+### Trang Nguyen
+- `src/modules`
+- Documentation
 
 ## License
 All Rights Reserved © 2024 Team-150.
 
 This project and its contents are the property of Team-150. No reproduction, distribution, or transmission of the copyrighted materials in this project is permitted without the written permission of Team-150.
-
-## Contact
-Include your contact information here.
-
-## Acknowledgements
-Include any acknowledgements here.

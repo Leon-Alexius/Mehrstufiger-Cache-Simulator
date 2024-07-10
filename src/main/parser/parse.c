@@ -12,8 +12,16 @@
 
 /**
  * @brief Count total lines in CSV
- * @note Empty row will be counted as a line
- * @warning this returns `Number_Of_Request` remember to add `1` for `.we = -1`
+ * 
+ * @details
+ * We don't do check if .csv has valid structure, we just count the lines (requests).
+ * Each non-empty lines is considered as a request, regardless whether they are valid or not
+ * The real check is in csv_parser.c
+ * 
+ * @note this returns `Number_Of_Request` remember to add `1` for `.we = -1`
+ * 
+ * @warning Non-empty row will be counted as a line (a request)
+ * 
  * @author Lie Leon Alexius
  */
 int calculateLines(const char* input_filename) {
@@ -23,11 +31,18 @@ int calculateLines(const char* input_filename) {
         exit(EXIT_FAILURE);
     }
 
-    int count = 0;
+    int count = 0; // count should be incremented only if a line contains at least one character
     char ch;
+    bool isLineNotEmpty = false;
     while ((ch = fgetc(file)) != EOF) {
-        if (ch == '\n') {
-            count++;
+        if (ch != '\n') {
+            isLineNotEmpty = true; // Current line has content
+        } 
+        else {
+            if (isLineNotEmpty) {
+                count++; // Increment count for non-empty line
+                isLineNotEmpty = false; // Reset for the next line
+            }
         }
     }
 
@@ -47,12 +62,10 @@ Config start_parse(int argc, char* argv[]) {
     // ========================================================================================
 
     // Parse .csv
-    // Edge case: Not customNumRequest but Requests > 1000 (default config.numRequests)
+    // Get numRequest of the file - Read Warning calculateLines()
     if (!(config.customNumRequest)) {
         int totalRequest = calculateLines(config.input_filename);
-        if (totalRequest > 1000) {
-            config.numRequests = totalRequest;
-        }
+        config.numRequests = totalRequest;
     }
 
     // Allocate (numRequests + 1) for the .we = -1 marker

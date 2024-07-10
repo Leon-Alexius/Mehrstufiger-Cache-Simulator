@@ -57,7 +57,9 @@ extern "C" {
      * @warning Not tested yet
      * @bug Not tested yet
      * 
-     * @author Anthony, Leon, Trang
+     * @authors
+     * Lie Leon Alexius
+     * Anthony Tang
      */
     struct Result run_simulation(
         int cycles, 
@@ -67,12 +69,15 @@ extern "C" {
         const char* tracefile
     ) 
     {
-        std::cout << "Cache size: " << cacheLineSize << std::endl;
+        // Test the Requests
+        // print_requests(numRequests, requests);
+
         // Initialize the Components        
         CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
+        size_t gateCount = 0;
 
         // ========================================================================================
         
@@ -90,9 +95,10 @@ extern "C" {
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
+            gateCount += tempResult.primitiveGateCount;
         }
 
-        // close the trace file
+        // stop the simulation and close the trace file
         caches.close_trace_file();
 
         // ========================================================================================
@@ -102,7 +108,7 @@ extern "C" {
         result.cycles = cycleCount;
         result.hits = hitCount;
         result.misses = missCount;
-        result.primitiveGateCount = caches.get_gate_count();
+        result.primitiveGateCount = gateCount;
         
         // return the result
         return result;
