@@ -90,7 +90,6 @@ SC_MODULE(L2){
     */
     void update(){
         wait(); // wait for next clk event
-
         while (true) { 
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
@@ -101,6 +100,8 @@ SC_MODULE(L2){
             // wait until L1's signal is valid
             while (!valid_in->read()) {
                 wait();
+                wait(SC_ZERO_TIME);
+                // std::cout << "WAIT " << sc_time_stamp().to_seconds() << std::endl;
             }
 
             unsigned address_int = address->read();
@@ -109,6 +110,13 @@ SC_MODULE(L2){
             unsigned int offset = address_int & (cacheLineSize - 1);
             unsigned int index = (address_int >> log2_cacheLineSize) & (l2CacheLines - 1);
             unsigned int tag = address_int >> (log2_cacheLineSize + log2_l2CacheLines);
+
+            // Tags and data is only accessible after l2 latency cyles
+            // Here it is -1 so that the simulation logic stays consistent -
+            // the data is available after the wait() in the very end, so + 1.
+            for (unsigned i = 0; i < l2CacheLatency; i++) {
+                wait();
+            }
 
             // write operation
             if(write_enable->read()){
@@ -163,6 +171,10 @@ SC_MODULE(L2){
                     }
                     valid_out->write(false);
                     
+                    // Delays up to latency L2 (-1 for done.write(true))
+                    for (unsigned i = 0; i < l2CacheLatency - 1; i++) {
+                        wait();
+                    }
                     // Write the data from RAM to the appropriate CacheLine
                     // Data that is sent by RAM is a whole cacheLine
                     for (unsigned i = 0; i < cacheLineSize; i++) {
@@ -178,10 +190,7 @@ SC_MODULE(L2){
                 }
             }
 
-            // Delays up to latency L2 (-1 for done.write(true))
-            for (unsigned i = 0; i < l2CacheLatency - 1; i++) {
-                wait();
-            }
+            
             done->write(true); // signal as done
             wait(); // wait for next clk event
         }
