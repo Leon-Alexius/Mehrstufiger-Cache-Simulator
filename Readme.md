@@ -55,20 +55,32 @@ Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `fi
 Document the results of the theoretical part of your project here. This could include findings from your research on cache sizes, architectures, and latencies in modern processors.
 
 ## Contributors
-For more details, the `@author(s)` is included in each file's Docstring
+For more details, the `@author` or `@authors` is included in each Docstring.
 
 ### Alexander Anthony Tang
-- `src/modules`
-- Documentation
+Alexander has made significant contributions to various aspects of the project. His work includes:
+- Developing the `src/modules`
+- Creating the `Makefile`
+- Writing the `build.sh` script
+- Initiating the project
+- Documenting the project
 
 ### Lie Leon Alexius
-- `src/main`
-- `src/assets`
-- Documentation
+Leon has played a crucial role in shaping the project. His contributions include:
+- Developing the `src/main` and `src/assets`
+- Writing the `build.sh` and `setup.sh` scripts
+- Authoring the `Readme.md`
+- Optimizing the project
+- Implementing automated tests
+- Structuring and initiating the project
+- Documenting the project
 
 ### Trang Nguyen
-- `src/modules`
-- Documentation
+Trang has contributed to the project by:
+- Developing the `src/modules`
+- Initiating the project
+- Optimizing the project
+- Documenting the project
 
 ## License
 All Rights Reserved © 2024 Team-150.
