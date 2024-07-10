@@ -58,26 +58,29 @@ Document the results of the theoretical part of your project here. This could in
 For more details, the `@author` or `@authors` is included in each Docstring.
 
 ### Alexander Anthony Tang
-Alexander has made significant contributions to various aspects of the project. His work includes:
-- Developing the `src/modules`
+Alexander is primarily responsible for the development of `src/modules`, with additional contributions to the development of `src/main/simulator.cpp`
+
+Other contributions include:
 - Creating the `Makefile`
 - Writing the `build.sh` script
 - Initiating the project
 - Documenting the project
 
 ### Lie Leon Alexius
-Leon has played a crucial role in shaping the project. His contributions include:
-- Developing the `src/main` and `src/assets`
+Leon is primarily responsible for the development of `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
+
+Other contributions include:
 - Writing the `build.sh` and `setup.sh` scripts
 - Authoring the `Readme.md`
+- Initiating and structuring the project
 - Optimizing the project
 - Implementing automated tests
-- Structuring and initiating the project
 - Documenting the project
 
 ### Trang Nguyen
-Trang has contributed to the project by:
-- Developing the `src/modules`
+Trang is primarily responsible for the development of `src/modules`.
+
+Other contributions include:
 - Initiating the project
 - Optimizing the project
 - Documenting the project
