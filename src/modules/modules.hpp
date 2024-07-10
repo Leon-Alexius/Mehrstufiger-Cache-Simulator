@@ -159,10 +159,13 @@ struct CPU_L1_L2 {
     * @authors
     * Alexander Anthony Tang
     * Van Trang Nguyen
+    * Lie Leon Alexius
     */
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
-        const char* tracefile) : 
+        const char* tracefile,
+        unsigned prefetchBufferLines, unsigned storebackBufferLines
+        ) : 
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
@@ -250,6 +253,8 @@ struct CPU_L1_L2 {
 
         // start simulation for 1 delta cycle, without advancing the time (Simulation Second)
         sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
 
         /*
             Must run simulation first otherwise segmentation fault
@@ -257,34 +262,36 @@ struct CPU_L1_L2 {
             https://www.learnsystemc.com/basic/simu_stage
         */
 
-        // Bind to trace
-        trace_file = sc_create_vcd_trace_file(tracefile);
+        // Bind to trace - only if tracefile is not NULL
+        if (tracefile != NULL) {
+            trace_file = sc_create_vcd_trace_file(tracefile);
 
-        // Custom Trace - Array
-        trace(trace_file, data_in, 4, "Data_In");
-        trace(trace_file, data_out, 4, "Data_Out");
+            // Custom Trace - Array
+            trace(trace_file, data_in, 4, "Data_In");
+            trace(trace_file, data_out, 4, "Data_Out");
 
-        trace(trace_file, data_from_L1_to_L2, 4, "Data-from_L1_to_L2");
-        trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
+            trace(trace_file, data_from_L1_to_L2, 4, "Data-from_L1_to_L2");
+            trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
 
-        trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
-        trace(trace_file, data_from_Memory_to_L2, cacheLineSize, "Data_from_Memory_to_L2");
+            trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
+            trace(trace_file, data_from_Memory_to_L2, cacheLineSize, "Data_from_Memory_to_L2");
 
-        // Standard Trace
-        sc_trace(trace_file, address, "Address");
-        sc_trace(trace_file, address_from_L1_to_L2, "Address_from_L1_to_L2");
-        sc_trace(trace_file, address_from_L2_to_Memory, "Address_from_L2_to_Memory");
+            // Standard Trace
+            sc_trace(trace_file, address, "Address");
+            sc_trace(trace_file, address_from_L1_to_L2, "Address_from_L1_to_L2");
+            sc_trace(trace_file, address_from_L2_to_Memory, "Address_from_L2_to_Memory");
 
-        sc_trace(trace_file, write_enable, "WE");
-        sc_trace(trace_file, write_enable_from_L1_to_L2, "WE_from_L1_to_L2");
-        sc_trace(trace_file, write_enable_from_L2_to_Memory, "WE_from_L2_to_Memory");
+            sc_trace(trace_file, write_enable, "WE");
+            sc_trace(trace_file, write_enable_from_L1_to_L2, "WE_from_L1_to_L2");
+            sc_trace(trace_file, write_enable_from_L2_to_Memory, "WE_from_L2_to_Memory");
 
-        sc_trace(trace_file, done_from_L1, "Done_from_L1");
-        sc_trace(trace_file, done_from_L2, "Done_from_L2");
-        sc_trace(trace_file, done_from_Memory, "Done_from_memory");
-         
-        sc_trace(trace_file, hit_from_L1, "Hit_from_L1");
-        sc_trace(trace_file, hit_from_L2, "Hit_from_L2");
+            sc_trace(trace_file, done_from_L1, "Done_from_L1");
+            sc_trace(trace_file, done_from_L2, "Done_from_L2");
+            sc_trace(trace_file, done_from_Memory, "Done_from_memory");
+            
+            sc_trace(trace_file, hit_from_L1, "Hit_from_L1");
+            sc_trace(trace_file, hit_from_L2, "Hit_from_L2");
+        }
     }
     
 
@@ -372,17 +379,32 @@ struct CPU_L1_L2 {
 
     /**
      * @brief stop the simulation, close trace file, clean up
-     * @link https://www.geeksforgeeks.org/delete-in-c/ 
-     * @author 
+     * @authors
      * Anthony Tang
      * Lie Leon Alexius
      */
     void close_trace_file() {
-        // SystemC - stop then close
         sc_stop();
         sc_close_vcd_trace_file(trace_file);
+        free_memory();
+    }
 
-        // Free all allocated memory
+    /**
+     * @brief stop the simulation without closing the trace file
+     * @author Lie Leon Alexius
+     */
+    void stop_simulation() {
+        sc_stop();
+        free_memory();
+    }
+
+    /**
+     * @brief free memory
+     * @authors
+     * Anthony Tang
+     * Lie Leon Alexius
+     */
+    void free_memory() {
         delete l1;
         delete l2;
         delete memory;

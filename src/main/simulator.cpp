@@ -66,14 +66,23 @@ extern "C" {
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
         size_t numRequests, struct Request* requests,
-        const char* tracefile
+        const char* tracefile,
+
+        // Optimization flags
+        unsigned prefetchBuffer, 
+        unsigned storebackBuffer
     ) 
     {
         // Test the Requests
         // print_requests(numRequests, requests);
 
         // Initialize the Components        
-        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
+        CPU_L1_L2 caches(
+            l1CacheLines, l2CacheLines, cacheLineSize, 
+            l1CacheLatency, l2CacheLatency, memoryLatency, 
+            tracefile, 
+            prefetchBuffer, storebackBuffer
+        );
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
@@ -81,6 +90,8 @@ extern "C" {
 
         // ========================================================================================
         
+        std::cout << "Running simulation..." << std::endl;
+
         // Process the request
         for (size_t i = 0; i < numRequests; i++) {
             struct Request req = requests[i];
@@ -99,7 +110,7 @@ extern "C" {
         }
 
         // stop the simulation and close the trace file
-        caches.close_trace_file();
+        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
 
         // ========================================================================================
 
