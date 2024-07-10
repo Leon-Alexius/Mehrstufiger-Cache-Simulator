@@ -19,26 +19,32 @@ extern Result* run_simulation(
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
     size_t numRequests, struct Request* requests,
-    const char* tracefile
+    const char* tracefile,
+
+     // Optimization flags
+    unsigned prefetchBuffer, 
+    unsigned storebackBuffer
 );
 
 /**
  * @brief test the config
  * @author Lie Leon Alexius
  */
-void test_config(Config config) {
+void test_config(Config* config) {
     printf(" ================================= START TEST CONFIG =================================\n");
-    printf("Cycles: %d\n", config.cycles); // 1000000
-    printf("L1 Cache Line: %u\n", config.l1CacheLines); // 64
-    printf("L2 Cache Line: %u\n", config.l2CacheLines); // 256
-    printf("Cache Line Size: %u\n", config.cacheLineSize); // 64
-    printf("L1 Cache Latency: %u\n", config.l1CacheLatency); // 4
-    printf("L2 Cache Latency: %u\n", config.l2CacheLatency); // 12
-    printf("Memory Latency: %u\n", config.memoryLatency); // 100
-    printf("Num Requests: %lu\n", config.numRequests); // 1000
-    printf("Tracefile: %s\n", config.tracefile); // "src/assets/vcd/default_trace.vcd"
-    printf("Input Filename: %s\n", config.input_filename); // "src/assets/csv/test_valid.csv"
-    printf("customNumRequest: %d\n", config.customNumRequest); // 0 (false)
+    printf("Cycles: %d\n", config->cycles); // 1000000
+    printf("L1 Cache Line: %u\n", config->l1CacheLines); // 64
+    printf("L2 Cache Line: %u\n", config->l2CacheLines); // 256
+    printf("Cache Line Size: %u\n", config->cacheLineSize); // 64
+    printf("L1 Cache Latency: %u\n", config->l1CacheLatency); // 4
+    printf("L2 Cache Latency: %u\n", config->l2CacheLatency); // 12
+    printf("Memory Latency: %u\n", config->memoryLatency); // 100
+    printf("Num Requests: %lu\n", config->numRequests); // 1000
+    printf("Tracefile: %s\n", config->tracefile); // "src/assets/vcd/default_trace.vcd"
+    printf("Input Filename: %s\n", config->input_filename); // "src/assets/csv/test_valid.csv"
+    printf("customNumRequest: %d\n", config->customNumRequest); // 0 (false)
+    printf("Prefetch Buffer: %u\n", config->prefetchBuffer); // 0
+    printf("Storeback Buffer: %u\n", config->storebackBuffer); // 0
     printf(" ================================== END TEST CONFIG ==================================\n\n");
 }
 
@@ -70,7 +76,9 @@ int main(int argc, char* argv[]) {
         config->l1CacheLines, config->l2CacheLines, config->cacheLineSize, 
         config->l1CacheLatency, config->l2CacheLatency, config->memoryLatency, 
         config->numRequests, config->requests, 
-        config->tracefile
+        config->tracefile,
+        config->prefetchBuffer,
+        config->storebackBuffer
     );
 
     // Print the layout and result

@@ -17,16 +17,18 @@
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
-    printf("  -c, --cycles <num>           The number of cycles to be simulated (default: 1000000)\n");
-    printf("      --cacheline-size <num>   The size of a cache line in bytes (default: 64)\n");
-    printf("      --l1-lines <num>         The number of cache lines of the L1 cache (default: 64)\n");
-    printf("      --l2-lines <num>         The number of cache lines of the L2 cache (default: 256)\n");
-    printf("      --l1-latency <num>       The latency of the L1 cache in cycles (default: 4)\n");
-    printf("      --l2-latency <num>       The latency of the L2 cache in cycles (default: 12)\n");
-    printf("      --memory-latency <num>   The latency of the main memory in cycles (default: 100)\n");
-    printf("      --tf=<filepath>          Output file for a trace file with all signals (default: default_trace.vcd)\n");
-    printf("      --num-requests <num>     Number of request to read from .csv file, default is all requests\n");
-    printf("  -h, --help                   Display this help and exit\n");
+    printf("  -c, --cycles <num>            The number of cycles to be simulated (default: 1000000)\n");
+    printf("      --cacheline-size <num>    The size of a cache line in bytes (default: 64)\n");
+    printf("      --l1-lines <num>          The number of cache lines of the L1 cache (default: 64)\n");
+    printf("      --l2-lines <num>          The number of cache lines of the L2 cache (default: 256)\n");
+    printf("      --l1-latency <num>        The latency of the L1 cache in cycles (default: 4)\n");
+    printf("      --l2-latency <num>        The latency of the L2 cache in cycles (default: 12)\n");
+    printf("      --memory-latency <num>    The latency of the main memory in cycles (default: 100)\n");
+    printf("      --tf=<filepath>           Output file for a trace file with all signals (default: default_trace.vcd)\n");
+    printf("      --num-requests <num>      Number of request to read from .csv file, default is all requests\n");
+    printf("      --prefetch-buffer <num>   The number of cache lines in the prefetch buffer (default: 0)\n");
+    printf("      --storeback-buffer <num>  The number of cache lines in the storeback buffer (default: 0)\n");
+    printf("  -h, --help                    Display this help and exit\n");
 }
 
 /**
@@ -42,8 +44,12 @@ void print_help() {
  *  5. l1CacheLatency = 4 (default latency for L1 cache in cycles)
  *  6. l2CacheLatency = 12 (default latency for L2 cache in cycles)
  *  7. memoryLatency = 100 (default latency for memory access in cycles)
- *  8. numRequests = 1000 (default number of requests)
- *  9. tracefile = "default_trace.vcd" (default trace file name) 
+ *  8. numRequests = 0 (default number of requests is all requests in the file)
+ *  9. tracefile = NULL (default trace file name) 
+ *  10. input_filename = NULL (input filename)
+ *  11. customNumRequest = false (flag for custom number of requests)
+ *  12. prefetchBuffer = 0 (default prefetch buffer)
+ *  13. storebackBuffer = 0 (default storeback buffer)
  * 
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
@@ -52,16 +58,20 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // Default Values
     int cycles = 1000000;
-    unsigned l1CacheLines = 64;
-    unsigned l2CacheLines = 256;
-    unsigned cacheLineSize = 64;
-    unsigned l1CacheLatency = 4;
-    unsigned l2CacheLatency = 12;
-    unsigned memoryLatency = 100;
-    size_t numRequests = 1000;
-    const char* tracefile = "src/assets/vcd/default_trace";
+    unsigned int l1CacheLines = 64;
+    unsigned int l2CacheLines = 256;
+    unsigned int cacheLineSize = 64;
+    unsigned int l1CacheLatency = 4;
+    unsigned int l2CacheLatency = 12;
+    unsigned int memoryLatency = 100;
+    size_t numRequests = 0;
+    const char* tracefile = NULL; // "src/assets/vcd/default_trace"
     const char* input_filename = NULL;
     bool customNumRequest = false;
+
+    // Optimization flags
+    unsigned int prefetchBuffer = 0;
+    unsigned int storebackBuffer = 0;
 
     // ========================================================================================
 
@@ -77,6 +87,8 @@ Config* parse_user_input(int argc, char* argv[]) {
         {"memory-latency", required_argument, 0, 0},
         {"tf", required_argument, 0, 0},
         {"num-requests", required_argument, 0, 0},
+        {"prefetch-buffer", required_argument, 0, 0}, // Optimization: Prefetch Buffer
+        {"storeback-buffer", required_argument, 0, 0}, // Optimization: Storeback Buffer
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -181,6 +193,28 @@ Config* parse_user_input(int argc, char* argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 } 
+                // Optimization: Prefetch Buffer
+                else if (strcmp("prefetch-buffer", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    prefetchBuffer = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for prefetch-buffer\n");
+                        exit(EXIT_FAILURE);
+                    }
+                } 
+                // Optimization: Storeback Buffer
+                else if (strcmp("storeback-buffer", long_options[long_index].name) == 0) {
+                    errno = 0;
+                    storebackBuffer = strtoul(optarg, &endptr, 10);
+
+                    // Check for errors during conversion then print it
+                    if (errno != 0 || *endptr != '\0') {
+                        fprintf(stderr, "Invalid input for storeback-buffer\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
                 break;
             default:
                 // if flag is undefined, print_help then exit
@@ -234,6 +268,8 @@ Config* parse_user_input(int argc, char* argv[]) {
     config->input_filename = input_filename;
     config->requests = NULL;
     config->customNumRequest = customNumRequest;
+    config->prefetchBuffer = prefetchBuffer; // Optimization: Prefetch Buffer
+    config->storebackBuffer = storebackBuffer; // Optimization: Storeback Buffer
 
     return config;
 }
