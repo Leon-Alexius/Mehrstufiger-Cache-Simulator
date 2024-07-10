@@ -258,7 +258,7 @@ struct CPU_L1_L2 {
             This is due to data_in, etc. is an array with NULLs and thus must be filled (1 delta cycle)
             https://www.learnsystemc.com/basic/simu_stage
         */
-        if (trace_file != nullptr) {
+        if (tracefile != nullptr) {
             // Bind to trace
             trace_file = sc_create_vcd_trace_file(tracefile);
 
