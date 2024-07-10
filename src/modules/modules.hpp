@@ -8,6 +8,8 @@
 #include "cache_l1.hpp"
 #include "cache_l2.hpp"
 
+#include <cmath>
+
 using namespace sc_core;
 using namespace std;
 
@@ -134,7 +136,7 @@ struct CPU_L1_L2 {
     sc_signal<bool> valid_from_L1_to_L2;
     sc_signal<bool> valid_from_L2_to_Memory;
 
-    // Clock and Trace File
+    // Clock and Trace File (60 MHz)
     sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
     sc_trace_file* trace_file;
 
@@ -262,6 +264,7 @@ struct CPU_L1_L2 {
             https://www.learnsystemc.com/basic/simu_stage
         */
 
+
         // Bind to trace - only if tracefile is not NULL
         if (tracefile != NULL) {
             trace_file = sc_create_vcd_trace_file(tracefile);
@@ -332,7 +335,12 @@ struct CPU_L1_L2 {
 
         // run the simulation (+1) to process the request
         do {
+            // std::cout << cycle_count << " WHAT 2 " << done_from_L1.read() << std::endl;
             sc_start(1, SC_SEC);
+
+            // Let the results from the simulation propagate
+            sc_start(SC_ZERO_TIME);
+            sc_start(SC_ZERO_TIME);
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -348,7 +356,12 @@ struct CPU_L1_L2 {
                 L1.done = true in 16 Sec (if L1 miss but L2 hit - L2.done = 12 Sec)
                 L1.done = true in 116 Sec (if L2 miss - Memory.done = 100 Sec)
             */
+            
         } while (!done_from_L1.read());
+
+        
+        
+
 
         /*
             Calculating the misses and hits
@@ -423,7 +436,59 @@ struct CPU_L1_L2 {
      * @todo Implement This
      */
     size_t get_gate_count() {
-        return -1;
+        // Only for the "saving" part
+        // Each bit of memory consists of 6 CMOS Transistors (2 NOT Gates) -> 2
+        // Each line has the size of cacheLineSize bytes, Gataes = 2*cacheLineSize*8
+        // Each tag is a 32 bit integer -> 32 -> 64 gates for a line of tag
+        // For a line: 64 + 16*cacheLineSize
+        // l1CacheLines, l2CacheLines -> (l1CacheLines + l2CacheLines)*(64 + 16*cacheLineSize)
+        // RAM usually uses DRAM, which uses a capacitor and a transistor for each cell. Here it will be counted as one gate.
+        // Memory: 1MB -> 1000000*8 = 8000000 gates
+
+        // Control part
+        // Multiplexers (to know which address to go to), comparators (for the tags)
+        // 
+        //---------------------------------------------------------------------------------
+        // For memory
+        unsigned gates_cache_line = 2*8*cacheLineSize;
+        
+        unsigned gates_valid = 2;
+        // Bits used for storing the tags
+        unsigned gates_l1_tags = (l1->log2_cacheLineSize + l1->log2_l1CacheLines)*2;
+        unsigned gates_l2_tags = (l2->log2_cacheLineSize + l2->log2_l2CacheLines)*2;
+
+        unsigned gates_l1_memory = (gates_cache_line + gates_l1_tags + gates_valid)*l1CacheLines;
+        unsigned gates_l2_memory = (gates_cache_line + gates_l2_tags + gates_valid)*l2CacheLines;
+        
+        // Memory is usually DRAM, which uses capacitors and a transistor. It is counted as one gate.
+        unsigned gates_memory = 1000000*8;
+
+        unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory + gates_memory;
+        //---------------------------------------------------------------------------------
+        // For accessing a certain cell
+        // To get a cell:
+        unsigned decoder_l1_row = l1CacheLines;
+        unsigned decoder_l2_row = l2CacheLines;
+        unsigned decoder_memory_row = 1024;
+
+        // To get a certain column
+        unsigned multiplexer_l1_column = cacheLineSize;
+        unsigned multiplexer_l2_column = cacheLineSize;
+        unsigned multiplexer_memory_row = 1024;
+
+
+
+        unsigned total_addresser = decoder_l1_row + decoder_l2_row + decoder_memory_row + multiplexer_l1_column + multiplexer_l2_column + multiplexer_memory_row;
+        //---------------------------------------------------------------------------------
+        // Comparison of tags:
+        // This comparator just needs to compare if the tag in the table and the tag
+        // from the address is the same. So it only uses AND Gates.
+        unsigned comparator_l1 = 32 - (l1->log2_cacheLineSize + l1->log2_l1CacheLines);
+        unsigned comparator_l2 = 32 - (l2->log2_cacheLineSize + l2->log2_l2CacheLines);
+
+        unsigned total_comparator = comparator_l1 + comparator_l2;
+
+        return total_gates_for_memory + total_addresser + total_comparator;
     }
 };
 
