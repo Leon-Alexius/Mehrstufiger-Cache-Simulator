@@ -86,7 +86,6 @@ extern "C" {
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
-        size_t gateCount = 0;
 
         // ========================================================================================
         
@@ -106,7 +105,6 @@ extern "C" {
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
-            gateCount += tempResult.primitiveGateCount;
         }
 
         // stop the simulation and close the trace file
@@ -119,7 +117,7 @@ extern "C" {
         result->cycles = cycleCount;
         result->hits = hitCount;
         result->misses = missCount;
-        result->primitiveGateCount = gateCount;
+        result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
         
         // return the result
         return result;

@@ -426,8 +426,12 @@ struct CPU_L1_L2 {
     }
 
     /**
-     * @brief get the gate count
-     * @todo Implement This
+     * Calculates the total number of gates required for the memory system.
+     * 
+     * The gate count is calculated based on the number of gates required for the memory components,
+     * control components, and tag comparison components.
+     * 
+     * @return The total number of gates required for the memory system.
      */
     size_t get_gate_count() {
         // Only for the "saving" part
@@ -469,8 +473,6 @@ struct CPU_L1_L2 {
         unsigned multiplexer_l1_column = cacheLineSize;
         unsigned multiplexer_l2_column = cacheLineSize;
         unsigned multiplexer_memory_row = 1024;
-
-
 
         unsigned total_addresser = decoder_l1_row + decoder_l2_row + decoder_memory_row + multiplexer_l1_column + multiplexer_l2_column + multiplexer_memory_row;
         //---------------------------------------------------------------------------------
