@@ -7,6 +7,7 @@
 #include <systemc>
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
+#include "storeback_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -32,10 +33,14 @@ SC_MODULE(MEMORY) {
     sc_out<bool> done;                  // Signal indicating the completion of an operation in the current memory
     sc_in<bool> valid_in;               // Whether Signal propagated from L2 to Memory is valid
 
+    STOREBACK* storeback;
+
     char memory_blocks[4294967296];     // Memory blocks represented by an array of char -> canonically 1 Mebibyte = 1048576 Bytes
     unsigned int latency;               // Latency of memory in clock cycles
 
     unsigned int cacheLineSize;         // Size of each cache line
+    bool write_underway = false;
+    char* temp = nullptr;
 
    /**
     * @brief Constructor for MEMORY module.
@@ -47,8 +52,8 @@ SC_MODULE(MEMORY) {
     * @author Alexander Anthony Tang
     */
     SC_CTOR(MEMORY);
-    MEMORY(sc_module_name name, unsigned int cacheLineSize, unsigned int latency) 
-    : sc_module(name), latency(latency), cacheLineSize(cacheLineSize) {
+    MEMORY(sc_module_name name, unsigned int cacheLineSize, unsigned int latency, STOREBACK* storeback) 
+    : sc_module(name), latency(latency), cacheLineSize(cacheLineSize), storeback(storeback) {
         SC_THREAD(update);
         sensitive << clock.pos();
     }
@@ -72,42 +77,124 @@ SC_MODULE(MEMORY) {
 
             // mark as not done, and wait for signal from L2 is valid
             done->write(false);
-            while(!valid_in->read()) {
+            
+            while(!valid_in->read() && !write_underway) {
                 wait();
                 wait(SC_ZERO_TIME);
             }
 
-            // Wait to sync with latency
-            for (unsigned i = 0; i < latency; i++) {
-                wait();
-            }
+            
 
             // get the address
             unsigned int address_u = address->read();
 
             // Case: Read
-            if (!write_enable->read()) {
+            if (!write_enable->read() ) {
                 // Load the data to the Bus, Load the whole cacheLine
+                // Wait to sync with latency
+                
+                
+                for (unsigned i = 0; i < latency; i++) {
+                    // std::cout << sc_time_stamp().to_seconds() << std::endl;
+                    wait();
+                }
                 for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
                     address_u++;
                 }
+                // Signal as done, and wait for next clk
+                done->write(true);
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
+                if (write_underway) {
+                    write_from_buffer();
+                }
             } 
-
             // Case: Write
             else {
-                // Write data to memory (in_Bus is 4 Bytes - data is 4 Bytes)
-                for (unsigned i = 0; i < 4; i++) {
-                    memory_blocks[address_u] = data_in_from_L2->read()[i];
-                    address_u++;
+                if (storeback != nullptr) {
+                    write_underway = true;
+                    write_from_buffer();
+                } else {
+                    // Wait to sync with latency
+                    for (unsigned i = 0; i < latency; i++) {
+                        wait();
+                    }
+                    // Write data to memory (in_Bus is 4 Bytes - data is 4 Bytes)
+                    for (unsigned i = 0; i < 4; i++) {
+                        memory_blocks[address_u] = data_in_from_L2->read()[i];
+                        address_u++;
+                    }
+                    // Signal as done, and wait for next clk
+                    done->write(true);
                 }
+            }
+            // done->write(true);
+            wait();
+            // std::cout << "HERE!" << std::endl;
+        }
+    }
+
+    void write_from_buffer() {
+        done->write(false);
+        char* data;
+        uint32_t address_u;
+        wait(SC_ZERO_TIME);
+        while (1) {
+            // std::cout << "hmm" << std::endl;
+            // Continue if aborted
+            if (temp != nullptr) {
+                data = temp;
+                temp = nullptr;
+                
+                // std::cout << "temp " << sc_time_stamp().to_seconds() << std::endl;
+            } else {
+                // storeback->read(data, address_u);
+                // std::cout << "Writing to memory... " << std::endl;
+                if(!storeback->read(data, address_u)) {
+                    done->write(true);
+                    // std::cout << "DONE " << sc_time_stamp().to_seconds() << std::endl;
+                    write_underway = false;
+                    return;
+                } 
+            }
+
+            // std::cout << "Writing to memory... " << *(int *) &data[0] << std::endl;
+            
+            // std::cout << "temp " << sc_time_stamp().to_seconds() << std::endl;
+            // Wait to sync with latency
+            for (unsigned i = 0; i < latency; i++) {
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
+                // If L2 issues a read, it needs to store the data temporarily and abort the write.
+                if (!write_enable->read() && valid_in->read()) {
+                    
+                    write_underway = true;
+                    // std::cout << "Interrupted!" << std::endl;
+                    temp = data;
+                    return;
+                }
+                wait();
+                
             }
 
             
 
-            // Signal as done, and wait for next clk
-            done->write(true);
-            wait();
+            for (unsigned i = 0; i < 4; i++) {
+                memory_blocks[address_u] = data[i];
+                // std::cout << memory_blocks[address_u] << "i" << std::endl;
+                address_u++;
+            }
+            delete[] data;
+
+            
+
+            // if (storeback->is_empty()) {
+            //     done->write(true);
+            //     wait(SC_ZERO_TIME);
+            //     wait(SC_ZERO_TIME);
+            //     return;
+            // }
         }
     }
 };

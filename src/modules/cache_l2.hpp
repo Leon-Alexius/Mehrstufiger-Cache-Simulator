@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
+#include "storeback_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -45,6 +46,9 @@ SC_MODULE(L2){
     vector<bool> valid;                     // Vector indicating the validity of cache lines
     vector<uint32_t> tags;                  // Vector storing the tags for each cache line
 
+    // We will use a WTCB (Write Through with Conditional Flush buffer)
+    STOREBACK* storeback;
+
     unsigned cacheLineSize;                 // Size of each cache line
     unsigned l2CacheLines;                  // Number of cache lines in the L2 cache
     unsigned l2CacheLatency;                // Latency of L2 cache in clock cycles
@@ -66,10 +70,11 @@ SC_MODULE(L2){
     * Lie Leon Alexius
     */
     SC_CTOR(L2);
-    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency) {
+    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency, STOREBACK* storeback) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency), storeback(storeback) {
         cache_blocks.resize(l2CacheLines, vector<char> (cacheLineSize));
         valid.resize(l2CacheLines);
         tags.resize(l2CacheLines);
+        
 
         // Optimization - Leon
         while ((cacheLineSize >>= 1) > 0) {
@@ -91,11 +96,13 @@ SC_MODULE(L2){
     void update(){
         wait(); // wait for next clk event
         while (true) { 
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
+            
            
             done->write(false);
             hit->write(false);
+
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
 
             // wait until L1's signal is valid
             while (!valid_in->read()) {
@@ -103,7 +110,7 @@ SC_MODULE(L2){
                 wait(SC_ZERO_TIME);
                 // std::cout << "WAIT " << sc_time_stamp().to_seconds() << std::endl;
             }
-
+            // std::cout << "L2 ACTIVE: " << sc_time_stamp().to_seconds() << std::endl;
             unsigned address_int = address->read();
 
             // extracts metadata bits from address - optimized (see L1)
@@ -141,10 +148,27 @@ SC_MODULE(L2){
                 write_enable_out->write(write_enable->read());
                 valid_out->write(true);
 
-                // Wait until RAM is done, mark as invalid propagation
-                while (!done_from_Mem->read()) {
-                    wait();
+
+                if (storeback != nullptr) {
+                    char* new_data = new char[4]();
+                    //write to buffer
+                    for (unsigned i = 0; i < 4; i++){    
+                        new_data[i] = data_out_to_Mem->read()[i];
+                    }
+                    while (!storeback->write(new_data, address, (address_int >> log2_cacheLineSize))) {
+                        wait(SC_ZERO_TIME);
+                        wait();
+                        if (!valid_in->read()) break;
+                    }
+                } else {
+                    // Wait until RAM is done, mark as invalid propagation
+                    while (!done_from_Mem->read()) {
+                        wait();
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                    }
                 }
+
                 valid_out->write(false);
             } 
 
@@ -160,20 +184,40 @@ SC_MODULE(L2){
                 // Read miss, propagate to mem
                 else 
                 {
+                    
+                    // Check the tag buffer if the tag is there or not
+                    if (storeback != nullptr && storeback->in_buffer((address_int >> log2_cacheLineSize))) {
+                        // std::cout << "is this still true" << std::endl;
+                        // If yes, flush
+                        while (!done_from_Mem->read()) {
+                            wait();
+                            wait(SC_ZERO_TIME);
+                            wait(SC_ZERO_TIME);
+                        }
+                    }
+                    valid_out->write(true);
                     // Signal to RAM, then mark as valid propagation
                     address_out->write(address->read()); 
                     write_enable_out->write(write_enable->read());
-                    valid_out->write(true);
+
+                    // std::cout << "READY FOR MEM: " << sc_time_stamp().to_seconds() << std::endl;
 
                     // Wait until RAM is done
                     while (!done_from_Mem->read()) {
+                        // std::cout << "WAIT FOR MEM: " << sc_time_stamp().to_seconds() << std::endl;
                         wait();
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                       
                     }
+                    
+                    
                     valid_out->write(false);
                     
                     // Delays up to latency L2 (-1 for done.write(true))
-                    for (unsigned i = 0; i < l2CacheLatency - 1; i++) {
+                    for (unsigned i = 0; i < l2CacheLatency; i++) {
                         wait();
+                        // std::cout << "DONE FROM L2 " << sc_time_stamp() << std::endl;
                     }
                     // Write the data from RAM to the appropriate CacheLine
                     // Data that is sent by RAM is a whole cacheLine
@@ -192,6 +236,8 @@ SC_MODULE(L2){
 
             
             done->write(true); // signal as done
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
             wait(); // wait for next clk event
         }
     }

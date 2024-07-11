@@ -95,8 +95,11 @@ extern "C" {
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
-            gateCount += tempResult.primitiveGateCount;
+            gateCount = tempResult.primitiveGateCount; 
         }
+
+        unsigned memory_cycles = caches.finish_memory();
+        cycleCount += memory_cycles;
 
         // stop the simulation and close the trace file
         caches.close_trace_file();

@@ -7,6 +7,7 @@
 #include "memory.hpp"
 #include "cache_l1.hpp"
 #include "cache_l2.hpp"
+#include "storeback_buffer.hpp"
 
 #include <cmath>
 
@@ -92,6 +93,7 @@ struct CPU_L1_L2 {
     L1* l1;                     // Pointer to L1 cache
     L2* l2;                     // Pointer to L2 cache
     MEMORY* memory;             // Pointer to main memory
+    STOREBACK* storeback;       // Pointer to Store back buffer
 
     // Bus between CPU and Cache (L1)
     sc_signal<char*> data_in;
@@ -136,6 +138,8 @@ struct CPU_L1_L2 {
     sc_signal<bool> valid_from_L1_to_L2;
     sc_signal<bool> valid_from_L2_to_Memory;
 
+    
+
     // Clock and Trace File (60 MHz)
     sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
     sc_trace_file* trace_file;
@@ -168,11 +172,16 @@ struct CPU_L1_L2 {
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
+
+        
         
         // Initialize L1, L2, and Memory
+        storeback = new STOREBACK("Storeback", 1);
+        // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
-        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency);
-        memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
+        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback);
+        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
+        
 
         // Initialize data_in, etc. and set value to '\0'
         // Bus from Memory -> L2 -> L1 is as big as a cacheLine, while the other is only 4 Bytes
@@ -184,6 +193,8 @@ struct CPU_L1_L2 {
 
         data_from_L2_to_Memory = new char[4] ();
         data_from_Memory_to_L2 = new char[cacheLineSize] ();
+
+        
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -313,7 +324,7 @@ struct CPU_L1_L2 {
         */
         for (int i = 0; i < 4; i++) {
             data_in[i] = (char) (data_req & 0xFF); // 256 = (1.0000.0000)b
-            data_req >> 8; // divide 256;
+            data_req = data_req >> 8; // divide 256;
         }
 
         // signal the caches
@@ -325,6 +336,7 @@ struct CPU_L1_L2 {
         size_t cycle_count = 0;
         bool cache_l2_executes = false; // whether L2 runs or not
         size_t hit_L2 = 0; // does L2 hit? 0 or 1
+        
 
         // run the simulation (+1) to process the request
         do {
@@ -381,6 +393,21 @@ struct CPU_L1_L2 {
 
         valid = false; // set valid as false
         return res;
+    }
+
+    unsigned finish_memory() {
+        valid_from_L1_to_L2 = false;
+        unsigned cycle_count = 0;
+        sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
+        // std::cout << memory->write_underway << std::endl;
+        if (!memory->write_underway && storeback->is_empty()) return 0;
+        while (!done_from_Memory) {
+            sc_start(1, SC_SEC);
+            cycle_count++;
+        }
+
+        return cycle_count;
     }
 
     /**

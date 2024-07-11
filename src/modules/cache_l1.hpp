@@ -119,10 +119,10 @@ SC_MODULE(L1){
             
             hit->write(false);
             done->write(false);
+            // std::cout << "ITS FALSE ALREADYYY" << std::endl;
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
-                std::cout << "bruh awbdabsdiagain?" << std::endl;
                 wait();
             }
             
@@ -207,11 +207,14 @@ SC_MODULE(L1){
                     wait(SC_ZERO_TIME);
                     while (!done_from_L2->read()) {
                         wait();
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        // std::cout << "DONE FROM L2 " << done_from_L2->read() << std::endl;
                     }
                     valid_out->write(false);
 
                     // Writes after l1 latency cyles
-                    for (unsigned i = 0; i < l1CacheLatency - 1; i++) {
+                    for (unsigned i = 0; i < l1CacheLatency; i++) {
                         wait();
                     }
 
@@ -232,8 +235,10 @@ SC_MODULE(L1){
 
             
             done->write(true); // signal as done
+            // std::cout << "DONE FROM L1 " << sc_time_stamp().to_seconds() << std::endl;
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
+            // wait();
             
             // wait(); // wait for next clk event
            
