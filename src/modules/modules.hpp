@@ -93,7 +93,7 @@ struct CPU_L1_L2 {
     L1* l1;                     // Pointer to L1 cache
     L2* l2;                     // Pointer to L2 cache
     MEMORY* memory;             // Pointer to main memory
-    STOREBACK* storeback;       // Pointer to Store back buffer
+    STOREBACK* storeback = nullptr;       // Pointer to Store back buffer
 
     // Bus between CPU and Cache (L1)
     sc_signal<char*> data_in;
@@ -168,7 +168,8 @@ struct CPU_L1_L2 {
     */
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
-        const char* tracefile) : 
+        const char* tracefile,
+        unsigned storeBufferCapacity = 0) : 
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
@@ -176,7 +177,9 @@ struct CPU_L1_L2 {
         
         
         // Initialize L1, L2, and Memory
-        storeback = new STOREBACK("Storeback", 1);
+        if (storeBufferCapacity != 0) {
+            storeback = new STOREBACK("Storeback", storeBufferCapacity);
+        }
         // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
         l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback);
@@ -396,6 +399,7 @@ struct CPU_L1_L2 {
     }
 
     unsigned finish_memory() {
+        if (storeback == nullptr) return 0;
         valid_from_L1_to_L2 = false;
         unsigned cycle_count = 0;
         sc_start(SC_ZERO_TIME);
