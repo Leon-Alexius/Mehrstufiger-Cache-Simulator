@@ -18,11 +18,10 @@ jobs:
     - uses: actions/checkout@v4
     # - name: Setup environment
     #   run: bash src/assets/scripts/setup.sh
-    - name: Make Test
+    - name: Make Test 1
       run: make
     - name: Run Samples
       run: |
-        make
         echo "IJK"
         ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ijk.csv
         echo "=================================================================================="
@@ -32,7 +31,8 @@ jobs:
         echo "IJK with Storeback Buffer and Prefetching"
         ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --prefetch-buffer 4 src/assets/matrix_multiplication/ijk.csv  
         echo "=================================================================================="
-        make clean
+    - name: Make Test 2
+      run: make clean
     
   edge-case-tests:
     runs-on: ubuntu-latest
@@ -41,4 +41,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Run Edge Case Tests
       run: |
+        make
         bash src/assets/scripts/edge_case_test.sh
