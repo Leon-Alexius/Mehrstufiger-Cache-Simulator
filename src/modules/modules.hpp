@@ -138,6 +138,8 @@ struct CPU_L1_L2 {
     sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
     sc_trace_file* trace_file;
 
+    //Optimization: Prefetching - Trang
+    sc_fifo<char*>* prefetch_buffer = nullptr; // Stream buffer for prefetching
    /**
     * @brief Constructor for memory hierarchy system CPU_L1_L2.
     * 
@@ -160,16 +162,18 @@ struct CPU_L1_L2 {
     * Alexander Anthony Tang
     * Van Trang Nguyen
     */
+    //Optimization: added buffer size between L2 and Memory
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
-        const char* tracefile) : 
+        const char* tracefile, unsigned buffer_size) : 
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
         
+        prefetch_buffer = new sc_fifo<char*> (4);
         // Initialize L1, L2, and Memory
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
-        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency);
+        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, prefetch_buffer);
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
 
         // Initialize data_in, etc. and set value to '\0'
@@ -326,6 +330,9 @@ struct CPU_L1_L2 {
         // run the simulation (+1) to process the request
         do {
             sc_start(1, SC_SEC);
+            
+            sc_start(SC_ZERO_TIME);
+            sc_start(SC_ZERO_TIME);
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -334,6 +341,7 @@ struct CPU_L1_L2 {
             }
 
             cycle_count++;
+            // std::cout << "NOT DONE" << std::endl;
 
             /*
                 Cases for cycles:

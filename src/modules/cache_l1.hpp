@@ -55,6 +55,9 @@ SC_MODULE(L1){
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l1CacheLines = 0;     // log2(l1CacheLines)
 
+   
+
+
     /**
      * @brief Constructor for L1 cache module.
      *
@@ -68,10 +71,11 @@ SC_MODULE(L1){
      * Lie Leon Alexius
      */
     SC_CTOR(L1);
-    L1(sc_module_name name, unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) : sc_module(name), cacheLineSize(cacheLineSize), l1CacheLines(l1CacheLines), l1CacheLatency(l1CacheLatency) {
+    L1(sc_module_name name, unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) : sc_module(name), cacheLineSize(cacheLineSize), l1CacheLines(l1CacheLines), l1CacheLatency(l1CacheLatency){
         cache_blocks.resize(l1CacheLines, vector<char> (cacheLineSize));
         valid.resize(l1CacheLines);
         tags.resize(l1CacheLines);
+
 
         /*
             Optimization - Leon
@@ -111,6 +115,7 @@ SC_MODULE(L1){
 
         while (true)
         {
+            wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
             
             hit->write(false);
@@ -200,13 +205,17 @@ SC_MODULE(L1){
                     }
                     valid_out->write(false);
 
+
                     // Write the data to the appropriate CacheLine
                     // Data that is sent by L2 is a whole cacheLine
                     for (unsigned i = 0; i < cacheLineSize; i++) {
-                        cache_blocks[index][i] = data_in_from_L2->read()[i];
+                        cache_blocks[index][i] = data_in_from_L2->read()[i]; 
                     }
                     valid[index] = true; // set data is valid
                     tags[index] = tag; // update tag
+
+
+
                 }
 
                 // Write data to bus for the CPU (4 Bytes)

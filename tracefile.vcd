@@ -1,0 +1,182 @@
+$date
+     Jul 06, 2024       23:36:12
+$end
+
+$version
+ SystemC 2.3.4-Accellera --- May 26 2024 00:21:39
+$end
+
+$timescale
+     1 ps
+$end
+
+$scope module SystemC $end
+$var wire   32  aaaaa  Data In_0 [31:0]  $end
+$var wire   32  aaaab  Data Out_0 [31:0]  $end
+$var wire   32  aaaac  Data In_0 [31:0]  $end
+$var wire   32  aaaad  Data Out_0 [31:0]  $end
+$var wire   32  aaaae  Data from L1 to L2_0 [31:0]  $end
+$var wire   32  aaaaf  Data from L1 to L2_4 [31:0]  $end
+$var wire   32  aaaag  Data from L1 to L2_8 [31:0]  $end
+$var wire   32  aaaah  Data from L1 to L2_12 [31:0]  $end
+$var wire   32  aaaai  Data from L1 to L2_16 [31:0]  $end
+$var wire   32  aaaaj  Data from L1 to L2_20 [31:0]  $end
+$var wire   32  aaaak  Data from L1 to L2_24 [31:0]  $end
+$var wire   32  aaaal  Data from L1 to L2_28 [31:0]  $end
+$var wire   32  aaaam  Data from L1 to L2_32 [31:0]  $end
+$var wire   32  aaaan  Data from L1 to L2_36 [31:0]  $end
+$var wire   32  aaaao  Data from L1 to L2_40 [31:0]  $end
+$var wire   32  aaaap  Data from L1 to L2_44 [31:0]  $end
+$var wire   32  aaaaq  Data from L1 to L2_48 [31:0]  $end
+$var wire   32  aaaar  Data from L1 to L2_52 [31:0]  $end
+$var wire   32  aaaas  Data from L1 to L2_56 [31:0]  $end
+$var wire   32  aaaat  Data from L1 to L2_60 [31:0]  $end
+$var wire   32  aaaau  Data from L2 to L1_0 [31:0]  $end
+$var wire   32  aaaav  Data from L2 to L1_4 [31:0]  $end
+$var wire   32  aaaaw  Data from L2 to L1_8 [31:0]  $end
+$var wire   32  aaaax  Data from L2 to L1_12 [31:0]  $end
+$var wire   32  aaaay  Data from L2 to L1_16 [31:0]  $end
+$var wire   32  aaaaz  Data from L2 to L1_20 [31:0]  $end
+$var wire   32  aaaba  Data from L2 to L1_24 [31:0]  $end
+$var wire   32  aaabb  Data from L2 to L1_28 [31:0]  $end
+$var wire   32  aaabc  Data from L2 to L1_32 [31:0]  $end
+$var wire   32  aaabd  Data from L2 to L1_36 [31:0]  $end
+$var wire   32  aaabe  Data from L2 to L1_40 [31:0]  $end
+$var wire   32  aaabf  Data from L2 to L1_44 [31:0]  $end
+$var wire   32  aaabg  Data from L2 to L1_48 [31:0]  $end
+$var wire   32  aaabh  Data from L2 to L1_52 [31:0]  $end
+$var wire   32  aaabi  Data from L2 to L1_56 [31:0]  $end
+$var wire   32  aaabj  Data from L2 to L1_60 [31:0]  $end
+$var wire   32  aaabk  Data from L2 to Memory_0 [31:0]  $end
+$var wire   32  aaabl  Data from L2 to Memory_4 [31:0]  $end
+$var wire   32  aaabm  Data from L2 to Memory_8 [31:0]  $end
+$var wire   32  aaabn  Data from L2 to Memory_12 [31:0]  $end
+$var wire   32  aaabo  Data from L2 to Memory_16 [31:0]  $end
+$var wire   32  aaabp  Data from L2 to Memory_20 [31:0]  $end
+$var wire   32  aaabq  Data from L2 to Memory_24 [31:0]  $end
+$var wire   32  aaabr  Data from L2 to Memory_28 [31:0]  $end
+$var wire   32  aaabs  Data from L2 to Memory_32 [31:0]  $end
+$var wire   32  aaabt  Data from L2 to Memory_36 [31:0]  $end
+$var wire   32  aaabu  Data from L2 to Memory_40 [31:0]  $end
+$var wire   32  aaabv  Data from L2 to Memory_44 [31:0]  $end
+$var wire   32  aaabw  Data from L2 to Memory_48 [31:0]  $end
+$var wire   32  aaabx  Data from L2 to Memory_52 [31:0]  $end
+$var wire   32  aaaby  Data from L2 to Memory_56 [31:0]  $end
+$var wire   32  aaabz  Data from L2 to Memory_60 [31:0]  $end
+$var wire   32  aaaca  Data from Memory to L2_0 [31:0]  $end
+$var wire   32  aaacb  Data from Memory to L2_4 [31:0]  $end
+$var wire   32  aaacc  Data from Memory to L2_8 [31:0]  $end
+$var wire   32  aaacd  Data from Memory to L2_12 [31:0]  $end
+$var wire   32  aaace  Data from Memory to L2_16 [31:0]  $end
+$var wire   32  aaacf  Data from Memory to L2_20 [31:0]  $end
+$var wire   32  aaacg  Data from Memory to L2_24 [31:0]  $end
+$var wire   32  aaach  Data from Memory to L2_28 [31:0]  $end
+$var wire   32  aaaci  Data from Memory to L2_32 [31:0]  $end
+$var wire   32  aaacj  Data from Memory to L2_36 [31:0]  $end
+$var wire   32  aaack  Data from Memory to L2_40 [31:0]  $end
+$var wire   32  aaacl  Data from Memory to L2_44 [31:0]  $end
+$var wire   32  aaacm  Data from Memory to L2_48 [31:0]  $end
+$var wire   32  aaacn  Data from Memory to L2_52 [31:0]  $end
+$var wire   32  aaaco  Data from Memory to L2_56 [31:0]  $end
+$var wire   32  aaacp  Data from Memory to L2_60 [31:0]  $end
+$var wire   32  aaacq  Address [31:0]  $end
+$var wire   32  aaacr  Address from L1 to L2 [31:0]  $end
+$var wire   32  aaacs  Address from L2 to Memory [31:0]  $end
+$var wire    1  aaact  WE       $end
+$var wire    1  aaacu  WE from L1 to L2       $end
+$var wire    1  aaacv  WE from L2 to Memory       $end
+$var wire    1  aaacw  Done from L1       $end
+$var wire    1  aaacx  Done from L2       $end
+$var wire    1  aaacy  Done from memory       $end
+$var wire    1  aaacz  Hit from L1       $end
+$var wire    1  aaada  Hit from L2       $end
+$upscope $end
+$enddefinitions  $end
+
+$comment
+All initial values are dumped below at time 0 sec = 0 timescale units.
+$end
+
+$dumpvars
+b11001110000111100111011011011001 aaaaa
+b0 aaaab
+b11001110000111100111011011011001 aaaac
+b0 aaaad
+b0 aaaae
+b0 aaaaf
+b0 aaaag
+b0 aaaah
+b0 aaaai
+b0 aaaaj
+b100001 aaaak
+b0 aaaal
+b0 aaaam
+b0 aaaan
+b0 aaaao
+b0 aaaap
+b0 aaaaq
+b0 aaaar
+b1010001 aaaas
+b0 aaaat
+b11001110000111100111011011011010 aaaau
+b101 aaaav
+b0 aaaaw
+b0 aaaax
+b100100001001000010010000100100 aaaay
+b1100101011100100110011001011111 aaaaz
+b1110110011001010101111101100101 aaaba
+b11101000110111001100101 aaabb
+b0 aaabc
+b0 aaabd
+b0 aaabe
+b0 aaabf
+b0 aaabg
+b0 aaabh
+b0 aaabi
+b0 aaabj
+b0 aaabk
+b0 aaabl
+b0 aaabm
+b0 aaabn
+b0 aaabo
+b0 aaabp
+b1010001 aaabq
+b0 aaabr
+b0 aaabs
+b0 aaabt
+b0 aaabu
+b0 aaabv
+b0 aaabw
+b0 aaabx
+b0 aaaby
+b0 aaabz
+b0 aaaca
+b0 aaacb
+b0 aaacc
+b0 aaacd
+b0 aaace
+b0 aaacf
+b0 aaacg
+b0 aaach
+b0 aaaci
+b0 aaacj
+b0 aaack
+b0 aaacl
+b0 aaacm
+b0 aaacn
+b0 aaaco
+b0 aaacp
+b0 aaacq
+b0 aaacr
+b0 aaacs
+0aaact
+0aaacu
+0aaacv
+0aaacw
+0aaacx
+0aaacy
+0aaacz
+0aaada
+$end
+
+#10000000000000

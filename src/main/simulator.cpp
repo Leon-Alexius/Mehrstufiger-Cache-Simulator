@@ -72,8 +72,9 @@ extern "C" {
         // Test the Requests
         // print_requests(numRequests, requests);
 
-        // Initialize the Components        
-        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
+        // Initialize the Components    
+    
+        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile, 4);
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
@@ -98,6 +99,8 @@ extern "C" {
             gateCount += tempResult.primitiveGateCount;
         }
 
+        // caches.l2->test_L2();
+    
         // stop the simulation and close the trace file
         caches.close_trace_file();
 
@@ -113,6 +116,8 @@ extern "C" {
         // return the result
         return result;
     }
+
+
 }
 
 // The default sc_main implementation.

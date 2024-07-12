@@ -69,8 +69,13 @@ SC_MODULE(MEMORY) {
 
             // mark as not done, and wait for signal from L2 is valid
             done->write(false);
+
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
             while(!valid_in->read()) {
                 wait();
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
             }
 
             // get the address
@@ -101,6 +106,8 @@ SC_MODULE(MEMORY) {
 
             // Signal as done, and wait for next clk
             done->write(true);
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
             wait();
         }
     }

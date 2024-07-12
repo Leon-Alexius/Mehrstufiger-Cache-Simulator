@@ -53,6 +53,11 @@ SC_MODULE(L2){
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l2CacheLines = 0;     // log2(l2CacheLines)
 
+    unsigned int buffer_size;
+    sc_fifo<char*>* prefetch_buffer;
+
+    
+
    /**
     * @brief Constructor for L2 cache module.
     *
@@ -66,11 +71,11 @@ SC_MODULE(L2){
     * Lie Leon Alexius
     */
     SC_CTOR(L2);
-    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency) {
+    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency, sc_fifo<char*>* prefetch_buffer) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency), prefetch_buffer(prefetch_buffer) {
         cache_blocks.resize(l2CacheLines, vector<char> (cacheLineSize));
         valid.resize(l2CacheLines);
         tags.resize(l2CacheLines);
-
+        
         // Optimization - Leon
         while ((cacheLineSize >>= 1) > 0) {
             log2_cacheLineSize++;
@@ -170,6 +175,42 @@ SC_MODULE(L2){
                     }
                     valid[index] = true; // set data is valid
                     tags[index] = tag; // update tag
+
+
+                                        //Optimization: Prefetching - Trang
+                    //Prefetching - load 4 cache lines starting from address
+                    for (int i = 0; i < 4; i++)
+                    {
+                        std::cout << "Fetching line " << i << std::endl;
+                        prefetch_next_line(address_int + i*(cacheLineSize));
+                    }
+                    
+                    //load the prefetched lines into cache
+                    if (prefetch_buffer != nullptr)
+                    {
+                        int j = 1;
+                        
+                        while (prefetch_buffer->num_available() > 0) {
+                            char* prefetch_data = new char[cacheLineSize];
+                            uint32_t address_new = address_new + j*cacheLineSize;
+                            unsigned int index_new = (address_new >> log2_cacheLineSize) & (l2CacheLines - 1);
+                            unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines);
+                            //assign the next line to prefetch_data
+                            std::cout << "waiting" << std::endl;
+                            prefetch_buffer->read(prefetch_data);
+                            //load the line stored in prefetch_data into cache
+                            for (unsigned i = 0; i < cacheLineSize; i++) {
+                                cache_blocks[index_new][i] = prefetch_data[i];
+                                std::cout << "0";
+                            }
+                            std::cout << std::endl;
+                            tags[index_new] = tag_new;
+                            valid[index_new] = true;
+                            j++;
+                        }
+                    }
+                    
+
                 }
 
                 //bring the read data back to L1
@@ -186,6 +227,91 @@ SC_MODULE(L2){
             wait(); // wait for next clk event
         }
     }
+
+    //load the next line into the buffer - Trang
+     void prefetch_next_line(uint32_t address_of_line) {
+        address_out->write(address_of_line);
+        write_enable_out->write(false);
+        valid_out->write(true);
+
+        wait(SC_ZERO_TIME);
+        wait(SC_ZERO_TIME);
+        while (!done_from_Mem->read()) {
+            wait();
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+            std::cout << "WAITING FOR MEM " << std::endl;
+        }
+        valid_out->write(false);
+
+        char* prefetched_line = new char[cacheLineSize];
+        for (unsigned i = 0; i < cacheLineSize; i++) {
+            prefetched_line[i] = data_in_from_Mem->read()[i];
+        }
+        prefetch_buffer->write(prefetched_line);
+    }
+
+        int test_L2() {
+        sc_fifo<char*>* fifo = new sc_fifo<char*>(4);
+        L2 l2("l1cache", 64,4,1, fifo);
+        char data[64] = {'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
+        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'};
+        
+        // data_in signal
+        sc_signal<char> in[64];
+        
+        // data_out signal
+        sc_signal<char> out[64];
+        
+        // Address
+        sc_signal<uint32_t> address;
+
+        
+        // Clock
+        sc_clock clk("clk", 1, SC_SEC);
+        
+        // Write enable signal
+        sc_signal<bool> we;
+        we = false;
+
+        // cacheLineSize =64
+        for (int i = 0; i < 64; i++) {
+            in[i] = data[i];
+            l2.data_in_from_L1->read()[i]=(in[i]);
+        }
+
+        // Bind each data_out signal to out signal
+        for (int i = 0; i < 64; i++) {
+            l2.data_out_to_Mem->read()[i]=(out[i]);
+        }
+
+
+        // Bind the address, the clock, and the write enable
+        l2.address(address);
+        l2.clk(clk);
+        l2.write_enable(we);
+
+        // Start for 1 cycle to let write take place
+        sc_start(1, SC_SEC);
+
+        // Begin read by setting write_enable to false
+        we = false;
+
+        // Start simulation for 1 cycle
+        sc_start(1, SC_SEC);
+        
+        // Read from the out signals
+        for (int i = 0; i < 64; i++) {
+            std::cout << out[i];
+        }
+        std::cout << std::endl;
+
+        return 0;
+      }
+    
+
 };
 
 #endif
