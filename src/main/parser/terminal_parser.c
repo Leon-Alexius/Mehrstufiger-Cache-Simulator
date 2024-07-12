@@ -64,7 +64,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     unsigned int l1CacheLatency = 4;
     unsigned int l2CacheLatency = 12;
     unsigned int memoryLatency = 100;
-    size_t numRequests = 0;
+    size_t numRequests = 0; // unsigned integer
     const char* tracefile = NULL; // "src/assets/vcd/default_trace"
     const char* input_filename = NULL;
     bool customNumRequest = false;
@@ -223,6 +223,8 @@ Config* parse_user_input(int argc, char* argv[]) {
         }
     }
 
+    // ========================================================================================
+
     // Get the remaining argument: the input filename
     // The variable optind is the index of the next element to be processed in argv.
     // https://linux.die.net/man/3/optind
@@ -248,6 +250,34 @@ Config* parse_user_input(int argc, char* argv[]) {
     if (len <= 4 || strcmp(input_filename + len - 4, ".csv") != 0) {
         fprintf(stderr, "Invalid filename. Filename should end with .csv\n");
         print_help();
+        exit(EXIT_FAILURE);
+    }
+
+    // ========================================================================================
+
+    // Invalid cases check - throw error then quit
+    // 1. If L1 cache size is greater than L2 cache size
+    // 2. If L1 latency is greater than L2 latency or L2 latency is greater than memory latency
+    // 3. if any of the cacheLines is set to 0 or cacheLineSize is less than 1 byte
+    // 4. Cycles to simulate is less than 0
+
+    if (l1CacheLines > l2CacheLines) {
+        fprintf(stderr, "Invalid input: L1 cache lines count is greater than L2 cache lines count\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (l1CacheLatency > l2CacheLatency || l2CacheLatency > memoryLatency) {
+        fprintf(stderr, "Invalid input: L1 latency is greater than L2 latency or L2 latency is greater than memory latency\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (l1CacheLines == 0 || l2CacheLines == 0 || cacheLineSize < 1) {
+        fprintf(stderr, "Invalid input: L1 cache lines, L2 cache lines or cache line size is set to 0\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (cycles < 0) {
+        fprintf(stderr, "Invalid input: Cycles to simulate is less than 0\n");
         exit(EXIT_FAILURE);
     }
 

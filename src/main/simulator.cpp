@@ -57,6 +57,8 @@ extern "C" {
      * @warning Not tested yet
      * @bug Not tested yet
      * 
+     * @todo can be optimized by checking cycles before sending request
+     * 
      * @authors
      * Lie Leon Alexius
      * Anthony Tang
@@ -102,6 +104,13 @@ extern "C" {
             
             // Send request to cache
             Result tempResult = caches.send_request(req);
+
+            // break if total simulated cache will be higher than limit
+            if (cycleCount + tempResult.cycles > cycles) {
+                break;
+            }
+
+            // add tempResult to total
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
