@@ -1,5 +1,3 @@
-// Leon - L1 moved here
-
 #ifndef STOREBACK_BUFFER_HPP
 #define STOREBACK_BUFFER_HPP
 
@@ -14,12 +12,12 @@ using namespace sc_core;
 using namespace std;
 
 /**
-* @brief L1 represents a L1 cache in a memory hierarchy system
-* @details This L1 module handles read and write operations to and from CPU and L2 cache
-* its write miss policy is no-write-allocate, no-fetch-on-write, and no-write-before-hit
-* its write hit policy is write-through
+* @brief The storeback buffer is used so that L2 does not need for writes to end in memory.
+* @details This module implements an sc_fifo for both the data and the address. The read() is called by the memory,
+* while the write() by the L2 cache. An in_buffer() method denotes if a certain tag is currently in the buffer.
+* is_empty() denotes if the buffer is now empty.
 * 
-* @author Van Trang Nguyen
+* @author Alexander Anthony Tang
 */
 SC_MODULE(STOREBACK){
 
@@ -33,16 +31,13 @@ SC_MODULE(STOREBACK){
     bool empty = true;
 
     /**
-     * @brief Constructor for L1 cache module.
+     * @brief Constructor for Store Back Buffer (Write Through w/ Conditional Flush Buffer) module.
      *
      * @param name The name of the module.
-     * @param cacheLineSize The size of each cache line.
-     * @param l1CacheLines The number of cache lines in the L1 cache.
-     * @param l1CacheLatency The latency of the L1 cache in clock cycles.
+     * @param capacity The capacity of the buffer.
      *
-     * @authors 
-     * Van Trang Nguyen
-     * Lie Leon Alexius
+     * @author
+     * Alexander Anthony Tang
      */
     SC_CTOR(STOREBACK);
     STOREBACK(sc_module_name name, unsigned capacity) : sc_module(name), capacity(capacity), storeback(capacity), address_storeback(capacity) {

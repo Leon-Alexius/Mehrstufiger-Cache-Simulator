@@ -346,10 +346,6 @@ struct CPU_L1_L2 {
             // std::cout << cycle_count << " WHAT 2 " << done_from_L1.read() << std::endl;
             sc_start(1, SC_SEC);
 
-            // Let the results from the simulation propagate
-            sc_start(SC_ZERO_TIME);
-            sc_start(SC_ZERO_TIME);
-
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
                 cache_l2_executes = true;
@@ -383,8 +379,8 @@ struct CPU_L1_L2 {
                - If L1 Hit: Hits = 1
                - If L1 Miss: Hits = hit_L2
         */
-        size_t misses = !(hit_from_L1) + ((cache_l2_executes) ? (1 - hit_L2) : 0);
-        size_t hits = hit_from_L1 + ((cache_l2_executes) ? hit_L2 : 0);
+        size_t misses = !(hit_from_L1);
+        size_t hits = hit_from_L1;
         
         // create Result and send back
         struct Result res = { 
@@ -441,8 +437,11 @@ struct CPU_L1_L2 {
     }
 
     /**
-     * @brief get the gate count
-     * @todo Implement This
+     * @brief Gets amount of gates needed for the cache. This includes the table for tags, decoders, and multiplexers.
+     * @details If the cache uses a buffer then the gate count would be different
+     * @todo gate count for buffers.
+     * @author
+     * Anthony Tang
      */
     size_t get_gate_count() {
         // Only for the "saving" part
@@ -451,8 +450,6 @@ struct CPU_L1_L2 {
         // Each tag is a 32 bit integer -> 32 -> 64 gates for a line of tag
         // For a line: 64 + 16*cacheLineSize
         // l1CacheLines, l2CacheLines -> (l1CacheLines + l2CacheLines)*(64 + 16*cacheLineSize)
-        // RAM usually uses DRAM, which uses a capacitor and a transistor for each cell. Here it will be counted as one gate.
-        // Memory: 1MB -> 1000000*8 = 8000000 gates
 
         // Control part
         // Multiplexers (to know which address to go to), comparators (for the tags)
@@ -469,25 +466,19 @@ struct CPU_L1_L2 {
         unsigned gates_l1_memory = (gates_cache_line + gates_l1_tags + gates_valid)*l1CacheLines;
         unsigned gates_l2_memory = (gates_cache_line + gates_l2_tags + gates_valid)*l2CacheLines;
         
-        // Memory is usually DRAM, which uses capacitors and a transistor. It is counted as one gate.
-        unsigned gates_memory = 1000000*8;
-
-        unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory + gates_memory;
+        unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory;
         //---------------------------------------------------------------------------------
         // For accessing a certain cell
         // To get a cell:
         unsigned decoder_l1_row = l1CacheLines;
         unsigned decoder_l2_row = l2CacheLines;
-        unsigned decoder_memory_row = 1024;
 
         // To get a certain column
         unsigned multiplexer_l1_column = cacheLineSize;
         unsigned multiplexer_l2_column = cacheLineSize;
-        unsigned multiplexer_memory_row = 1024;
 
 
-
-        unsigned total_addresser = decoder_l1_row + decoder_l2_row + decoder_memory_row + multiplexer_l1_column + multiplexer_l2_column + multiplexer_memory_row;
+        unsigned total_addresser = decoder_l1_row + decoder_l2_row + multiplexer_l1_column + multiplexer_l2_column;
         //---------------------------------------------------------------------------------
         // Comparison of tags:
         // This comparator just needs to compare if the tag in the table and the tag

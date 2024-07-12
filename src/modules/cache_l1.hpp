@@ -209,14 +209,13 @@ SC_MODULE(L1){
                         wait();
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
                         // std::cout << "DONE FROM L2 " << done_from_L2->read() << std::endl;
                     }
                     valid_out->write(false);
 
-                    // Writes after l1 latency cyles
-                    for (unsigned i = 0; i < l1CacheLatency; i++) {
-                        wait();
-                    }
+
 
                     // Write the data to the appropriate CacheLine
                     // Data that is sent by L2 is a whole cacheLine
@@ -236,9 +235,9 @@ SC_MODULE(L1){
             
             done->write(true); // signal as done
             // std::cout << "DONE FROM L1 " << sc_time_stamp().to_seconds() << std::endl;
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
-            // wait();
+            // wait(SC_ZERO_TIME);
+            // wait(SC_ZERO_TIME);
+            wait();
             
             // wait(); // wait for next clk event
            

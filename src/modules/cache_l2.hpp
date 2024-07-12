@@ -214,11 +214,7 @@ SC_MODULE(L2){
                     
                     valid_out->write(false);
                     
-                    // Delays up to latency L2 (-1 for done.write(true))
-                    for (unsigned i = 0; i < l2CacheLatency; i++) {
-                        wait();
-                        // std::cout << "DONE FROM L2 " << sc_time_stamp() << std::endl;
-                    }
+                    
                     // Write the data from RAM to the appropriate CacheLine
                     // Data that is sent by RAM is a whole cacheLine
                     for (unsigned i = 0; i < cacheLineSize; i++) {
