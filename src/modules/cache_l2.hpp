@@ -108,9 +108,8 @@ SC_MODULE(L2){
             while (!valid_in->read()) {
                 wait();
                 wait(SC_ZERO_TIME);
-                // std::cout << "WAIT " << sc_time_stamp().to_seconds() << std::endl;
             }
-            // std::cout << "L2 ACTIVE: " << sc_time_stamp().to_seconds() << std::endl;
+
             unsigned address_int = address->read();
 
             // extracts metadata bits from address - optimized (see L1)
@@ -184,11 +183,12 @@ SC_MODULE(L2){
                 // Read miss, propagate to mem
                 else 
                 {
-                    
-                    // Check the tag buffer if the tag is there or not
+                    // If there is a storeback buffer -> check the tag in the storeback buffer if the tag is there or not
                     if (storeback != nullptr && storeback->in_buffer((address_int >> log2_cacheLineSize))) {
-                        // std::cout << "is this still true" << std::endl;
-                        // If yes, flush
+                        // If yes, flush all contents of the buffer into the memory
+                        // NOTE: We can also flush the data with the same tag, while leaving the others,
+                        // but this overcomplicates the structure of the buffer and will not make it
+                        // FIFO again.
                         while (!done_from_Mem->read()) {
                             wait();
                             wait(SC_ZERO_TIME);
@@ -196,19 +196,16 @@ SC_MODULE(L2){
                         }
                     }
                     valid_out->write(true);
+
                     // Signal to RAM, then mark as valid propagation
                     address_out->write(address->read()); 
                     write_enable_out->write(write_enable->read());
 
-                    // std::cout << "READY FOR MEM: " << sc_time_stamp().to_seconds() << std::endl;
-
                     // Wait until RAM is done
                     while (!done_from_Mem->read()) {
-                        // std::cout << "WAIT FOR MEM: " << sc_time_stamp().to_seconds() << std::endl;
                         wait();
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
-                       
                     }
                     
                     

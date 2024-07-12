@@ -35,7 +35,7 @@ SC_MODULE(MEMORY) {
 
     STOREBACK* storeback;
 
-    char memory_blocks[4294967296];     // Memory blocks represented by an array of char -> canonically 1 Mebibyte = 1048576 Bytes
+    char memory_blocks[4294967296];     // Memory blocks represented by an array of char
     unsigned int latency;               // Latency of memory in clock cycles
 
     unsigned int cacheLineSize;         // Size of each cache line
@@ -73,8 +73,6 @@ SC_MODULE(MEMORY) {
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
 
-            
-
             // mark as not done, and wait for signal from L2 is valid
             done->write(false);
             
@@ -91,18 +89,17 @@ SC_MODULE(MEMORY) {
             // Case: Read
             if (!write_enable->read() ) {
                 // Load the data to the Bus, Load the whole cacheLine
-                // Wait to sync with latency
-                
-                
+
+                // Wait to sync with latency             
                 for (unsigned i = 0; i < latency; i++) {
-                    // std::cout << sc_time_stamp().to_seconds() << std::endl;
                     wait();
                 }
                 for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
                     address_u++;
                 }
-                // Signal as done, and wait for next clk
+
+                // Signal as done, and continue writing if it was interrupted
                 done->write(true);
                 wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
@@ -112,6 +109,7 @@ SC_MODULE(MEMORY) {
             } 
             // Case: Write
             else {
+                // If it uses a storeback buffer, start write from buffer.
                 if (storeback != nullptr) {
                     write_underway = true;
                     write_from_buffer();
@@ -125,13 +123,12 @@ SC_MODULE(MEMORY) {
                         memory_blocks[address_u] = data_in_from_L2->read()[i];
                         address_u++;
                     }
-                    // Signal as done, and wait for next clk
+                    // Signal as done
                     done->write(true);
                 }
             }
-            // done->write(true);
+            // Wait for next clock.
             wait();
-            // std::cout << "HERE!" << std::endl;
         }
     }
 
@@ -140,61 +137,49 @@ SC_MODULE(MEMORY) {
         char* data;
         uint32_t address_u;
         wait(SC_ZERO_TIME);
+
         while (1) {
-            // std::cout << "hmm" << std::endl;
-            // Continue if aborted
+            // Continue writing from temp if aborted. Here the logic would be that a data will
+            // only be fetched from the FIFO if it is done finished written. To work with SystemC's
+            // FIFO, which always gets reduced everytime read() is called, we need to store the data
+            // in a temporary variable, temp.
             if (temp != nullptr) {
                 data = temp;
                 temp = nullptr;
-                
-                // std::cout << "temp " << sc_time_stamp().to_seconds() << std::endl;
             } else {
-                // storeback->read(data, address_u);
-                // std::cout << "Writing to memory... " << std::endl;
+                // If no write was underway, then read from buffer. But if the buffer is empty, then
+                // memory has finished its task and will await further instructions.
                 if(!storeback->read(data, address_u)) {
                     done->write(true);
-                    // std::cout << "DONE " << sc_time_stamp().to_seconds() << std::endl;
                     write_underway = false;
                     return;
                 } 
             }
 
-            // std::cout << "Writing to memory... " << *(int *) &data[0] << std::endl;
-            
-            // std::cout << "temp " << sc_time_stamp().to_seconds() << std::endl;
             // Wait to sync with latency
             for (unsigned i = 0; i < latency; i++) {
                 wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
+
                 // If L2 issues a read, it needs to store the data temporarily and abort the write.
                 if (!write_enable->read() && valid_in->read()) {
-                    
                     write_underway = true;
-                    // std::cout << "Interrupted!" << std::endl;
                     temp = data;
                     return;
                 }
+
                 wait();
-                
             }
 
             
-
+            // Write to memory
             for (unsigned i = 0; i < 4; i++) {
                 memory_blocks[address_u] = data[i];
-                // std::cout << memory_blocks[address_u] << "i" << std::endl;
                 address_u++;
             }
+
+            // Free the pointer from data
             delete[] data;
-
-            
-
-            // if (storeback->is_empty()) {
-            //     done->write(true);
-            //     wait(SC_ZERO_TIME);
-            //     wait(SC_ZERO_TIME);
-            //     return;
-            // }
         }
     }
 };
