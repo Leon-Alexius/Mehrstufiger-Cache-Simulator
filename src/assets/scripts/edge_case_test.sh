@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Initialize test status
+test_status=0
+
 # Function to run a command and check for an expected error message
 run_test() {
     echo "Testing: $1"
@@ -9,6 +12,7 @@ run_test() {
     else
         echo "FAIL: Expected error not received."
         echo "Received: $output"
+        test_status=1 # Mark test as failed
     fi
     echo "--------------------------------"
 }
@@ -30,3 +34,6 @@ run_test "./cache --cycles -1 src/assets/matrix_multiplication/ijk.csv" "Cycles 
 
 # Make the script executable with chmod +x edge_cases_tests.sh
 # Run the script with ./edge_cases_tests.sh
+
+# Exit with the overall test status
+exit $test_status
