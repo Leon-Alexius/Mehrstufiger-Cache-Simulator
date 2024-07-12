@@ -1,13 +1,14 @@
 name: C/C++ CI
 
-# control the action to triggers on all push, and on pull request to main branch
+# control the action to triggers on all push, pull request to main branch
 on: 
   push:
     branches:
-      - "main"
+      - 'main'
+      - 'Leon/*'
   pull_request:
     branches: 
-      - "main"
+      - 'main'
 
 jobs:
   build:
@@ -16,29 +17,28 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     # - name: Setup environment
-    #   run: bash setup.sh
+    #   run: bash src/assets/scripts/setup.sh
     - name: Make Test
       run: make
-    - name: Run bash script
+    - name: Run Samples
       run: |
-        make clean
         make
-        echo "JIK"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jik.csv
-        echo "=================================================================================="
-        echo "KIJ"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/kij.csv
-        echo "=================================================================================="
         echo "IJK"
         ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ijk.csv
         echo "=================================================================================="
-        echo "IKJ"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ikj.csv
+        echo "IJK with Storeback Buffer"
+        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 src/assets/matrix_multiplication/ijk.csv
         echo "=================================================================================="
-        echo "KJI"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/kji.csv
+        echo "IJK with Storeback Buffer and Prefetching"
+        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --prefetch-buffer 4 src/assets/matrix_multiplication/ijk.csv  
         echo "=================================================================================="
-        echo "JKI"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jki.csv
-        echo "Simulation Ended"
-        
+        make clean
+    
+  edge-case-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Edge Case Tests
+      run: |
+        bash src/assets/scripts/edge_case_test.sh
