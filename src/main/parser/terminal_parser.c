@@ -53,6 +53,8 @@ void print_help() {
  *  13. storebackBuffer = 0 (default storeback buffer)
  *  13. prettyPrint = true (default pretty print flag)
  * 
+ * @todo check if cycles is negative
+ * 
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
  */
