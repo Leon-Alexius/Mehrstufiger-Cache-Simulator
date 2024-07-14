@@ -4,15 +4,15 @@ In this project, Matrix Multiplication is choosen to understand how different pa
 
 ## Representation of a Matrix
 
-To make it easier to analyze, we will represent matrix `A` as a 1D-Array and thus the matrix element  `A[x][y]` can be addressed as `A[x * width + y]`.
+To make it easier to analyze, we will represent float-matrix `A` as a 1D-Array and thus the matrix element  `A[x][y]` can be addressed as `A[x * width + y]` with `width` = number of columns.
 
-For example, suppose we have a float-type matrix `A`, `A[n][m]` can be represented as `A[n * width + m]`:
-
+For example:
 ```ocaml
 [ A[0][0] | A[0][1] | A[0][2] | A[0][3] | A[1][0] | A[1][1] | A[1][2] | A[1][3] | A[2][0] | A[2][1] | A[2][2] | A[2][3] | A[3][0] | A[3][1] | A[3][2] | A[3][3] ]
 ```
 
-The cache loads adjacent addresses into the same cacheLine, meaning that a cache with `cacheLineSize` of `64` Bytes can load the matrix element from `A[0]` to `A[15]` (`16` elements) to one of its' `cacheLine`.
+Remember:
+The cache loads adjacent addresses into the same cacheLine, e.g. a cache with `cacheLineSize` of `64` Bytes will load matrix elements from `A[0]` to `A[15]` (`16` elements) in one of its' `cacheLine` if `A[0]` is loaded from the memory.
 
 ## Matrix Multiplication Analysis
 
@@ -21,7 +21,7 @@ Given the matrix multiplication:
 A[i][k] * B[k][j] = C[i][j]
 ```
 We can have different access-combinations from this 3 variabls `i`, `k`, `j`. (see `examples/matrix.c`)
-Running the test using different `n` using C gives:
+Running the combinations using different `n`in C gives:
 
 ```text
 n = 100
@@ -55,57 +55,54 @@ n = 1000
 | kji        | 10.265000  |
 ```
 Here we can see that some patterns (such as `jki` and `kji`) is significantly slower than the other patterns.
+Where several patterns is sometimes faster/ slower (will be discussed later).
 We will now analyze it.
 
-### Theoretical Cache Performance
-For this analysis, we will set some rules to simplify things:
-- both `A` and `B` matrix as `float_square_matrix` of size `16`.
-- The `cacheLineSize` will be set to `64` Bytes.
-- Only one row for each Matrix can be loaded to the cache, and the architecture has only `1` cache and `1` main memory.
+### Theoretical Analysis of Cache Performance
+For this analysis, we will set some rules:
+- `A`, `B`, `C` (`result`) matrix are `float_square_matrix` of size `n`.
+- More detailed representation: `A[i][k] * B[k][j] = C[i][j]`
+- The `cacheLineSize` will be set to `m` Bytes. Where `m` is equal to `sizeof(float) * n`
+
+We will count the Average Memory Access per Matrix Operation.
 
 1. Pattern `ijk`:
 ```C
 void matrix_multiplication_ijk(float* a, float* b, float* result, int n) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            float sum = 0.0f;
             for (int k = 0; k < n; k++) {
-                sum += a[i * n + k] * b[k * n + j];
+                result[i * n + j] += a[i * n + k] * b[k * n + j];
             }
-            result[i * n + j] = sum;
         }
     }
 }
 ```
 
-Given `A[i][k] * B[k][j] = C[i][j]`
-- For matrix `A`, each row `k` is loaded to the cacheLine when its' first row element is read. This implies that every new `i` read (including start-cold miss) is a cache miss. Therefore, for each matrix_operation we have 1/16 memory access.
-- For matrix `B`, we always have different read access `k` (collumn), this leads to cache miss. Therefore, for each matrix_operation we have 1 memory access.
-- For matrix `C`, each matrix element will be written when it is complete (because the `sum` is in stack), thus memory_access = 0 for each matrix_operation (only write every 16 matrix_operation)
+- For `A`: Access by row-wise (see `a[i * n + k]`), each loop `k` accesses the data that is already loaded in the cache, resulting in many read hits, the only time it misses (needs mem. access) is during the load of each row for the first time, in other words, every (0, n, 2n, ...) reads - **(1/n) mem. access/ matrix operation**
+- For `B`: Access by column-wise (see `b[k * n + j]`), each loop `k` loads new matrix row to cache, which has a very big stride (if `n` is big enough) resulting in always read-miss - **1 mem. access/ matrix operation**
+- For `C`: Access by row-wise (see `result[i * n + j]`), each loop `j` accesses the data that is already loaded in the cache, read miss will only trigger for each new `i`, meaning that 
 
-We can conclude that in average, each matrix operation has 1.0625 memory access
+We can conclude that in average **each matrix operation has (1 + 2/n) memory access**.
 
 2. Pattern `jik`
 ```C
 void matrix_multiplication_jik(float* a, float* b, float* result, int n) {
     for (int j = 0; j < n; j++) {
         for (int i = 0; i < n; i++) {
-            float sum = 0.0f;
             for (int k = 0; k < n; k++) {
-                sum += a[i * n + k] * b[k * n + j];
+                result[i * n + j] += a[i * n + k] * b[k * n + j];
             }
-            result[i * n + j] = sum;
         }
     }
 }
 ```
 
-Given `A[i][k] * B[k][j] = C[i][j]`
-`ijk` vs `jik`
-The average memory access is also 1.0625 here, see case `1`.
+We can also conclude that in average **each matrix operation has (1 + 2/n) memory access**. (see `ijk`)
 
+However, there is a noticable difference here: In real life, the pattern `jik` has worse cache behaviour compared to the pattern `ijk` (see `result[i * n + j] = sum;`).
 
-However, there is a noticable difference here: Theoretically, the pattern `jik` will cause many cache misses for `C` compared to the pattern `ijk`. If we have loaded a row of `C` as a part of write-back policy in Cache, we would have to load more rows from `C` due to misses (we also need to flush the changes more frequently to the memory due to the cache getting full much faster - compare to `ijk`).
+Example: If the cache is write-back (common in real life), The high frequency of `C` loads to cache would result in higher count of cache-eviction and write-backs.
 
 3. Pattern `ikj`
 ```C
@@ -120,12 +117,11 @@ void matrix_multiplication_ikj(float* a, float* b, float* result, int n) {
 }
 ```
 
-Given `A[i][k] * B[k][j] = C[i][j]`
-- For matrix `A`, each row `k` is loaded to the cacheLine when its' first row element is read. This implies that every new `i` read (including cold miss) is a cache miss. Therefore, for each matrix_operation we have 1/16 memory access.
-- For matrix `B`, we also now access it row-wise, same as matrix `A`, therefore 1/16 memory access
-- For matrix `C`, we now read then write to the matrix, same reasoning as `A`, we have 1/16 memory access
+- For `A`: Each `k` read is a read hit since the row is already loaded to the cacheLine when its' first row element is read. In other words, every new `i` causes a cache miss (including cold miss). For each matrix operation we have **(1/n) memory access**.
+- For `B`: Same reasoning as `a`, we have **(1/n) memory access** for each matrix operation.
+- For `C`: We also now read and write row-wise, we have **(1/n) memory access** for each matrix operation.
 
-We can conclude that in average, each matrix operation has 0.1875 memory access
+We can conclude that in average **each matrix operation has (3/n) memory access**.
 
 4. Pattern `kij`
 ```C
@@ -140,12 +136,11 @@ void matrix_multiplication_kij(float* a, float* b, float* result, int n) {
 }
 ```
 
-Given `A[i][k] * B[k][j] = C[i][j]`
-- For `A`, it is always cache miss = 1
-- For `B`, it miss for each new `k` = 1/16
-- For `C`, it miss for each new `i` = 1/16
+- For `A`: it is accessed column-wise, always cache miss, **1 mem. access/ matrix operation**
+- For `B`: it miss for each new `k`, **(1/n) memory access**
+- For `C`: it miss for each new `i`, **(1/n) memory access**
 
-In average = 1.125 memory access per matrix operation
+We can conclude that in average **each matrix operation has (1 + 2/n) memory access**.
 
 5. Pattern `jki`
 ```C
@@ -161,11 +156,11 @@ void matrix_multiplication_jki(float* a, float* b, float* result, int n) {
 ```
 
 Given `A[i][k] * B[k][j] = C[i][j]`
-- For `A`, it is always cache miss = 1
-- For `B`, it is always cache miss = 1
-- For `C`, it is always cache miss = 1
+- For `A`, it is always cache miss, **1 mem. access/ matrix operation**
+- For `B`, it is always cache miss, **1 mem. access/ matrix operation**
+- For `C`, it is always cache miss, **1 mem. access/ matrix operation**
 
-In average = 3 memory access per matrix operation
+We can conclude that in average **each matrix operation has 3 memory access**.
 
 6. Pattern `kji`
 ```C
@@ -221,7 +216,7 @@ Now, we will run the simulator with optimization (Storeback buffer/ Write throug
 ```
 
 
-## Correctness
+# Correctness of Simulator
 Here, we describe the term correctness as **whether our cache simulator and matrix multiplication algorithm are implemented in a way that adheres to their expected behaviors and specifications**.
 
 In Example:
@@ -303,7 +298,7 @@ We can then compare it with the control result (using [online calculator](https:
 Next is ensuring the correctness of the Cache Simulator:
 1. Ensuring that the cache simulator correctly implements the cache management policies and accurately simulates cache behavior (e.g., hits, misses) for given sequences of memory accesses.
 
-## Accuracy
+# Accuracy of Simulator
 We describe the term accuracy as **how well the simulator reflects the actual behavior and performance of a cache in a real system**. 
 
 Notes:

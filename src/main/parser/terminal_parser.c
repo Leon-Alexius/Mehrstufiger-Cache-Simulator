@@ -28,6 +28,7 @@ void print_help() {
     printf("      --num-requests <num>      Number of request to read from .csv file, default is all requests\n");
     printf("      --prefetch-buffer <num>   The number of cache lines in the prefetch buffer (default: 0)\n");
     printf("      --storeback-buffer <num>  The number of cache lines in the storeback buffer (default: 0)\n");
+    printf("      --pretty-print            Pretty print the output (default: true)\n");
     printf("  -h, --help                    Display this help and exit\n");
 }
 
@@ -50,6 +51,7 @@ void print_help() {
  *  11. customNumRequest = false (flag for custom number of requests)
  *  12. prefetchBuffer = 0 (default prefetch buffer)
  *  13. storebackBuffer = 0 (default storeback buffer)
+ *  13. prettyPrint = true (default pretty print flag)
  * 
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
@@ -68,6 +70,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     const char* tracefile = NULL; // "src/assets/vcd/default_trace"
     const char* input_filename = NULL;
     bool customNumRequest = false;
+    bool prettyPrint = true;
 
     // Optimization flags
     unsigned int prefetchBuffer = 0;
@@ -89,6 +92,7 @@ Config* parse_user_input(int argc, char* argv[]) {
         {"num-requests", required_argument, 0, 0},
         {"prefetch-buffer", required_argument, 0, 0}, // Optimization: Prefetch Buffer
         {"storeback-buffer", required_argument, 0, 0}, // Optimization: Storeback Buffer
+        {"pretty-print", required_argument, 0, 'p'}, // New: Pretty Print Option
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -101,7 +105,7 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // (arg count, arg array, legitimate option characters, long options, long options index)
     // https://linux.die.net/man/3/getopt_long
-    while ((opt = getopt_long(argc, argv, "c:h", long_options, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:p:h", long_options, &long_index)) != -1) {
         switch (opt) {
             case 'c':
                 errno = 0;
@@ -116,6 +120,20 @@ Config* parse_user_input(int argc, char* argv[]) {
             case 'h':
                 print_help();
                 exit(EXIT_SUCCESS);
+                break;
+            case 'p':
+                if (strcmp("pretty-print", long_options[long_index].name) == 0) {
+                    if (strcmp("true", optarg) == 0) {
+                        prettyPrint = true;
+                    } 
+                    else if (strcmp("false", optarg) == 0) {
+                        prettyPrint = false;
+                    } 
+                    else {
+                        fprintf(stderr, "Invalid input for pretty-print\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
                 break;
             case 0:
                 if (strcmp("cacheline-size", long_options[long_index].name) == 0) {
@@ -300,6 +318,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     config->customNumRequest = customNumRequest;
     config->prefetchBuffer = prefetchBuffer; // Optimization: Prefetch Buffer
     config->storebackBuffer = storebackBuffer; // Optimization: Storeback Buffer
+    config->prettyPrint = prettyPrint;
 
     return config;
 }

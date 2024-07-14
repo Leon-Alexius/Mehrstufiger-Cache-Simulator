@@ -25,6 +25,8 @@ typedef struct {
     // Optimization flags
     unsigned int prefetchBuffer;  // How many cacheLines does prefetchBuffer have
     unsigned int storebackBuffer; // How many cacheLines does storebackBuffer have
+
+    bool prettyPrint;
 } Config;
 
 Config* start_parse(int argc, char* argv[]);

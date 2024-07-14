@@ -127,6 +127,9 @@ extern "C" {
         result->hits = hitCount;
         result->misses = missCount;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
+        result->ramRequests = 10; // TODO
+        result->ramReadRequests = 20; // TODO
+        result->ramWriteRequests = 30; // TODO
         
         // return the result
         return result;
