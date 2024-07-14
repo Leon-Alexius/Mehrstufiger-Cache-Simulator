@@ -105,9 +105,6 @@ extern "C" {
             // Send request to cache
             
             CacheStats tempResult = caches.send_request(req);
-            
-
-            Result tempResult = caches.send_request(req);
 
             // break if total simulated cache will be higher than limit
             if (cycleCount + tempResult.cycles > cycles) {
