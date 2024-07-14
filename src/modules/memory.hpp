@@ -75,6 +75,10 @@ SC_MODULE(MEMORY) {
 
             // mark as not done, and wait for signal from L2 is valid
             done->write(false);
+
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+            
             
             while(!valid_in->read() && !write_underway) {
                 wait();
@@ -87,7 +91,7 @@ SC_MODULE(MEMORY) {
             // get the address
             unsigned int address_u = address->read();
 
-            if (address_u > UINT_MAX - 4) throw std::invalid_argument("Out of bounds error");
+            
 
             // Case: Read
             if (!write_enable->read() ) {
@@ -97,8 +101,11 @@ SC_MODULE(MEMORY) {
                 for (unsigned i = 0; i < latency; i++) {
                     wait();
                 }
+
                 for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
+                    // If the address is now at its maximum, we stop any more write/read process
+                    if (address_u >= UINT_MAX) break;
                     address_u++;
                 }
 
@@ -109,6 +116,7 @@ SC_MODULE(MEMORY) {
                 if (write_underway) {
                     write_from_buffer();
                 }
+                
             } 
             // Case: Write
             else {
@@ -124,6 +132,8 @@ SC_MODULE(MEMORY) {
                     // Write data to memory (in_Bus is 4 Bytes - data is 4 Bytes)
                     for (unsigned i = 0; i < 4; i++) {
                         memory_blocks[address_u] = data_in_from_L2->read()[i];
+                        // If the address is now at its maximum, we stop any more write/read process
+                        if (address_u >= UINT_MAX) break;
                         address_u++;
                     }
                     // Signal as done
@@ -157,6 +167,7 @@ SC_MODULE(MEMORY) {
                 if(!storeback->read(data, address_u)) {
                     done->write(true);
                     write_underway = false;
+                    wait();
                     return;
                 } 
             }
@@ -170,6 +181,7 @@ SC_MODULE(MEMORY) {
                 if (!write_enable->read() && valid_in->read()) {
                     write_underway = true;
                     temp = data;
+                    
                     return;
                 }
 
@@ -180,8 +192,11 @@ SC_MODULE(MEMORY) {
             // Write to memory
             for (unsigned i = 0; i < 4; i++) {
                 memory_blocks[address_u] = data[i];
+                // If the address is now at its maximum, we stop any more write/read process
+                if (address_u >= UINT_MAX) break;
                 address_u++;
             }
+            
 
             // Free the pointer from data
             delete[] data;
