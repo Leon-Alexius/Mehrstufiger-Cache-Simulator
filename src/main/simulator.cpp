@@ -83,7 +83,7 @@ extern "C" {
             l1CacheLines, l2CacheLines, cacheLineSize, 
             l1CacheLatency, l2CacheLatency, memoryLatency, 
             tracefile, 
-            prefetchBuffer, storebackBuffer
+            prefetchBuffer, storebackBuffer, storebackBufferCondition
         );
         size_t cycleCount = 0;
         size_t missCount = 0; 
@@ -103,7 +103,6 @@ extern "C" {
             }
             
             // Send request to cache
-            
             CacheStats tempResult = caches.send_request(req);
 
             // break if total simulated cache will be higher than limit
@@ -130,7 +129,6 @@ extern "C" {
 
         // stop the simulation and close the trace file
         (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
-
         
         // return the result
         return result;

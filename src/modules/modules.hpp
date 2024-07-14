@@ -14,25 +14,6 @@
 using namespace sc_core;
 using namespace std;
 
-struct CacheStats {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t primitiveGateCount;
-    size_t read_hits;
-    size_t read_misses;
-    size_t write_hits;
-    size_t write_misses;
-    size_t read_hits_L1;
-    size_t read_misses_L1;
-    size_t write_hits_L1;
-    size_t write_misses_L1;
-    size_t read_hits_L2;
-    size_t read_misses_L2;
-    size_t write_hits_L2;
-    size_t write_misses_L2;
-};
-
 /**
  * @brief custom sc_trace() method for pointer values
  * 
@@ -193,7 +174,6 @@ struct CPU_L1_L2 {
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
-
        
         // Initialize L1, L2, and Memory
         if (storebackBufferLines != 0) {
@@ -204,7 +184,6 @@ struct CPU_L1_L2 {
         l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback);
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
         
-
         // Initialize data_in, etc. and set value to '\0'
         // Bus from Memory -> L2 -> L1 is as big as a cacheLine, while the other is only 4 Bytes
         data_in = new char[4]();
@@ -215,8 +194,6 @@ struct CPU_L1_L2 {
 
         data_from_L2_to_Memory = new char[4] ();
         data_from_Memory_to_L2 = new char[cacheLineSize] ();
-
-        
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -337,7 +314,7 @@ struct CPU_L1_L2 {
      * Lie Leon Alexius
      */
 
-    struct CacheStats send_request(struct Request request) {
+    CacheStats send_request(struct Request request) {
         uint32_t data_req = request.data;
 
         /*  Leon - Optimized from Base Anthony
@@ -399,7 +376,7 @@ struct CPU_L1_L2 {
         size_t misses = 1 - hits;
         
         // create Result and send back
-        struct CacheStats res = { 
+        CacheStats res = { 
             cycle_count, // cycles
             misses, // misses
             hits, // hits
