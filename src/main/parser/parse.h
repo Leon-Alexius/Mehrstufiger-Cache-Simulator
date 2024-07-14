@@ -25,6 +25,7 @@ typedef struct {
     // Optimization flags
     unsigned int prefetchBuffer;  // How many cacheLines does prefetchBuffer have
     unsigned int storebackBuffer; // How many cacheLines does storebackBuffer have
+    bool storebackBufferCondition; // (during R) false = always flush, true = flush only if tag exists or interrupt
 
     bool prettyPrint;
 } Config;

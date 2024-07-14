@@ -17,19 +17,20 @@
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
-    printf("  -c, --cycles <num>            The number of cycles to be simulated (default: 1000000)\n");
-    printf("      --cacheline-size <num>    The size of a cache line in bytes (default: 64)\n");
-    printf("      --l1-lines <num>          The number of cache lines of the L1 cache (default: 64)\n");
-    printf("      --l2-lines <num>          The number of cache lines of the L2 cache (default: 256)\n");
-    printf("      --l1-latency <num>        The latency of the L1 cache in cycles (default: 4)\n");
-    printf("      --l2-latency <num>        The latency of the L2 cache in cycles (default: 12)\n");
-    printf("      --memory-latency <num>    The latency of the main memory in cycles (default: 100)\n");
-    printf("      --tf=<filepath>           Output file for a trace file with all signals (default: default_trace.vcd)\n");
-    printf("      --num-requests <num>      Number of request to read from .csv file, default is all requests\n");
-    printf("      --prefetch-buffer <num>   The number of cache lines in the prefetch buffer (default: 0)\n");
-    printf("      --storeback-buffer <num>  The number of cache lines in the storeback buffer (default: 0)\n");
-    printf("      --pretty-print            Pretty print the output (default: true)\n");
-    printf("  -h, --help                    Display this help and exit\n");
+    printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 1000000)\n");
+    printf("      --cacheline-size <num>        The size of a cache line in bytes (default: 64)\n");
+    printf("      --l1-lines <num>              The number of cache lines of the L1 cache (default: 64)\n");
+    printf("      --l2-lines <num>              The number of cache lines of the L2 cache (default: 256)\n");
+    printf("      --l1-latency <num>            The latency of the L1 cache in cycles (default: 4)\n");
+    printf("      --l2-latency <num>            The latency of the L2 cache in cycles (default: 12)\n");
+    printf("      --memory-latency <num>        The latency of the main memory in cycles (default: 100)\n");
+    printf("      --tf=<filepath>               Output file for a trace file with all signals (default: default_trace.vcd)\n");
+    printf("      --num-requests <num>          Number of request to read from .csv file, default is all requests\n");
+    printf("      --prefetch-buffer <num>       The number of cache lines in the prefetch buffer (default: 0)\n");
+    printf("      --storeback-buffer <num>      The number of cache lines in the storeback buffer (default: 0)\n");
+    printf("      --storeback-condition <bool>  The condition for storeback buffer (default: false)\n");
+    printf("      --pretty-print <bool>         Pretty print the output (default: true)\n");
+    printf("  -h, --help                        Display this help and exit\n");
 }
 
 /**
@@ -77,6 +78,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     // Optimization flags
     unsigned int prefetchBuffer = 0;
     unsigned int storebackBuffer = 0;
+    bool storebackBufferCondition = false;
 
     // ========================================================================================
 
@@ -320,6 +322,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     config->customNumRequest = customNumRequest;
     config->prefetchBuffer = prefetchBuffer; // Optimization: Prefetch Buffer
     config->storebackBuffer = storebackBuffer; // Optimization: Storeback Buffer
+    config->storebackBufferCondition = storebackBufferCondition;
     config->prettyPrint = prettyPrint;
 
     return config;

@@ -23,7 +23,7 @@ extern Result* run_simulation(
 
      // Optimization flags
     unsigned prefetchBuffer, 
-    unsigned storebackBuffer
+    unsigned storebackBuffer, bool storebackBufferCondition
 );
 
 /**
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         config->numRequests, config->requests, 
         config->tracefile,
         config->prefetchBuffer,
-        config->storebackBuffer
+        config->storebackBuffer, config->storebackBufferCondition
     );
 
     // Print the layout and result

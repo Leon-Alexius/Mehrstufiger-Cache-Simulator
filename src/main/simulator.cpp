@@ -72,7 +72,7 @@ extern "C" {
 
         // Optimization flags
         unsigned prefetchBuffer, 
-        unsigned storebackBuffer
+        unsigned storebackBuffer, bool storebackBufferCondition
     ) 
     {
         // Test the Requests

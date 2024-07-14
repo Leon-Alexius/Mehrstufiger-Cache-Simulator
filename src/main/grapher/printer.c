@@ -38,8 +38,8 @@ void print_layout(Config* config, Result* result) {
             "┌────────────────────────────────────────────────────────────────┐\n"
             "|                           Buffers                              |\n"
             "| ┌────────────────────────────────────────────────────────────┐ |\n"
-            "| | Prefetch Buffer: %-41d | |\n"
-            "| | Storeback Buffer: %-40d | |\n"
+            "| | Prefetch Buffer: %-10d  |                             | |\n"
+            "| | Storeback Buffer: %-10d | Conditional: %-14d | |\n"
             "| └────────────────────────────────────────────────────────────┘ |\n"
             "└────────────────────────────────┬───────────────────────────────┘\n"
             "                                 ↓                                \n"
@@ -54,7 +54,7 @@ void print_layout(Config* config, Result* result) {
             config->cacheLineSize, config->l1CacheLines, config->l2CacheLines, 
             config->l1CacheLatency, config->l2CacheLatency,
             config->numRequests,
-            config->prefetchBuffer, config->storebackBuffer,
+            config->prefetchBuffer, config->storebackBuffer, config->storebackBufferCondition,
             config->memoryLatency, result->ramRequests,
             result->ramReadRequests, result->ramWriteRequests
         );
