@@ -73,7 +73,7 @@ extern "C" {
         // print_requests(numRequests, requests);
 
         // Initialize the Components        
-        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile, 4);
+        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile, 16);
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
