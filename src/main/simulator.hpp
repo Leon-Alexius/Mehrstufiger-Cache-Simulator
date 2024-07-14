@@ -18,17 +18,6 @@ struct Request {
 };
 
 /**
- * @brief Result contains `cycles`, `misses`, `hits`, `primitiveGateCount`
- * @author Task Pdf
- */
-typedef struct {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t primitiveGateCount;
-} Result;
-
-/**
  * @brief Output of the simulator
  * @authors
  * Alexander Anthony Tang
@@ -38,7 +27,6 @@ typedef struct {
     size_t cycles;
     size_t misses;
     size_t hits;
-    size_t primitiveGateCount;
     size_t read_hits;
     size_t read_misses;
     size_t write_hits;
@@ -52,5 +40,17 @@ typedef struct {
     size_t write_hits_L2;
     size_t write_misses_L2;
 } CacheStats;
+
+/**
+ * @brief Result contains `cycles`, `misses`, `hits`, `primitiveGateCount`
+ * @author Task Pdf - edited Leon
+ */
+typedef struct {
+    size_t cycles;
+    size_t misses;
+    size_t hits;
+    size_t primitiveGateCount;
+    CacheStats* cacheStats;
+} Result;
 
 #endif

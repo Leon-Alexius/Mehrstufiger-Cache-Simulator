@@ -380,7 +380,6 @@ struct CPU_L1_L2 {
             cycle_count, // cycles
             misses, // misses
             hits, // hits
-            get_gate_count(), // primitive gate count
             hits && !request.we,
             misses && !request.we,
             hits && request.we,

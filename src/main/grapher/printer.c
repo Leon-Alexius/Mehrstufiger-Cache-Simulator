@@ -15,6 +15,8 @@
  * @brief
  * Prints the layout of the simulator and its initial attributes.
  * 
+ * @todo fix this
+ * 
  * @warning don't remove this! It's used for the initial layout of the simulator
  * @author Lie Leon Alexius
  */
@@ -55,8 +57,10 @@ void print_layout(Config* config, Result* result) {
             config->l1CacheLatency, config->l2CacheLatency,
             config->numRequests,
             config->prefetchBuffer, config->storebackBuffer, config->storebackBufferCondition,
-            config->memoryLatency, result->ramRequests,
-            result->ramReadRequests, result->ramWriteRequests
+            config->memoryLatency, 
+            (result->cacheStats->read_misses_L2 + result->cacheStats->write_hits + result->cacheStats->write_misses),
+            result->cacheStats->read_misses_L2, 
+            (result->cacheStats->write_hits + result->cacheStats->write_misses)
         );
     }
 

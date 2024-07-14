@@ -37,6 +37,28 @@ extern "C" {
             }
         }  
     }
+    
+    /**
+     * @brief updates the CacheSimulatorStats
+     * @author Lie Leon Alexius
+     */
+    void statsUpdater(CacheStats* cacheStats, CacheStats tempStats) {
+        cacheStats->cycles += tempStats.cycles;
+        cacheStats->misses += tempStats.misses;
+        cacheStats->hits += tempStats.hits;
+        cacheStats->read_hits += tempStats.read_hits;
+        cacheStats->read_misses += tempStats.read_misses;
+        cacheStats->write_hits += tempStats.write_hits;
+        cacheStats->write_misses += tempStats.write_misses;
+        cacheStats->read_hits_L1 += tempStats.read_hits_L1;
+        cacheStats->read_misses_L1 += tempStats.read_misses_L1;
+        cacheStats->write_hits_L1 += tempStats.write_hits_L1;
+        cacheStats->write_misses_L1 += tempStats.write_misses_L1;
+        cacheStats->read_hits_L2 += tempStats.read_hits_L2;
+        cacheStats->read_misses_L2 += tempStats.read_misses_L2;
+        cacheStats->write_hits_L2 += tempStats.write_hits_L2;
+        cacheStats->write_misses_L2 += tempStats.write_misses_L2;
+    }
 
     /**
      * @brief Runs the cache simulation
@@ -88,6 +110,7 @@ extern "C" {
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
+        CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
 
         // ========================================================================================
         
@@ -110,6 +133,9 @@ extern "C" {
                 break;
             }
 
+            // update the cacheStats
+            statsUpdater(cacheStats, tempResult);
+
             // add tempResult to total
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
@@ -126,6 +152,7 @@ extern "C" {
         result->hits = hitCount;
         result->misses = missCount;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
+        result->cacheStats = cacheStats;
 
         // stop the simulation and close the trace file
         (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
