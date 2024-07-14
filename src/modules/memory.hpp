@@ -86,6 +86,8 @@ SC_MODULE(MEMORY) {
             // get the address
             unsigned int address_u = address->read();
 
+            if (address_u > UINT_MAX - 4) throw std::invalid_argument("Out of bounds error");
+
             // Case: Read
             if (!write_enable->read() ) {
                 // Load the data to the Bus, Load the whole cacheLine

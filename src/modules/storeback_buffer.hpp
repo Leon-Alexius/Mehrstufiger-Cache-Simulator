@@ -16,6 +16,10 @@ using namespace std;
 * @details This module implements an sc_fifo for both the data and the address. The read() is called by the memory,
 * while the write() by the L2 cache. An in_buffer() method denotes if a certain tag is currently in the buffer.
 * is_empty() denotes if the buffer is now empty.
+*
+* @note Using a Write Through with Conditional Flush Buffer may not be faster than a Write Through with Unconditional Flush Buffer.
+* As a read from L2 without any dependency will abort any ongoing write, which means the aborted write needs to start from the start
+* and cost more cycles. But if a read hit is generated from the block, then the lost cycles will be recovered.
 * 
 * @author Alexander Anthony Tang
 */

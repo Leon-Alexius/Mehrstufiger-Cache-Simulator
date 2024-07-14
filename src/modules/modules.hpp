@@ -14,6 +14,25 @@
 using namespace sc_core;
 using namespace std;
 
+struct CacheStats {
+    size_t cycles;
+    size_t misses;
+    size_t hits;
+    size_t primitiveGateCount;
+    size_t read_hits;
+    size_t read_misses;
+    size_t write_hits;
+    size_t write_misses;
+    size_t read_hits_L1;
+    size_t read_misses_L1;
+    size_t write_hits_L1;
+    size_t write_misses_L1;
+    size_t read_hits_L2;
+    size_t read_misses_L2;
+    size_t write_hits_L2;
+    size_t write_misses_L2;
+};
+
 /**
  * @brief custom sc_trace() method for pointer values
  * 
@@ -317,7 +336,7 @@ struct CPU_L1_L2 {
      * Alexander Anthony Tang
      * Lie Leon Alexius
      */
-    struct Result send_request(struct Request request) {
+    struct CacheStats send_request(struct Request request) {
 
         uint32_t data_req = request.data;
 
@@ -379,15 +398,28 @@ struct CPU_L1_L2 {
                - If L1 Hit: Hits = 1
                - If L1 Miss: Hits = hit_L2
         */
-        size_t misses = !(hit_from_L1);
-        size_t hits = hit_from_L1;
+        
+        size_t hits = hit_from_L1 || ((cache_l2_executes) && (hit_from_L2));
+        size_t misses = 1 - hits;
         
         // create Result and send back
-        struct Result res = { 
+        struct CacheStats res = { 
             cycle_count, // cycles
             misses, // misses
             hits, // hits
-            get_gate_count() // primitive gate count
+            get_gate_count(), // primitive gate count
+            hits && !request.we,
+            misses && !request.we,
+            hits && request.we,
+            misses && request.we,
+            hit_from_L1 && !request.we,
+            (!hit_from_L1) && !request.we,
+            hit_from_L1 && request.we,
+            (!hit_from_L1) && request.we,
+            (cache_l2_executes) && (hit_from_L2) && !request.we,
+            (cache_l2_executes) && (!hit_from_L2) && !request.we,
+            (cache_l2_executes) && (hit_from_L2) && request.we,
+            (cache_l2_executes) && (!hit_from_L2) && request.we,
         };
 
         valid = false; // set valid as false
@@ -493,4 +525,7 @@ struct CPU_L1_L2 {
 };
 
 #endif // #ifdef __cplusplus
+
+
+
 #endif // #ifndef MODULES_HPP

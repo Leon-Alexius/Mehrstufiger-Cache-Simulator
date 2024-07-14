@@ -113,13 +113,13 @@ SC_MODULE(L1){
         // wait();
         while (true)
         {
-            // std::cout << "bruh again?" << std::endl;
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
+            
             
             hit->write(false);
             done->write(false);
-            // std::cout << "ITS FALSE ALREADYYY" << std::endl;
+            
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
