@@ -79,6 +79,7 @@ SC_MODULE(MEMORY) {
             while(!valid_in->read() && !write_underway) {
                 wait();
                 wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
             }
 
             
@@ -127,10 +128,12 @@ SC_MODULE(MEMORY) {
                     }
                     // Signal as done
                     done->write(true);
+                    // Wait for next clock.
+                    wait();
                 }
             }
-            // Wait for next clock.
-            wait();
+            
+            
         }
     }
 

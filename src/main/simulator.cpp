@@ -73,54 +73,52 @@ extern "C" {
         // print_requests(numRequests, requests);
 
         // Initialize the Components        
-        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile, 16);
+        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
         size_t gateCount = 0;
 
         // ========================================================================================
-        try {
-            // Process the request
-            for (size_t i = 0; i < numRequests; i++) {
-                Request req = requests[i];
+        
+        // Process the request
+        for (size_t i = 0; i < numRequests; i++) {
+            Request req = requests[i];
 
-                // If req.we == -1, end simulation
-                if (req.we == -1) {
-                    break;
-                }
-                
-                // Send request to cache
-                
-                CacheStats tempResult = caches.send_request(req);
-                
-                cycleCount += tempResult.cycles;
-                missCount += tempResult.misses;
-                hitCount += tempResult.hits;
-                gateCount = tempResult.primitiveGateCount;
+            // If req.we == -1, end simulation
+            if (req.we == -1) {
+                break;
             }
-
-            unsigned memory_cycles = caches.finish_memory();
-            cycleCount += memory_cycles;
-
-            // stop the simulation and close the trace file
-            caches.close_trace_file();
-
-            // ========================================================================================
-
-            // assign Result
-            struct Result result;
-            result.cycles = cycleCount;
-            result.hits = hitCount;
-            result.misses = missCount;
-            result.primitiveGateCount = gateCount;
             
-            // return the result
-            return result;
-        } catch (const std::exception&) {
-            caches.close_trace_file();
-            return {0, 0, 0, 0};
+            // Send request to cache
+            
+            CacheStats tempResult = caches.send_request(req);
+            
+            cycleCount += tempResult.cycles;
+            missCount += tempResult.misses;
+            hitCount += tempResult.hits;
+            gateCount = tempResult.primitiveGateCount;
         }
+
+        unsigned memory_cycles = caches.finish_memory();
+        cycleCount += memory_cycles;
+
+        // stop the simulation and close the trace file
+        caches.close_trace_file();
+
+        // ========================================================================================
+
+        // assign Result
+        struct Result result;
+        result.cycles = cycleCount;
+        result.hits = hitCount;
+        result.misses = missCount;
+        result.primitiveGateCount = gateCount;
+        
+        // return the result
+        return result;
+        
+        
     }
 }
 
