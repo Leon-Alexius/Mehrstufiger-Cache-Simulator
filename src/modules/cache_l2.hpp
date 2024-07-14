@@ -215,6 +215,7 @@ SC_MODULE(L2){
                     
                     
                     valid_out->write(false);
+
                     
                     
                     // Write the data from RAM to the appropriate CacheLine
@@ -225,13 +226,15 @@ SC_MODULE(L2){
                     valid[index] = true; // set data is valid
                     tags[index] = tag; // update tag
 
-
+                    
                                         //Optimization: Prefetching - Trang
                     //Prefetching - load 4 cache lines starting from address
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 1; i < 2; i++)
                     {
-                        std::cout << "Fetching line " << i << std::endl;
+                        wait();
+                        // std::cout << "Fetching line " << i << std::endl;
                         prefetch_next_line(address_int + i*(cacheLineSize));
+                        
                     }
                     
                     //load the prefetched lines into cache
@@ -245,14 +248,14 @@ SC_MODULE(L2){
                             unsigned int index_new = (address_new >> log2_cacheLineSize) & (l2CacheLines - 1);
                             unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines);
                             //assign the next line to prefetch_data
-                            std::cout << "waiting" << std::endl;
+                            // std::cout << "waiting" << std::endl;
                             prefetch_buffer->read(prefetch_data);
                             //load the line stored in prefetch_data into cache
                             for (unsigned i = 0; i < cacheLineSize; i++) {
                                 cache_blocks[index_new][i] = prefetch_data[i];
-                                std::cout << "0";
+                                // std::cout << "0";
                             }
-                            std::cout << std::endl;
+                            // std::cout << std::endl;
                             tags[index_new] = tag_new;
                             valid[index_new] = true;
                             j++;
@@ -281,14 +284,16 @@ SC_MODULE(L2){
         address_out->write(address_of_line);
         write_enable_out->write(false);
         valid_out->write(true);
-
+        
         wait(SC_ZERO_TIME);
         wait(SC_ZERO_TIME);
+        
+        // std::cout << done_from_Mem->read() << std::endl;
         while (!done_from_Mem->read()) {
             wait();
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
-            std::cout << "WAITING FOR MEM " << std::endl;
+            // std::cout << "WAITING FOR MEM " << std::endl;
         }
         valid_out->write(false);
 
@@ -297,11 +302,12 @@ SC_MODULE(L2){
             prefetched_line[i] = data_in_from_Mem->read()[i];
         }
         prefetch_buffer->write(prefetched_line);
+        wait();
     }
 
         int test_L2() {
         sc_fifo<char*>* fifo = new sc_fifo<char*>(4);
-        L2 l2("l1cache", 64,4,1, fifo);
+        L2 l2("l1cache", 64,4,1, nullptr, fifo);
         char data[64] = {'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
         'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
