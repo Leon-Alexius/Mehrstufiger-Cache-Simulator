@@ -7,7 +7,7 @@
  * @warning We count the time only the algorithm, not included transposing the matrix.
  * @author Lie Leon Alexius
  */
-int main() {
+int analyze_runtime() {
     // for testing correctness, we have square_matrix of size 5
     int n = 1000;
 
