@@ -100,6 +100,8 @@ SC_MODULE(MEMORY) {
                 }
 
                 // Signal as done, and continue writing if it was interrupted
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
                 done->write(true);
                 wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
@@ -124,7 +126,9 @@ SC_MODULE(MEMORY) {
                         address_u++;
                     }
                     // Signal as done
+                    
                     done->write(true);
+                    
                 }
             }
             // Wait for next clock.

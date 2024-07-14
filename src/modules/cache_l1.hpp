@@ -123,10 +123,13 @@ SC_MODULE(L1){
             
             hit->write(false);
             done->write(false);
+
+            
             // std::cout << "ITS FALSE ALREADYYY" << std::endl;
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
+                std::cout << " why " << std::endl;
                 wait();
             }
             
@@ -158,6 +161,7 @@ SC_MODULE(L1){
             
             // Tags and Data is only accessible after l1 latency cycles.
             for (unsigned i = 0; i < l1CacheLatency; i++) {
+                
                 wait();
             }
 
@@ -197,6 +201,7 @@ SC_MODULE(L1){
                 // cache hit
                 if (valid[index] && tags[index]==tag)
                 {
+                    // std::cout << std::hex << address << std::endl;
                     hit->write(true);                    
                 }
 
@@ -211,8 +216,6 @@ SC_MODULE(L1){
                     wait(SC_ZERO_TIME);
                     while (!done_from_L2->read()) {
                         wait();
-                        wait(SC_ZERO_TIME);
-                        wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
                         // std::cout << "DONE FROM L2 " << done_from_L2->read() << std::endl;
