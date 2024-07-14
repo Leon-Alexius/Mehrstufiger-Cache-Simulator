@@ -110,11 +110,9 @@ SC_MODULE(L1){
      */
     void update(){
         wait(); // wait for next clk event (refer to SC_START(ZERO) in CPU_L1_L2)
-        // wait();
         while (true)
         {
-            
-            
+                   
             hit->write(false);
             done->write(false);
             

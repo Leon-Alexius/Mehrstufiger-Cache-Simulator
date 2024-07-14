@@ -184,20 +184,21 @@ struct CPU_L1_L2 {
     * @authors
     * Alexander Anthony Tang
     * Van Trang Nguyen
+    * Lie Leon Alexius
     */
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
-        unsigned storeBufferCapacity = 0, bool storeBufferConditional = false) : 
+          
+        unsigned prefetchBufferLines, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
 
-        
-        
+       
         // Initialize L1, L2, and Memory
         if (storeBufferCapacity != 0) {
-            storeback = new STOREBACK("Storeback", storeBufferCapacity, storeBufferConditional);
+            storeback = new STOREBACK("Storeback", storebackBufferLines, storeBufferConditional);
         }
         // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
@@ -285,21 +286,24 @@ struct CPU_L1_L2 {
 
         // start simulation for 1 delta cycle, without advancing the time (Simulation Second)
         sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
 
         /*
             Must run simulation first otherwise segmentation fault
             This is due to data_in, etc. is an array with NULLs and thus must be filled (1 delta cycle)
             https://www.learnsystemc.com/basic/simu_stage
         */
-        if (tracefile != nullptr) {
-            // Bind to trace
+
+        // Bind to trace - only if tracefile is not NULL
+        if (tracefile != NULL) {
             trace_file = sc_create_vcd_trace_file(tracefile);
 
             // Custom Trace - Array
             trace(trace_file, data_in, 4, "Data_In");
             trace(trace_file, data_out, 4, "Data_Out");
 
-            trace(trace_file, data_from_L1_to_L2, 4, "Data_from_L1_to_L2");
+            trace(trace_file, data_from_L1_to_L2, 4, "Data-from_L1_to_L2");
             trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
 
             trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
@@ -322,7 +326,6 @@ struct CPU_L1_L2 {
             sc_trace(trace_file, hit_from_L2, "Hit_from_L2");
         }
     }
-    
 
     /**
      * @brief Send a request to the simulated memory hierarchy system.
@@ -336,8 +339,8 @@ struct CPU_L1_L2 {
      * Alexander Anthony Tang
      * Lie Leon Alexius
      */
-    struct CacheStats send_request(struct Request request) {
 
+    struct CacheStats send_request(struct Request request) {
         uint32_t data_req = request.data;
 
         /*  Leon - Optimized from Base Anthony
@@ -381,10 +384,6 @@ struct CPU_L1_L2 {
             */
             
         } while (!done_from_L1.read());
-
-        
-        
-
 
         /*
             Calculating the misses and hits
@@ -444,17 +443,32 @@ struct CPU_L1_L2 {
 
     /**
      * @brief stop the simulation, close trace file, clean up
-     * @link https://www.geeksforgeeks.org/delete-in-c/ 
-     * @author 
+     * @authors
      * Anthony Tang
      * Lie Leon Alexius
      */
     void close_trace_file() {
-        // SystemC - stop then close
         sc_stop();
         sc_close_vcd_trace_file(trace_file);
+        free_memory();
+    }
 
-        // Free all allocated memory
+    /**
+     * @brief stop the simulation without closing the trace file
+     * @author Lie Leon Alexius
+     */
+    void stop_simulation() {
+        sc_stop();
+        free_memory();
+    }
+
+    /**
+     * @brief free memory
+     * @authors
+     * Anthony Tang
+     * Lie Leon Alexius
+     */
+    void free_memory() {
         delete l1;
         delete l2;
         delete memory;
@@ -469,11 +483,12 @@ struct CPU_L1_L2 {
     }
 
     /**
-     * @brief Gets amount of gates needed for the cache. This includes the table for tags, decoders, and multiplexers.
-     * @details If the cache uses a buffer then the gate count would be different
-     * @todo gate count for buffers.
-     * @author
-     * Anthony Tang
+     * Calculates the total number of gates required for the memory system.
+     * 
+     * The gate count is calculated based on the number of gates required for the memory components,
+     * control components, and tag comparison components, without including RAM.
+     * 
+     * @return The total number of gates required for the memory system.
      */
     size_t get_gate_count() {
         // Only for the "saving" part

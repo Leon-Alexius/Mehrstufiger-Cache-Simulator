@@ -10,19 +10,23 @@
 // Config struct
 typedef struct {
     int cycles;
-    unsigned l1CacheLines;
-    unsigned l2CacheLines;
-    unsigned cacheLineSize;
-    unsigned l1CacheLatency;
-    unsigned l2CacheLatency;
-    unsigned memoryLatency;
+    unsigned int l1CacheLines;
+    unsigned int l2CacheLines;
+    unsigned int cacheLineSize;
+    unsigned int l1CacheLatency;
+    unsigned int l2CacheLatency;
+    unsigned int memoryLatency;
     size_t numRequests;
     const char* tracefile;
     const char* input_filename;
     struct Request* requests;
     bool customNumRequest;
+
+    // Optimization flags
+    unsigned int prefetchBuffer;  // How many cacheLines does prefetchBuffer have
+    unsigned int storebackBuffer; // How many cacheLines does storebackBuffer have
 } Config;
 
-Config start_parse(int argc, char* argv[]);
+Config* start_parse(int argc, char* argv[]);
 
 #endif // PARSE_H

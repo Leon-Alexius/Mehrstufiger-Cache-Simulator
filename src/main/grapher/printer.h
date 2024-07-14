@@ -1,7 +1,10 @@
 #ifndef PRINTER_H
 #define PRINTER_H
 
-void print_layout(int cycles, int l1CacheLines, int l2CacheLines, int cacheLineSize, int l1CacheLatency, int l2CacheLatency, int memoryLatency, int numRequests);
+#include "../simulator.hpp"
+#include "../parser/parse.h"
+
+void print_layout(Config* config, Result* Result);
 int load_image(const char *filename);
 
 // Test Case

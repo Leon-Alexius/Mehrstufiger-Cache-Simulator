@@ -61,29 +61,39 @@ extern "C" {
      * Lie Leon Alexius
      * Anthony Tang
      */
-    struct Result run_simulation(
+    Result* run_simulation(
         int cycles, 
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
         size_t numRequests, struct Request* requests,
-        const char* tracefile
+        const char* tracefile,
+
+        // Optimization flags
+        unsigned prefetchBuffer, 
+        unsigned storebackBuffer
     ) 
     {
         // Test the Requests
         // print_requests(numRequests, requests);
 
         // Initialize the Components        
-        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile);
+        CPU_L1_L2 caches(
+            l1CacheLines, l2CacheLines, cacheLineSize, 
+            l1CacheLatency, l2CacheLatency, memoryLatency, 
+            tracefile, 
+            prefetchBuffer, storebackBuffer
+        );
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
-        size_t gateCount = 0;
 
         // ========================================================================================
         
+        std::cout << "Running simulation..." << std::endl;
+
         // Process the request
         for (size_t i = 0; i < numRequests; i++) {
-            Request req = requests[i];
+            struct Request req = requests[i];
 
             // If req.we == -1, end simulation
             if (req.we == -1) {
@@ -104,16 +114,16 @@ extern "C" {
         cycleCount += memory_cycles;
 
         // stop the simulation and close the trace file
-        caches.close_trace_file();
+        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
 
         // ========================================================================================
 
         // assign Result
-        struct Result result;
-        result.cycles = cycleCount;
-        result.hits = hitCount;
-        result.misses = missCount;
-        result.primitiveGateCount = gateCount;
+        Result* result = (Result*) malloc(sizeof(Result));
+        result->cycles = cycleCount;
+        result->hits = hitCount;
+        result->misses = missCount;
+        result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
         
         // return the result
         return result;
