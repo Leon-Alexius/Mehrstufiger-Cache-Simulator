@@ -103,7 +103,8 @@ extern "C" {
             }
             
             // Send request to cache
-            Result tempResult = caches.send_request(req);
+            
+            CacheStats tempResult = caches.send_request(req);
 
             // break if total simulated cache will be higher than limit
             if (cycleCount + tempResult.cycles > cycles) {
@@ -116,20 +117,20 @@ extern "C" {
             hitCount += tempResult.hits;
         }
 
-        // stop the simulation and close the trace file
-        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
+        unsigned memory_cycles = caches.finish_memory();
+        cycleCount += memory_cycles;
 
         // ========================================================================================
-
         // assign Result
         Result* result = (Result*) malloc(sizeof(Result));
         result->cycles = cycleCount;
         result->hits = hitCount;
         result->misses = missCount;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
-        result->ramRequests = 10; // TODO
-        result->ramReadRequests = 20; // TODO
-        result->ramWriteRequests = 30; // TODO
+
+        // stop the simulation and close the trace file
+        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
+
         
         // return the result
         return result;

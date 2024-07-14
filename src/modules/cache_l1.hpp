@@ -112,11 +112,12 @@ SC_MODULE(L1){
         wait(); // wait for next clk event (refer to SC_START(ZERO) in CPU_L1_L2)
         while (true)
         {
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
-            
+                   
             hit->write(false);
             done->write(false);
+            
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
@@ -180,6 +181,10 @@ SC_MODULE(L1){
                 // Wait until L2 is done, mark as invalid propagation
                 while (!done_from_L2->read()) {
                     wait();
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
                 }
                 valid_out->write(false);
             } 
@@ -201,16 +206,16 @@ SC_MODULE(L1){
                     valid_out->write(true);
 
                     // Wait until L2 is done
-                    wait(SC_ZERO_TIME);
                     while (!done_from_L2->read()) {
                         wait();
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
                     }
                     valid_out->write(false);
 
-                    // Writes after l1 latency cyles
-                    for (unsigned i = 0; i < l1CacheLatency - 1; i++) {
-                        wait();
-                    }
+
 
                     // Write the data to the appropriate CacheLine
                     // Data that is sent by L2 is a whole cacheLine
@@ -229,10 +234,7 @@ SC_MODULE(L1){
 
             
             done->write(true); // signal as done
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
-            
-            // wait(); // wait for next clk event
+            wait(); // wait for next clk event
            
         }
     }

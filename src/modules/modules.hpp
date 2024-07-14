@@ -7,11 +7,31 @@
 #include "memory.hpp"
 #include "cache_l1.hpp"
 #include "cache_l2.hpp"
+#include "storeback_buffer.hpp"
 
 #include <cmath>
 
 using namespace sc_core;
 using namespace std;
+
+struct CacheStats {
+    size_t cycles;
+    size_t misses;
+    size_t hits;
+    size_t primitiveGateCount;
+    size_t read_hits;
+    size_t read_misses;
+    size_t write_hits;
+    size_t write_misses;
+    size_t read_hits_L1;
+    size_t read_misses_L1;
+    size_t write_hits_L1;
+    size_t write_misses_L1;
+    size_t read_hits_L2;
+    size_t read_misses_L2;
+    size_t write_hits_L2;
+    size_t write_misses_L2;
+};
 
 /**
  * @brief custom sc_trace() method for pointer values
@@ -92,6 +112,7 @@ struct CPU_L1_L2 {
     L1* l1;                     // Pointer to L1 cache
     L2* l2;                     // Pointer to L2 cache
     MEMORY* memory;             // Pointer to main memory
+    STOREBACK* storeback = nullptr;       // Pointer to Store back buffer
 
     // Bus between CPU and Cache (L1)
     sc_signal<char*> data_in;
@@ -136,6 +157,8 @@ struct CPU_L1_L2 {
     sc_signal<bool> valid_from_L1_to_L2;
     sc_signal<bool> valid_from_L2_to_Memory;
 
+    
+
     // Clock and Trace File (60 MHz)
     sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
     sc_trace_file* trace_file;
@@ -166,16 +189,21 @@ struct CPU_L1_L2 {
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
-        unsigned prefetchBufferLines, unsigned storebackBufferLines
-        ) : 
+        unsigned prefetchBufferLines, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
-        
+
+       
         // Initialize L1, L2, and Memory
+        if (storebackBufferLines != 0) {
+            storeback = new STOREBACK("Storeback", storebackBufferLines, storeBufferConditional);
+        }
+        // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
-        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency);
-        memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
+        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback);
+        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
+        
 
         // Initialize data_in, etc. and set value to '\0'
         // Bus from Memory -> L2 -> L1 is as big as a cacheLine, while the other is only 4 Bytes
@@ -187,6 +215,8 @@ struct CPU_L1_L2 {
 
         data_from_L2_to_Memory = new char[4] ();
         data_from_Memory_to_L2 = new char[cacheLineSize] ();
+
+        
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -255,8 +285,6 @@ struct CPU_L1_L2 {
 
         // start simulation for 1 delta cycle, without advancing the time (Simulation Second)
         sc_start(SC_ZERO_TIME);
-        sc_start(SC_ZERO_TIME);
-        sc_start(SC_ZERO_TIME);
 
         /*
             Must run simulation first otherwise segmentation fault
@@ -308,8 +336,8 @@ struct CPU_L1_L2 {
      * Alexander Anthony Tang
      * Lie Leon Alexius
      */
-    Result send_request(struct Request request) {
 
+    struct CacheStats send_request(struct Request request) {
         uint32_t data_req = request.data;
 
         /*  Leon - Optimized from Base Anthony
@@ -318,7 +346,7 @@ struct CPU_L1_L2 {
         */
         for (int i = 0; i < 4; i++) {
             data_in[i] = (char) (data_req & 0xFF); // 256 = (1.0000.0000)b
-            data_req >> 8; // divide 256;
+            data_req = data_req >> 8; // divide 256;
         }
 
         // signal the caches
@@ -330,15 +358,12 @@ struct CPU_L1_L2 {
         size_t cycle_count = 0;
         bool cache_l2_executes = false; // whether L2 runs or not
         size_t hit_L2 = 0; // does L2 hit? 0 or 1
+        
 
         // run the simulation (+1) to process the request
         do {
-            // std::cout << cycle_count << " WHAT 2 " << done_from_L1.read() << std::endl;
-            sc_start(1, SC_SEC);
 
-            // Let the results from the simulation propagate
-            sc_start(SC_ZERO_TIME);
-            sc_start(SC_ZERO_TIME);
+            sc_start(1, SC_SEC);
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -369,19 +394,48 @@ struct CPU_L1_L2 {
                - If L1 Hit: Hits = 1
                - If L1 Miss: Hits = hit_L2
         */
-        size_t misses = !(hit_from_L1) + ((cache_l2_executes) ? (1 - hit_L2) : 0);
-        size_t hits = hit_from_L1 + ((cache_l2_executes) ? hit_L2 : 0);
+        
+        size_t hits = hit_from_L1 || ((cache_l2_executes) && (hit_from_L2));
+        size_t misses = 1 - hits;
         
         // create Result and send back
-        Result res = { 
+        struct CacheStats res = { 
             cycle_count, // cycles
             misses, // misses
             hits, // hits
-            get_gate_count() // primitive gate count
+            get_gate_count(), // primitive gate count
+            hits && !request.we,
+            misses && !request.we,
+            hits && request.we,
+            misses && request.we,
+            hit_from_L1 && !request.we,
+            (!hit_from_L1) && !request.we,
+            hit_from_L1 && request.we,
+            (!hit_from_L1) && request.we,
+            (cache_l2_executes) && (hit_from_L2) && !request.we,
+            (cache_l2_executes) && (!hit_from_L2) && !request.we,
+            (cache_l2_executes) && (hit_from_L2) && request.we,
+            (cache_l2_executes) && (!hit_from_L2) && request.we,
         };
 
         valid = false; // set valid as false
         return res;
+    }
+
+    unsigned finish_memory() {
+        if (storeback == nullptr) return 0;
+        valid_from_L1_to_L2 = false;
+        unsigned cycle_count = 0;
+        sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
+        // std::cout << memory->write_underway << std::endl;
+        if (!memory->write_underway && storeback->is_empty()) return 0;
+        while (!done_from_Memory) {
+            sc_start(1, SC_SEC);
+            cycle_count++;
+        }
+
+        return cycle_count;
     }
 
     /**
@@ -429,7 +483,7 @@ struct CPU_L1_L2 {
      * Calculates the total number of gates required for the memory system.
      * 
      * The gate count is calculated based on the number of gates required for the memory components,
-     * control components, and tag comparison components.
+     * control components, and tag comparison components, without including RAM.
      * 
      * @return The total number of gates required for the memory system.
      */
@@ -440,8 +494,6 @@ struct CPU_L1_L2 {
         // Each tag is a 32 bit integer -> 32 -> 64 gates for a line of tag
         // For a line: 64 + 16*cacheLineSize
         // l1CacheLines, l2CacheLines -> (l1CacheLines + l2CacheLines)*(64 + 16*cacheLineSize)
-        // RAM usually uses DRAM, which uses a capacitor and a transistor for each cell. Here it will be counted as one gate.
-        // Memory: 1MB -> 1000000*8 = 8000000 gates
 
         // Control part
         // Multiplexers (to know which address to go to), comparators (for the tags)
@@ -458,23 +510,19 @@ struct CPU_L1_L2 {
         unsigned gates_l1_memory = (gates_cache_line + gates_l1_tags + gates_valid)*l1CacheLines;
         unsigned gates_l2_memory = (gates_cache_line + gates_l2_tags + gates_valid)*l2CacheLines;
         
-        // Memory is usually DRAM, which uses capacitors and a transistor. It is counted as one gate.
-        unsigned gates_memory = 1000000*8;
-
-        unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory + gates_memory;
+        unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory;
         //---------------------------------------------------------------------------------
         // For accessing a certain cell
         // To get a cell:
         unsigned decoder_l1_row = l1CacheLines;
         unsigned decoder_l2_row = l2CacheLines;
-        unsigned decoder_memory_row = 1024;
 
         // To get a certain column
         unsigned multiplexer_l1_column = cacheLineSize;
         unsigned multiplexer_l2_column = cacheLineSize;
-        unsigned multiplexer_memory_row = 1024;
 
-        unsigned total_addresser = decoder_l1_row + decoder_l2_row + decoder_memory_row + multiplexer_l1_column + multiplexer_l2_column + multiplexer_memory_row;
+
+        unsigned total_addresser = decoder_l1_row + decoder_l2_row + multiplexer_l1_column + multiplexer_l2_column;
         //---------------------------------------------------------------------------------
         // Comparison of tags:
         // This comparator just needs to compare if the tag in the table and the tag
@@ -489,4 +537,7 @@ struct CPU_L1_L2 {
 };
 
 #endif // #ifdef __cplusplus
+
+
+
 #endif // #ifndef MODULES_HPP
