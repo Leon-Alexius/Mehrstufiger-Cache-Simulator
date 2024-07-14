@@ -106,10 +106,12 @@ extern "C" {
             l1CacheLatency, l2CacheLatency, memoryLatency, 
             tracefile, 
             prefetchBuffer, storebackBuffer, storebackBufferCondition
+            prefetchBuffer, storebackBuffer, storebackBufferCondition
         );
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
+        CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
         CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
 
         // ========================================================================================
@@ -136,6 +138,9 @@ extern "C" {
             // update the cacheStats
             statsUpdater(cacheStats, tempResult);
 
+            // update the cacheStats
+            statsUpdater(cacheStats, tempResult);
+
             // add tempResult to total
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
@@ -152,6 +157,7 @@ extern "C" {
         result->hits = hitCount;
         result->misses = missCount;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
+        result->cacheStats = cacheStats;
         result->cacheStats = cacheStats;
 
         // stop the simulation and close the trace file
