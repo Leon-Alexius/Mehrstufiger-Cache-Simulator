@@ -8,7 +8,6 @@
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
 #include "storeback_buffer.hpp"
-#include "storeback_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -117,14 +116,6 @@ SC_MODULE(MEMORY) {
                     // If the address is now at its maximum, we stop any more write/read process
                     if (address_u >= UINT_MAX) break;
                     address_u++;
-                }
-
-                // Signal as done, and continue writing if it was interrupted
-                done->write(true);
-                wait(SC_ZERO_TIME);
-                wait(SC_ZERO_TIME);
-                if (write_underway) {
-                    write_from_buffer();
                 }
                 
 
