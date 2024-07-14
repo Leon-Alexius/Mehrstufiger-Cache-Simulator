@@ -71,7 +71,6 @@ SC_MODULE(MEMORY) {
     */
     void update() {
         wait();
-        wait();
         while (true) {
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
