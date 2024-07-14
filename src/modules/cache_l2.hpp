@@ -236,10 +236,7 @@ SC_MODULE(L2){
                         wait();
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
-                        wait(SC_ZERO_TIME);
-                        wait(SC_ZERO_TIME);
                     }
-                    
                     
                     
                     
