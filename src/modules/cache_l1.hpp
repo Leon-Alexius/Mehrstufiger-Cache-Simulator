@@ -183,6 +183,10 @@ SC_MODULE(L1){
                 // Wait until L2 is done, mark as invalid propagation
                 while (!done_from_L2->read()) {
                     wait();
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
                 }
                 valid_out->write(false);
             } 
@@ -204,14 +208,12 @@ SC_MODULE(L1){
                     valid_out->write(true);
 
                     // Wait until L2 is done
-                    wait(SC_ZERO_TIME);
                     while (!done_from_L2->read()) {
                         wait();
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
-                        // std::cout << "DONE FROM L2 " << done_from_L2->read() << std::endl;
                     }
                     valid_out->write(false);
 
@@ -234,12 +236,7 @@ SC_MODULE(L1){
 
             
             done->write(true); // signal as done
-            // std::cout << "DONE FROM L1 " << sc_time_stamp().to_seconds() << std::endl;
-            // wait(SC_ZERO_TIME);
-            // wait(SC_ZERO_TIME);
-            wait();
-            
-            // wait(); // wait for next clk event
+            wait(); // wait for next clk event
            
         }
     }

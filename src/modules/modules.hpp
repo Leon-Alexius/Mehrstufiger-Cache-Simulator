@@ -362,7 +362,7 @@ struct CPU_L1_L2 {
 
         // run the simulation (+1) to process the request
         do {
-            // std::cout << cycle_count << " WHAT 2 " << done_from_L1.read() << std::endl;
+            
             sc_start(1, SC_SEC);
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
