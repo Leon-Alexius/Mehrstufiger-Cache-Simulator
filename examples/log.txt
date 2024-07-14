@@ -1,0 +1,12 @@
+| Method     | Time (s)   | | Method     | Time (s)   |
+|------------|------------| |------------|------------|
+| ijk        | 3.280000   | | ijk        | 3.635000   |
+| jik        | 2.804000   | | jik        | 2.981000   |
+| ikj        | 3.310000   | | ikj        | 3.726000   |
+| jki        | 12.495000  | | jki        | 12.075000  |
+| kij        | 3.309000   | | kij        | 3.323000   |
+| kji        | 12.302000  | | kji        | 11.565000  |
+ 
+From best to worst (n = 1000):
+jik > (ijk > kij) > ikj > kji > jki
+jik > (kij > ijk) > ikj > kji > jki

@@ -26,7 +26,7 @@ run_test "./cache --l1-latency 4 --l2-latency 101 --memory-latency 100 src/asset
 
 # Test 3: Cache lines or cache line size set to 0
 run_test "./cache --l1-lines 0 --l2-lines 256 src/assets/matrix_multiplication/ijk.csv" "L1 cache lines, L2 cache lines or cache line size is set to 0"
-run_test "./cache --l1-lines 64 --l2-lines 0 src/assets/matrix_multiplication/ijk.csv" "L1 cache lines, L2 cache lines or cache line size is set to 0"
+run_test "./cache --l1-lines 64 --l2-lines 0 src/assets/matrix_multiplication/ijk.csv" "L1 cache lines count is greater than L2 cache lines count"
 run_test "./cache --cacheline-size 0 src/assets/matrix_multiplication/ijk.csv" "L1 cache lines, L2 cache lines or cache line size is set to 0"
 
 # Test 4: Cycles to simulate is less than 0

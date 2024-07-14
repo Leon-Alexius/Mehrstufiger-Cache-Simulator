@@ -67,7 +67,7 @@ Other contributions include:
 - Documenting the project
 
 ### Lie Leon Alexius
-Leon is primarily responsible for the development of `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
+Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
 
 Other contributions include:
 - Writing the `build.sh` and `setup.sh` scripts
