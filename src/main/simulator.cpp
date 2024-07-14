@@ -4,14 +4,26 @@
 // Request and Result struct
 #include "simulator.hpp"
 #include "../modules/modules.hpp"
+#include "parser/parse.h"
 
 // prevent the C++ compiler from mangling the function name
 extern "C" {
+    Config* config = nullptr;
+
+    /**
+     * @brief Set the config
+     * @author Lie Leon Alexius
+     */
+    void set_config(Config* c) {
+        std::cout << "Setting config..." << std::endl;
+        config = c;
+    }
+
     /**
      * @brief For testing the request
      * 
      * @details
-     * "test_valid.csv"
+     * "src/assets/csv/test_valid.csv"
      * Adr: 1 Data: 0 WE: 0
      * Adr: 2 Data: 100 WE: 1
      * Adr: 3 Data: 0 WE: 0
@@ -79,7 +91,7 @@ extern "C" {
      * @warning Not tested yet
      * @bug Not tested yet
      * 
-     * @todo can be optimized by checking cycles before sending request
+     * @todo Cycle breaker needs to be adjusted (due to cache.finish_memory())
      * 
      * @authors
      * Lie Leon Alexius
@@ -90,27 +102,49 @@ extern "C" {
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
         size_t numRequests, struct Request* requests,
-        const char* tracefile,
-
-        // Optimization flags
-        unsigned prefetchBuffer, 
-        unsigned storebackBuffer, bool storebackBufferCondition
+        const char* tracefile
     ) 
     {
         // Test the Requests
         // print_requests(numRequests, requests);
 
-        // Initialize the Components        
+        // Get the config (Optimization flags)
+        unsigned int prefetchBuffer = 0; 
+        unsigned int storebackBuffer = 0; 
+        bool storebackBufferCondition= false;
+
+        if (config != nullptr) {
+            std::cout << "Using config..." << std::endl;
+            prefetchBuffer = config->prefetchBuffer;
+            storebackBuffer = config->storebackBuffer;
+            storebackBufferCondition = config->storebackBufferCondition;
+        }
+
+        // Initialize the cache simulator       
         CPU_L1_L2 caches(
             l1CacheLines, l2CacheLines, cacheLineSize, 
             l1CacheLatency, l2CacheLatency, memoryLatency, 
             tracefile, 
             prefetchBuffer, storebackBuffer, storebackBufferCondition
         );
-        size_t cycleCount = 0;
-        size_t missCount = 0; 
-        size_t hitCount = 0;
+
+        // Initialize the cacheStats
         CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
+        cacheStats->cycles = 0;
+        cacheStats->misses = 0;
+        cacheStats->hits = 0;
+        cacheStats->read_hits = 0;
+        cacheStats->read_misses = 0;
+        cacheStats->write_hits = 0;
+        cacheStats->write_misses = 0;
+        cacheStats->read_hits_L1 = 0;
+        cacheStats->read_misses_L1 = 0;
+        cacheStats->write_hits_L1 = 0;
+        cacheStats->write_misses_L1 = 0;
+        cacheStats->read_hits_L2 = 0;
+        cacheStats->read_misses_L2 = 0;
+        cacheStats->write_hits_L2 = 0;
+        cacheStats->write_misses_L2 = 0;
 
         // ========================================================================================
         
@@ -129,28 +163,24 @@ extern "C" {
             CacheStats tempResult = caches.send_request(req);
 
             // break if total simulated cache will be higher than limit
-            if (cycleCount + tempResult.cycles > cycles) {
+            if (cacheStats->cycles + tempResult.cycles > cycles) {
                 break;
             }
 
             // update the cacheStats
             statsUpdater(cacheStats, tempResult);
-
-            // add tempResult to total
-            cycleCount += tempResult.cycles;
-            missCount += tempResult.misses;
-            hitCount += tempResult.hits;
         }
 
-        unsigned memory_cycles = caches.finish_memory();
-        cycleCount += memory_cycles;
+        // All request has been sent, wait until the simulation finishes
+        unsigned int memory_cycles = caches.finish_memory();
+        cacheStats->cycles += memory_cycles;
 
         // ========================================================================================
         // assign Result
         Result* result = (Result*) malloc(sizeof(Result));
-        result->cycles = cycleCount;
-        result->hits = hitCount;
-        result->misses = missCount;
+        result->cycles = cacheStats->cycles;
+        result->hits = cacheStats->hits;
+        result->misses = cacheStats->misses;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
         result->cacheStats = cacheStats;
 

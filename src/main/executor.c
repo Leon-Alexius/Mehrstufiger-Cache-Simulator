@@ -11,6 +11,12 @@
 #include "simulator.hpp"
 
 /**
+ * @brief The set_config method in C++ to set the config in C++ from C
+ * @author Lie Leon Alexius
+ */
+extern void set_config(Config* c);
+
+/**
  * @brief The run_simulation method in C++
  * @author Lie Leon Alexius
  */
@@ -19,11 +25,7 @@ extern Result* run_simulation(
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
     size_t numRequests, struct Request* requests,
-    const char* tracefile,
-
-     // Optimization flags
-    unsigned prefetchBuffer, 
-    unsigned storebackBuffer, bool storebackBufferCondition
+    const char* tracefile
 );
 
 /**
@@ -70,6 +72,9 @@ int main(int argc, char* argv[]) {
     // Test (test Request is in simulator.cpp)
     // test_config(config);
 
+    // Send the config
+    set_config(config);
+
     // run simulation
     Result* result =
     run_simulation(
@@ -77,9 +82,7 @@ int main(int argc, char* argv[]) {
         config->l1CacheLines, config->l2CacheLines, config->cacheLineSize, 
         config->l1CacheLatency, config->l2CacheLatency, config->memoryLatency, 
         config->numRequests, config->requests, 
-        config->tracefile,
-        config->prefetchBuffer,
-        config->storebackBuffer, config->storebackBufferCondition
+        config->tracefile
     );
 
     // Print the layout and result
@@ -93,6 +96,8 @@ int main(int argc, char* argv[]) {
     config->requests = NULL;
     free(config);
     config = NULL;
+    free(result->cacheStats);
+    result->cacheStats = NULL;
     free(result);
     result = NULL;
 
