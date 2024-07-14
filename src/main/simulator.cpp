@@ -106,12 +106,11 @@ extern "C" {
             l1CacheLatency, l2CacheLatency, memoryLatency, 
             tracefile, 
             prefetchBuffer, storebackBuffer, storebackBufferCondition
-            prefetchBuffer, storebackBuffer, storebackBufferCondition
+
         );
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
-        CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
         CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
 
         // ========================================================================================
