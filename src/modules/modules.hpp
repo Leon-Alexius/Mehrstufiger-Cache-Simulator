@@ -188,7 +188,7 @@ struct CPU_L1_L2 {
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
-        unsigned storeBufferCapacity = 0) : 
+        unsigned storeBufferCapacity = 0, bool storeBufferConditional = false) : 
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
@@ -197,7 +197,7 @@ struct CPU_L1_L2 {
         
         // Initialize L1, L2, and Memory
         if (storeBufferCapacity != 0) {
-            storeback = new STOREBACK("Storeback", storeBufferCapacity);
+            storeback = new STOREBACK("Storeback", storeBufferCapacity, storeBufferConditional);
         }
         // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
@@ -362,7 +362,7 @@ struct CPU_L1_L2 {
 
         // run the simulation (+1) to process the request
         do {
-            
+
             sc_start(1, SC_SEC);
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true

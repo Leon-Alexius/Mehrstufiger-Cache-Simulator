@@ -33,6 +33,7 @@ SC_MODULE(STOREBACK){
     unsigned capacity;
 
     bool empty = true;
+    bool conditional = false;
 
     /**
      * @brief Constructor for Store Back Buffer (Write Through w/ Conditional Flush Buffer) module.
@@ -44,7 +45,7 @@ SC_MODULE(STOREBACK){
      * Alexander Anthony Tang
      */
     SC_CTOR(STOREBACK);
-    STOREBACK(sc_module_name name, unsigned capacity) : sc_module(name), capacity(capacity), storeback(capacity), address_storeback(capacity) {
+    STOREBACK(sc_module_name name, unsigned capacity, bool conditional) : sc_module(name), capacity(capacity), storeback(capacity), address_storeback(capacity), conditional(conditional) {
         tags_storeback.resize(capacity);
     };
 
@@ -106,11 +107,16 @@ SC_MODULE(STOREBACK){
     */
 
     bool in_buffer(uint32_t tag) {
-        for (unsigned i = 0; i < (tail - head + capacity) % capacity; i++) {
-            // std::cout << tag << " + " << tags_storeback[(i+head) % capacity] << std::endl;
-            if (tag == tags_storeback[(i+head) % capacity]) return true;
+        if (conditional) {
+            for (unsigned i = 0; i < (tail - head + capacity) % capacity; i++) {
+                // std::cout << tag << " + " << tags_storeback[(i+head) % capacity] << std::endl;
+                if (tag == tags_storeback[(i+head) % capacity]) return true;
+            }
+            return false;
+        } else {
+            if (empty) return false;
+            else return true;
         }
-        return false;
     }
 
     /**
