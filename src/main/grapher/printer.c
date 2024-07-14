@@ -19,30 +19,46 @@
  * @author Lie Leon Alexius
  */
 void print_layout(Config* config, Result* result) {
-    printf(
-        "Team 150 - Cache Simulator\n"
-        "An Overview of our simulation:\n\n"
-        "┌────────────────────────────────────────────────────────────────┐\n"
-        "|                            Processor                           |\n"
-        "| ┌────────────────────────────────────────────────────────────┐ |\n"
-        "| | Cycles: %-50d | |\n"
-        "| |────────────────────────────────────────────────────────────| |\n"
-        "| | L1 Cache       | L2 Cache       | Cache Line Size: %-7d | |\n"
-        "| | Lines: %-5d   | Lines: %-5d   |                          | |\n"
-        "| | Latency: %-5d | Latency: %-5d |                          | |\n"
-        "| └────────────────────────────────────────────────────────────┘ |\n"
-        "└────────────────────────────────┬───────────────────────────────┘\n"
-        "                                 ↓                                \n"
-        "┌────────────────────────────────────────────────────────────────┐\n"
-        "|                               RAM                              |\n"
-        "| Memory Latency: %-46d |\n"
-        "| Number of Requests: %-42ld |\n"
-        "└────────────────────────────────────────────────────────────────┘\n\n",
-        config->cycles, 
-        config->cacheLineSize, config->l1CacheLines, config->l2CacheLines, 
-        config->l1CacheLatency, config->l2CacheLatency, config->memoryLatency, 
-        config->numRequests
-    );
+    if (config->prettyPrint) {
+        printf(
+            "Team 150 - Cache Simulator\n"
+            "An Overview of our simulation:\n\n"
+            "┌────────────────────────────────────────────────────────────────┐\n"
+            "|                            Processor                           |\n"
+            "| ┌────────────────────────────────────────────────────────────┐ |\n"
+            "| | Cycles: %-50d | |\n"
+            "| |────────────────────────────────────────────────────────────| |\n"
+            "| | L1 Cache       | L2 Cache       | Cache Line Size: %-7d | |\n"
+            "| | Lines: %-5d   | Lines: %-5d   |                          | |\n"
+            "| | Latency: %-5d | Latency: %-5d |                          | |\n"
+            "| └────────────────────────────────────────────────────────────┘ |\n"
+            "| Number of Requests Processed: %-32ld |\n"
+            "└────────────────────────────────┬───────────────────────────────┘\n"
+            "                                 ↓                                \n"
+            "┌────────────────────────────────────────────────────────────────┐\n"
+            "|                           Buffers                              |\n"
+            "| ┌────────────────────────────────────────────────────────────┐ |\n"
+            "| | Prefetch Buffer: %-10d  |                             | |\n"
+            "| | Storeback Buffer: %-10d | Conditional: %-14d | |\n"
+            "| └────────────────────────────────────────────────────────────┘ |\n"
+            "└────────────────────────────────┬───────────────────────────────┘\n"
+            "                                 ↓                                \n"
+            "┌────────────────────────────────────────────────────────────────┐\n"
+            "|                               RAM                              |\n"
+            "| Memory Latency: %-46d |\n"
+            "| Number of RAM Requests: %-38ld |\n"
+            "| Number of Read Requests: %-37ld |\n"
+            "| Number of Write Requests: %-36ld |\n"
+            "└────────────────────────────────────────────────────────────────┘\n\n",
+            config->cycles, 
+            config->cacheLineSize, config->l1CacheLines, config->l2CacheLines, 
+            config->l1CacheLatency, config->l2CacheLatency,
+            config->numRequests,
+            config->prefetchBuffer, config->storebackBuffer, config->storebackBufferCondition,
+            config->memoryLatency, result->ramRequests,
+            result->ramReadRequests, result->ramWriteRequests
+        );
+    }
 
     printf("Number of Cycles: %lu \n", result->cycles);
     printf("Number of Hits: %lu   \n", result->hits);

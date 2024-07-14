@@ -23,7 +23,7 @@ extern Result* run_simulation(
 
      // Optimization flags
     unsigned prefetchBuffer, 
-    unsigned storebackBuffer
+    unsigned storebackBuffer, bool storebackBufferCondition
 );
 
 /**
@@ -45,6 +45,7 @@ void test_config(Config* config) {
     printf("customNumRequest: %d\n", config->customNumRequest); // 0 (false)
     printf("Prefetch Buffer: %u\n", config->prefetchBuffer); // 0
     printf("Storeback Buffer: %u\n", config->storebackBuffer); // 0
+    printf("Pretty Print: %d\n", config->prettyPrint); // 1 (true)
     printf(" ================================== END TEST CONFIG ==================================\n\n");
 }
 
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
         config->numRequests, config->requests, 
         config->tracefile,
         config->prefetchBuffer,
-        config->storebackBuffer
+        config->storebackBuffer, config->storebackBufferCondition
     );
 
     // Print the layout and result

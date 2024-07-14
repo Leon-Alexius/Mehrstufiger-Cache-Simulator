@@ -17,18 +17,20 @@
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
-    printf("  -c, --cycles <num>            The number of cycles to be simulated (default: 1000000)\n");
-    printf("      --cacheline-size <num>    The size of a cache line in bytes (default: 64)\n");
-    printf("      --l1-lines <num>          The number of cache lines of the L1 cache (default: 64)\n");
-    printf("      --l2-lines <num>          The number of cache lines of the L2 cache (default: 256)\n");
-    printf("      --l1-latency <num>        The latency of the L1 cache in cycles (default: 4)\n");
-    printf("      --l2-latency <num>        The latency of the L2 cache in cycles (default: 12)\n");
-    printf("      --memory-latency <num>    The latency of the main memory in cycles (default: 100)\n");
-    printf("      --tf=<filepath>           Output file for a trace file with all signals (default: default_trace.vcd)\n");
-    printf("      --num-requests <num>      Number of request to read from .csv file, default is all requests\n");
-    printf("      --prefetch-buffer <num>   The number of cache lines in the prefetch buffer (default: 0)\n");
-    printf("      --storeback-buffer <num>  The number of cache lines in the storeback buffer (default: 0)\n");
-    printf("  -h, --help                    Display this help and exit\n");
+    printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 1000000)\n");
+    printf("      --cacheline-size <num>        The size of a cache line in bytes (default: 64)\n");
+    printf("      --l1-lines <num>              The number of cache lines of the L1 cache (default: 64)\n");
+    printf("      --l2-lines <num>              The number of cache lines of the L2 cache (default: 256)\n");
+    printf("      --l1-latency <num>            The latency of the L1 cache in cycles (default: 4)\n");
+    printf("      --l2-latency <num>            The latency of the L2 cache in cycles (default: 12)\n");
+    printf("      --memory-latency <num>        The latency of the main memory in cycles (default: 100)\n");
+    printf("      --tf=<filepath>               Output file for a trace file with all signals (default: default_trace.vcd)\n");
+    printf("      --num-requests <num>          Number of request to read from .csv file, default is all requests\n");
+    printf("      --prefetch-buffer <num>       The number of cache lines in the prefetch buffer (default: 0)\n");
+    printf("      --storeback-buffer <num>      The number of cache lines in the storeback buffer (default: 0)\n");
+    printf("      --storeback-condition <bool>  The condition for storeback buffer (default: false)\n");
+    printf("      --pretty-print <bool>         Pretty print the output (default: true)\n");
+    printf("  -h, --help                        Display this help and exit\n");
 }
 
 /**
@@ -50,6 +52,7 @@ void print_help() {
  *  11. customNumRequest = false (flag for custom number of requests)
  *  12. prefetchBuffer = 0 (default prefetch buffer)
  *  13. storebackBuffer = 0 (default storeback buffer)
+ *  13. prettyPrint = true (default pretty print flag)
  * 
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
@@ -64,14 +67,16 @@ Config* parse_user_input(int argc, char* argv[]) {
     unsigned int l1CacheLatency = 4;
     unsigned int l2CacheLatency = 12;
     unsigned int memoryLatency = 100;
-    size_t numRequests = 0;
+    size_t numRequests = 0; // unsigned integer
     const char* tracefile = NULL; // "src/assets/vcd/default_trace"
     const char* input_filename = NULL;
     bool customNumRequest = false;
+    bool prettyPrint = true;
 
     // Optimization flags
     unsigned int prefetchBuffer = 0;
     unsigned int storebackBuffer = 0;
+    bool storebackBufferCondition = false;
 
     // ========================================================================================
 
@@ -89,6 +94,7 @@ Config* parse_user_input(int argc, char* argv[]) {
         {"num-requests", required_argument, 0, 0},
         {"prefetch-buffer", required_argument, 0, 0}, // Optimization: Prefetch Buffer
         {"storeback-buffer", required_argument, 0, 0}, // Optimization: Storeback Buffer
+        {"pretty-print", required_argument, 0, 'p'}, // New: Pretty Print Option
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -101,7 +107,7 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // (arg count, arg array, legitimate option characters, long options, long options index)
     // https://linux.die.net/man/3/getopt_long
-    while ((opt = getopt_long(argc, argv, "c:h", long_options, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:p:h", long_options, &long_index)) != -1) {
         switch (opt) {
             case 'c':
                 errno = 0;
@@ -116,6 +122,20 @@ Config* parse_user_input(int argc, char* argv[]) {
             case 'h':
                 print_help();
                 exit(EXIT_SUCCESS);
+                break;
+            case 'p':
+                if (strcmp("pretty-print", long_options[long_index].name) == 0) {
+                    if (strcmp("true", optarg) == 0) {
+                        prettyPrint = true;
+                    } 
+                    else if (strcmp("false", optarg) == 0) {
+                        prettyPrint = false;
+                    } 
+                    else {
+                        fprintf(stderr, "Invalid input for pretty-print\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
                 break;
             case 0:
                 if (strcmp("cacheline-size", long_options[long_index].name) == 0) {
@@ -223,6 +243,8 @@ Config* parse_user_input(int argc, char* argv[]) {
         }
     }
 
+    // ========================================================================================
+
     // Get the remaining argument: the input filename
     // The variable optind is the index of the next element to be processed in argv.
     // https://linux.die.net/man/3/optind
@@ -253,6 +275,34 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // ========================================================================================
 
+    // Invalid cases check - throw error then quit
+    // 1. If L1 cache size is greater than L2 cache size
+    // 2. If L1 latency is greater than L2 latency or L2 latency is greater than memory latency
+    // 3. if any of the cacheLines is set to 0 or cacheLineSize is less than 1 byte
+    // 4. Cycles to simulate is less than 0
+
+    if (l1CacheLines > l2CacheLines) {
+        fprintf(stderr, "Invalid input: L1 cache lines count is greater than L2 cache lines count\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (l1CacheLatency > l2CacheLatency || l2CacheLatency > memoryLatency) {
+        fprintf(stderr, "Invalid input: L1 latency is greater than L2 latency or L2 latency is greater than memory latency\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (l1CacheLines == 0 || l2CacheLines == 0 || cacheLineSize < 1) {
+        fprintf(stderr, "Invalid input: L1 cache lines, L2 cache lines or cache line size is set to 0\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (cycles < 0) {
+        fprintf(stderr, "Invalid input: Cycles to simulate is less than 0\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // ========================================================================================
+
     Config* config = (Config*) malloc(sizeof(Config));
 
     // set-up the config
@@ -270,6 +320,8 @@ Config* parse_user_input(int argc, char* argv[]) {
     config->customNumRequest = customNumRequest;
     config->prefetchBuffer = prefetchBuffer; // Optimization: Prefetch Buffer
     config->storebackBuffer = storebackBuffer; // Optimization: Storeback Buffer
+    config->storebackBufferCondition = storebackBufferCondition;
+    config->prettyPrint = prettyPrint;
 
     return config;
 }
