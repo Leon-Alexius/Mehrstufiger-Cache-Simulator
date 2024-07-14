@@ -179,6 +179,7 @@ SC_MODULE(MEMORY) {
                 if(!storeback->read(data, address_u)) {
                     done->write(true);
                     write_underway = false;
+                    wait();
                     return;
                 } 
             }
