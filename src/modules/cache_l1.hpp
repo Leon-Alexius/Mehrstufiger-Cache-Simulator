@@ -16,7 +16,9 @@ using namespace std;
 /**
 * @brief L1 represents a L1 cache in a memory hierarchy system
 * @details This L1 module handles read and write operations to and from CPU and L2 cache
-*
+* its write miss policy is no-write-allocate, no-fetch-on-write, and no-write-before-hit
+* its write hit policy is write-through
+* 
 * @author Van Trang Nguyen
 */
 SC_MODULE(L1){
@@ -112,14 +114,16 @@ SC_MODULE(L1){
      */
     void update(){
         wait(); // wait for next clk event (refer to SC_START(ZERO) in CPU_L1_L2)
-
+        // wait();
         while (true)
         {
+            // std::cout << "bruh again?" << std::endl;
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
             
             hit->write(false);
             done->write(false);
+            // std::cout << "ITS FALSE ALREADYYY" << std::endl;
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
@@ -151,6 +155,11 @@ SC_MODULE(L1){
             unsigned int offset = address_int & (cacheLineSize - 1);
             unsigned int index = (address_int >> log2_cacheLineSize) & (l1CacheLines - 1);
             unsigned int tag = address_int >> (log2_cacheLineSize + log2_l1CacheLines);
+            
+            // Tags and Data is only accessible after l1 latency cycles.
+            for (unsigned i = 0; i < l1CacheLatency; i++) {
+                wait();
+            }
 
             // write operation
             if (write_enable->read()){
@@ -202,8 +211,14 @@ SC_MODULE(L1){
                     wait(SC_ZERO_TIME);
                     while (!done_from_L2->read()) {
                         wait();
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        // std::cout << "DONE FROM L2 " << done_from_L2->read() << std::endl;
                     }
                     valid_out->write(false);
+
 
 
                     // Write the data to the appropriate CacheLine
@@ -224,12 +239,15 @@ SC_MODULE(L1){
                 }
             }
 
-            // Delays up to latency L1 (-1 for done.write(true))
-            for (unsigned i = 0; i < l1CacheLatency - 1; i++) {
-                wait();
-            }
+            
             done->write(true); // signal as done
-            wait(); // wait for next clk event
+            // std::cout << "DONE FROM L1 " << sc_time_stamp().to_seconds() << std::endl;
+            // wait(SC_ZERO_TIME);
+            // wait(SC_ZERO_TIME);
+            wait();
+            
+            // wait(); // wait for next clk event
+           
         }
     }
 };

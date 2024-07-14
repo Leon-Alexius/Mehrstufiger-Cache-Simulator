@@ -7,6 +7,9 @@
 #include "memory.hpp"
 #include "cache_l1.hpp"
 #include "cache_l2.hpp"
+#include "storeback_buffer.hpp"
+
+#include <cmath>
 
 using namespace sc_core;
 using namespace std;
@@ -90,6 +93,7 @@ struct CPU_L1_L2 {
     L1* l1;                     // Pointer to L1 cache
     L2* l2;                     // Pointer to L2 cache
     MEMORY* memory;             // Pointer to main memory
+    STOREBACK* storeback = nullptr;       // Pointer to Store back buffer
 
     // Bus between CPU and Cache (L1)
     sc_signal<char*> data_in;
@@ -134,7 +138,9 @@ struct CPU_L1_L2 {
     sc_signal<bool> valid_from_L1_to_L2;
     sc_signal<bool> valid_from_L2_to_Memory;
 
-    // Clock and Trace File
+    
+
+    // Clock and Trace File (60 MHz)
     sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
     sc_trace_file* trace_file;
 
@@ -165,16 +171,22 @@ struct CPU_L1_L2 {
     //Optimization: added buffer size between L2 and Memory
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
-        const char* tracefile, unsigned buffer_size) : 
+        const char* tracefile,
+        unsigned storeBufferCapacity = 0, unsigned buffer_size = 0) : 
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
         
         prefetch_buffer = new sc_fifo<char*> (4);
         // Initialize L1, L2, and Memory
+        if (storeBufferCapacity != 0) {
+            storeback = new STOREBACK("Storeback", storeBufferCapacity);
+        }
+        // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
-        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, prefetch_buffer);
-        memory = new MEMORY("Memory", cacheLineSize, memoryLatency);
+        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback, prefetch_buffer);
+        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
+        
 
         // Initialize data_in, etc. and set value to '\0'
         // Bus from Memory -> L2 -> L1 is as big as a cacheLine, while the other is only 4 Bytes
@@ -186,6 +198,8 @@ struct CPU_L1_L2 {
 
         data_from_L2_to_Memory = new char[4] ();
         data_from_Memory_to_L2 = new char[cacheLineSize] ();
+
+        
 
         // Bind signals
         // 1. Bind CPU signals to L1
@@ -260,35 +274,36 @@ struct CPU_L1_L2 {
             This is due to data_in, etc. is an array with NULLs and thus must be filled (1 delta cycle)
             https://www.learnsystemc.com/basic/simu_stage
         */
+        if (tracefile != nullptr) {
+            // Bind to trace
+            trace_file = sc_create_vcd_trace_file(tracefile);
 
-        // Bind to trace
-        trace_file = sc_create_vcd_trace_file(tracefile);
+            // Custom Trace - Array
+            trace(trace_file, data_in, 4, "Data_In");
+            trace(trace_file, data_out, 4, "Data_Out");
 
-        // Custom Trace - Array
-        trace(trace_file, data_in, 4, "Data_In");
-        trace(trace_file, data_out, 4, "Data_Out");
+            trace(trace_file, data_from_L1_to_L2, 4, "Data_from_L1_to_L2");
+            trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
 
-        trace(trace_file, data_from_L1_to_L2, 4, "Data-from_L1_to_L2");
-        trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
+            trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
+            trace(trace_file, data_from_Memory_to_L2, cacheLineSize, "Data_from_Memory_to_L2");
 
-        trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
-        trace(trace_file, data_from_Memory_to_L2, cacheLineSize, "Data_from_Memory_to_L2");
+            // Standard Trace
+            sc_trace(trace_file, address, "Address");
+            sc_trace(trace_file, address_from_L1_to_L2, "Address_from_L1_to_L2");
+            sc_trace(trace_file, address_from_L2_to_Memory, "Address_from_L2_to_Memory");
 
-        // Standard Trace
-        sc_trace(trace_file, address, "Address");
-        sc_trace(trace_file, address_from_L1_to_L2, "Address_from_L1_to_L2");
-        sc_trace(trace_file, address_from_L2_to_Memory, "Address_from_L2_to_Memory");
+            sc_trace(trace_file, write_enable, "WE");
+            sc_trace(trace_file, write_enable_from_L1_to_L2, "WE_from_L1_to_L2");
+            sc_trace(trace_file, write_enable_from_L2_to_Memory, "WE_from_L2_to_Memory");
 
-        sc_trace(trace_file, write_enable, "WE");
-        sc_trace(trace_file, write_enable_from_L1_to_L2, "WE_from_L1_to_L2");
-        sc_trace(trace_file, write_enable_from_L2_to_Memory, "WE_from_L2_to_Memory");
-
-        sc_trace(trace_file, done_from_L1, "Done_from_L1");
-        sc_trace(trace_file, done_from_L2, "Done_from_L2");
-        sc_trace(trace_file, done_from_Memory, "Done_from_memory");
-         
-        sc_trace(trace_file, hit_from_L1, "Hit_from_L1");
-        sc_trace(trace_file, hit_from_L2, "Hit_from_L2");
+            sc_trace(trace_file, done_from_L1, "Done_from_L1");
+            sc_trace(trace_file, done_from_L2, "Done_from_L2");
+            sc_trace(trace_file, done_from_Memory, "Done_from_memory");
+            
+            sc_trace(trace_file, hit_from_L1, "Hit_from_L1");
+            sc_trace(trace_file, hit_from_L2, "Hit_from_L2");
+        }
     }
     
 
@@ -314,7 +329,7 @@ struct CPU_L1_L2 {
         */
         for (int i = 0; i < 4; i++) {
             data_in[i] = (char) (data_req & 0xFF); // 256 = (1.0000.0000)b
-            data_req >> 8; // divide 256;
+            data_req = data_req >> 8; // divide 256;
         }
 
         // signal the caches
@@ -326,13 +341,14 @@ struct CPU_L1_L2 {
         size_t cycle_count = 0;
         bool cache_l2_executes = false; // whether L2 runs or not
         size_t hit_L2 = 0; // does L2 hit? 0 or 1
-
+        
+        
         // run the simulation (+1) to process the request
         do {
+            // std::cout << cycle_count << " WHAT 2 " << done_from_L1.read() << std::endl;
             sc_start(1, SC_SEC);
-            
-            sc_start(SC_ZERO_TIME);
-            sc_start(SC_ZERO_TIME);
+           
+            // std::cout << std::hex << request.addr << std::endl;
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -349,7 +365,12 @@ struct CPU_L1_L2 {
                 L1.done = true in 16 Sec (if L1 miss but L2 hit - L2.done = 12 Sec)
                 L1.done = true in 116 Sec (if L2 miss - Memory.done = 100 Sec)
             */
+            
         } while (!done_from_L1.read());
+
+        
+        
+
 
         /*
             Calculating the misses and hits
@@ -363,8 +384,8 @@ struct CPU_L1_L2 {
                - If L1 Hit: Hits = 1
                - If L1 Miss: Hits = hit_L2
         */
-        size_t misses = !(hit_from_L1) + ((cache_l2_executes) ? (1 - hit_L2) : 0);
-        size_t hits = hit_from_L1 + ((cache_l2_executes) ? hit_L2 : 0);
+        size_t misses = !(hit_from_L1);
+        size_t hits = hit_from_L1;
         
         // create Result and send back
         struct Result res = { 
@@ -376,6 +397,22 @@ struct CPU_L1_L2 {
 
         valid = false; // set valid as false
         return res;
+    }
+
+    unsigned finish_memory() {
+        if (storeback == nullptr) return 0;
+        valid_from_L1_to_L2 = false;
+        unsigned cycle_count = 0;
+        sc_start(SC_ZERO_TIME);
+        sc_start(SC_ZERO_TIME);
+        // std::cout << memory->write_underway << std::endl;
+        if (!memory->write_underway && storeback->is_empty()) return 0;
+        while (!done_from_Memory) {
+            sc_start(1, SC_SEC);
+            cycle_count++;
+        }
+
+        return cycle_count;
     }
 
     /**
@@ -405,11 +442,58 @@ struct CPU_L1_L2 {
     }
 
     /**
-     * @brief get the gate count
-     * @todo Implement This
+     * @brief Gets amount of gates needed for the cache. This includes the table for tags, decoders, and multiplexers.
+     * @details If the cache uses a buffer then the gate count would be different
+     * @todo gate count for buffers.
+     * @author
+     * Anthony Tang
      */
     size_t get_gate_count() {
-        return -1;
+        // Only for the "saving" part
+        // Each bit of memory consists of 6 CMOS Transistors (2 NOT Gates) -> 2
+        // Each line has the size of cacheLineSize bytes, Gataes = 2*cacheLineSize*8
+        // Each tag is a 32 bit integer -> 32 -> 64 gates for a line of tag
+        // For a line: 64 + 16*cacheLineSize
+        // l1CacheLines, l2CacheLines -> (l1CacheLines + l2CacheLines)*(64 + 16*cacheLineSize)
+
+        // Control part
+        // Multiplexers (to know which address to go to), comparators (for the tags)
+        // 
+        //---------------------------------------------------------------------------------
+        // For memory
+        unsigned gates_cache_line = 2*8*cacheLineSize;
+        
+        unsigned gates_valid = 2;
+        // Bits used for storing the tags
+        unsigned gates_l1_tags = (l1->log2_cacheLineSize + l1->log2_l1CacheLines)*2;
+        unsigned gates_l2_tags = (l2->log2_cacheLineSize + l2->log2_l2CacheLines)*2;
+
+        unsigned gates_l1_memory = (gates_cache_line + gates_l1_tags + gates_valid)*l1CacheLines;
+        unsigned gates_l2_memory = (gates_cache_line + gates_l2_tags + gates_valid)*l2CacheLines;
+        
+        unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory;
+        //---------------------------------------------------------------------------------
+        // For accessing a certain cell
+        // To get a cell:
+        unsigned decoder_l1_row = l1CacheLines;
+        unsigned decoder_l2_row = l2CacheLines;
+
+        // To get a certain column
+        unsigned multiplexer_l1_column = cacheLineSize;
+        unsigned multiplexer_l2_column = cacheLineSize;
+
+
+        unsigned total_addresser = decoder_l1_row + decoder_l2_row + multiplexer_l1_column + multiplexer_l2_column;
+        //---------------------------------------------------------------------------------
+        // Comparison of tags:
+        // This comparator just needs to compare if the tag in the table and the tag
+        // from the address is the same. So it only uses AND Gates.
+        unsigned comparator_l1 = 32 - (l1->log2_cacheLineSize + l1->log2_l1CacheLines);
+        unsigned comparator_l2 = 32 - (l2->log2_cacheLineSize + l2->log2_l2CacheLines);
+
+        unsigned total_comparator = comparator_l1 + comparator_l2;
+
+        return total_gates_for_memory + total_addresser + total_comparator;
     }
 };
 
