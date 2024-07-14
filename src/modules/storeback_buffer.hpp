@@ -36,10 +36,13 @@ SC_MODULE(STOREBACK){
     bool conditional = false;
 
     /**
-     * @brief Constructor for Store Back Buffer (Write Through w/ Conditional Flush Buffer) module.
+     * @brief Constructor for Store Back Buffer (Write Through w/ Unconditional/Conditional Flush Buffer) module.
      *
      * @param name The name of the module.
      * @param capacity The capacity of the buffer.
+     * @param conditional Sets if the buffer conditionally or unconditionally flushes in the case of a read. 
+     * If it is conditional, then it will only flush if the tag exists inside the buffer. 
+     * If it is not conditional, it will always flush
      *
      * @author
      * Alexander Anthony Tang
