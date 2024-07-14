@@ -1,0 +1,90 @@
+$date
+     Jul 12, 2024       16:52:00
+$end
+
+$version
+ SystemC 2.3.4-Accellera --- May 24 2024 22:14:56
+$end
+
+$timescale
+     1 ps
+$end
+
+$scope module SystemC $end
+$var wire   32  aaaaa  Data_In_0 [31:0]  $end
+$var wire   32  aaaab  Data_Out_0 [31:0]  $end
+$var wire   32  aaaac  Data_from_L1_to_L2_0 [31:0]  $end
+$var wire   32  aaaad  Data_from_L2_to_L1_0 [31:0]  $end
+$var wire   32  aaaae  Data_from_L2_to_L1_4 [31:0]  $end
+$var wire   32  aaaaf  Data_from_L2_to_L1_8 [31:0]  $end
+$var wire   32  aaaag  Data_from_L2_to_L1_12 [31:0]  $end
+$var wire   32  aaaah  Data_from_L2_to_Memory_0 [31:0]  $end
+$var wire   32  aaaai  Data_from_Memory_to_L2_0 [31:0]  $end
+$var wire   32  aaaaj  Data_from_Memory_to_L2_4 [31:0]  $end
+$var wire   32  aaaak  Data_from_Memory_to_L2_8 [31:0]  $end
+$var wire   32  aaaal  Data_from_Memory_to_L2_12 [31:0]  $end
+$var wire   32  aaaam  Address [31:0]  $end
+$var wire   32  aaaan  Address_from_L1_to_L2 [31:0]  $end
+$var wire   32  aaaao  Address_from_L2_to_Memory [31:0]  $end
+$var wire    1  aaaap  WE       $end
+$var wire    1  aaaaq  WE_from_L1_to_L2       $end
+$var wire    1  aaaar  WE_from_L2_to_Memory       $end
+$var wire    1  aaaas  Done_from_L1       $end
+$var wire    1  aaaat  Done_from_L2       $end
+$var wire    1  aaaau  Done_from_memory       $end
+$var wire    1  aaaav  Hit_from_L1       $end
+$var wire    1  aaaaw  Hit_from_L2       $end
+$upscope $end
+$enddefinitions  $end
+
+$comment
+All initial values are dumped below at time 0 sec = 0 timescale units.
+$end
+
+$dumpvars
+b0 aaaaa
+b0 aaaab
+b0 aaaac
+b0 aaaad
+b0 aaaae
+b0 aaaaf
+b0 aaaag
+b0 aaaah
+b0 aaaai
+b0 aaaaj
+b0 aaaak
+b0 aaaal
+b1010010110000 aaaam
+b0 aaaan
+b0 aaaao
+0aaaap
+0aaaaq
+0aaaar
+0aaaas
+0aaaat
+0aaaau
+0aaaav
+0aaaaw
+$end
+
+#1000000000000
+b1010010110000 aaaan
+
+#3000000000000
+b1010010110000 aaaao
+
+#103000000000000
+1aaaas
+1aaaat
+1aaaau
+
+#104000000000000
+0aaaas
+0aaaat
+0aaaau
+
+#105000000000000
+1aaaas
+1aaaav
+
+#106000000000000

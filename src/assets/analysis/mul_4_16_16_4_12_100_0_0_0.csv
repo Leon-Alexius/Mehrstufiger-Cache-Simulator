@@ -1,0 +1,7 @@
+matrix, cycles, misses, hits, read-hits, read-miss, write-hits, write-miss, read-hits-l1, read-miss-l1, write-hits-l1, write-miss-l1, read-hits-l2, read-miss-l2, write-hits-l2, write-miss-l2
+src/assets/matrix_multiplication/ijk.csv, 118, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0
+src/assets/matrix_multiplication/ikj.csv, 117, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0
+src/assets/matrix_multiplication/jik.csv, 117, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0
+src/assets/matrix_multiplication/jki.csv, 117, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0
+src/assets/matrix_multiplication/kij.csv, 117, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0
+src/assets/matrix_multiplication/kji.csv, 117, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0

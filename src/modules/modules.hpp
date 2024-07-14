@@ -1,19 +1,6 @@
 #ifndef MODULES_HPP
 #define MODULES_HPP
 
-#ifdef __cplusplus // added #ifdef __cplusplus so that it works as a c header - anthony
-
-// Split modules here + imported several libs - Leon
-#include "memory.hpp"
-#include "cache_l1.hpp"
-#include "cache_l2.hpp"
-#include "storeback_buffer.hpp"
-
-#include <cmath>
-
-using namespace sc_core;
-using namespace std;
-
 struct CacheStats {
     size_t cycles;
     size_t misses;
@@ -32,6 +19,21 @@ struct CacheStats {
     size_t write_hits_L2;
     size_t write_misses_L2;
 };
+
+#ifdef __cplusplus // added #ifdef __cplusplus so that it works as a c header - anthony
+
+// Split modules here + imported several libs - Leon
+#include "memory.hpp"
+#include "cache_l1.hpp"
+#include "cache_l2.hpp"
+#include "storeback_buffer.hpp"
+
+#include <cmath>
+
+using namespace sc_core;
+using namespace std;
+
+
 
 /**
  * @brief custom sc_trace() method for pointer values
@@ -186,7 +188,7 @@ struct CPU_L1_L2 {
     * Van Trang Nguyen
     * Lie Leon Alexius
     */
-    CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
+    CPU_L1_L2 (unsigned l1CacheLines, unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
         unsigned prefetchBufferLines, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
@@ -383,7 +385,7 @@ struct CPU_L1_L2 {
             */
             
         } while (!done_from_L1.read());
-
+        
         /*
             Calculating the misses and hits
             cache_l2_executes is true IFF "valid_from_l1_to_l2" is true
@@ -479,6 +481,19 @@ struct CPU_L1_L2 {
         delete[] data_from_L2_to_L1.read();
         delete[] data_from_L2_to_Memory.read();
         delete[] data_from_Memory_to_L2.read();
+    }
+
+    void reset_cache() {
+        std::fill(l1->cache_blocks.begin(), l1->cache_blocks.end(), vector<char>(cacheLineSize));
+        std::fill(l1->tags.begin(), l1->tags.end(), 0);
+        std::fill(l1->valid.begin(), l1->valid.end(), 0);
+
+        std::fill(l2->cache_blocks.begin(), l2->cache_blocks.end(), vector<char>(cacheLineSize));
+        std::fill(l2->tags.begin(), l2->tags.end(), 0);
+        std::fill(l2->valid.begin(), l2->valid.end(), 0);
+
+        memset(memory->memory_blocks, 0, sizeof(memory->memory_blocks));
+
     }
 
     /**

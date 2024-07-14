@@ -1,8 +1,8 @@
 // Lie Leon Alexius
 // Don't delete this! This is linked to literally everywhere
 
-#ifndef SIMULATOR_HPP
-#define SIMULATOR_HPP
+#ifndef SIMULATOR_ANALYZE_HPP
+#define SIMULATOR_ANALYZE_HPP
 
 #include <stdint.h>
 #include <stddef.h>
@@ -27,7 +27,5 @@ typedef struct {
     size_t hits;
     size_t primitiveGateCount;
 } Result;
-
-
 
 #endif
