@@ -285,8 +285,6 @@ struct CPU_L1_L2 {
 
         // start simulation for 1 delta cycle, without advancing the time (Simulation Second)
         sc_start(SC_ZERO_TIME);
-        sc_start(SC_ZERO_TIME);
-        sc_start(SC_ZERO_TIME);
 
         /*
             Must run simulation first otherwise segmentation fault
