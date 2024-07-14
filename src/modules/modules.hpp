@@ -182,7 +182,6 @@ struct CPU_L1_L2 {
 
         //prefetch buffer
         sc_fifo<char*>* prefetch_buffer = new sc_fifo<char*>(4);
-        // storeback = nullptr;
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
         l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback,prefetch_buffer);
         memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
