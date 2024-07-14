@@ -24,21 +24,21 @@ struct Request {
  * Lie Leon Alexius
  */
 typedef struct {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t read_hits;
-    size_t read_misses;
-    size_t write_hits;
-    size_t write_misses;
-    size_t read_hits_L1;
-    size_t read_misses_L1;
-    size_t write_hits_L1;
-    size_t write_misses_L1;
-    size_t read_hits_L2;
-    size_t read_misses_L2;
-    size_t write_hits_L2;
-    size_t write_misses_L2;
+    size_t cycles; // cycle count for this specific request
+    size_t misses; // 0 or 1 - this specific request is a cache miss
+    size_t hits; // 0 or 1 - this specific request is a cache hit
+    size_t read_hits; // 0 or 1 - read hit in L1 or L2
+    size_t read_misses; // 0 or 1 - read miss in L1 or L2
+    size_t write_hits; // 0 or 1 - write hit in L1 or L2
+    size_t write_misses; // 0 or 1 - write miss in L1 or L2
+    size_t read_hits_L1; // 0 or 1 - read hit in L1
+    size_t read_misses_L1; // 0 or 1 - read miss in L1
+    size_t write_hits_L1; // 0 or 1 - write hit in L1
+    size_t write_misses_L1; // 0 or 1 - write miss in L1
+    size_t read_hits_L2; // 0 or 1 - read hit in L2
+    size_t read_misses_L2; // 0 or 1 - read miss in L2
+    size_t write_hits_L2; // 0 or 1 - write hit in L2
+    size_t write_misses_L2; // 0 or 1 - write miss in L2
 } CacheStats;
 
 /**
@@ -46,10 +46,10 @@ typedef struct {
  * @author Task Pdf - edited Leon
  */
 typedef struct {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t primitiveGateCount;
+    size_t cycles; // How many cycles needed to finish the simulation
+    size_t misses; // Total cache misses count during simulation
+    size_t hits; // Total cache hits count during simulation
+    size_t primitiveGateCount; // Total Gate used in the simulation (Excluded Memory)
     CacheStats* cacheStats;
 } Result;
 
