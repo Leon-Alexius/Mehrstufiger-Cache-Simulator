@@ -111,13 +111,9 @@ SC_MODULE(L2){
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
 
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
-
             // wait until L1's signal is valid
             while (!valid_in->read()) {
                 wait();
-                wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
             }
 
@@ -310,8 +306,6 @@ SC_MODULE(L2){
             done->write(true); // signal as done
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
             wait(); // wait for next clk event
         }
     }
@@ -342,65 +336,6 @@ SC_MODULE(L2){
         wait();
     };
 
-    int test_L2() {
-    sc_fifo<char*>* fifo = new sc_fifo<char*>(4);
-    L2 l2("l1cache", 64,4,1, nullptr, fifo);
-    char data[64] = {'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
-    'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
-    'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd',
-    'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'};
-    
-    // data_in signal
-    sc_signal<char> in[64];
-    
-    // data_out signal
-    sc_signal<char> out[64];
-    
-    // Address
-    sc_signal<uint32_t> address;
-
-    
-    // Clock
-    sc_clock clk("clk", 1, SC_SEC);
-    
-    // Write enable signal
-    sc_signal<bool> we;
-    we = false;
-
-    // cacheLineSize =64
-    for (int i = 0; i < 64; i++) {
-        in[i] = data[i];
-        l2.data_in_from_L1->read()[i]=(in[i]);
-    }
-
-    // Bind each data_out signal to out signal
-    for (int i = 0; i < 64; i++) {
-        l2.data_out_to_Mem->read()[i]=(out[i]);
-    }
-
-
-    // Bind the address, the clock, and the write enable
-    l2.address(address);
-    l2.clk(clk);
-    l2.write_enable(we);
-
-    // Start for 1 cycle to let write take place
-    sc_start(1, SC_SEC);
-
-    // Begin read by setting write_enable to false
-    we = false;
-
-    // Start simulation for 1 cycle
-    sc_start(1, SC_SEC);
-    
-    // Read from the out signals
-    for (int i = 0; i < 64; i++) {
-        std::cout << out[i];
-    }
-    std::cout << std::endl;
-
-    return 0;
-    };
     
     
 };
