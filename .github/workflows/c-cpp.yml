@@ -1,10 +1,14 @@
 name: C/C++ CI
 
-on:
+# control the action to triggers on all push, pull request to main branch
+on: 
   push:
-    branches: [ "main" ]
+    branches:
+      - 'main'
+      - 'Leon/*'
   pull_request:
-    branches: [ "main" ]
+    branches: 
+      - 'main'
 
 jobs:
   build:
@@ -13,29 +17,31 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     # - name: Setup environment
-    #   run: bash setup.sh
-    - name: Make Test
+    #   run: bash src/assets/scripts/setup.sh
+    - name: Make Test 1
       run: make
-    - name: Run bash script
+    - name: Run Samples
       run: |
-        make clean
-        make
-        echo "JIK"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jik.csv
+        echo "IJK Standard"
+        ./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk.csv
         echo "=================================================================================="
-        echo "KIJ"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/kij.csv
-        echo "=================================================================================="
-        echo "IJK"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ijk.csv
-        echo "=================================================================================="
-        echo "IKJ"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ikj.csv
-        echo "=================================================================================="
-        echo "KJI"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/kji.csv
-        echo "=================================================================================="
-        echo "JKI"
-        ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jki.csv
-        echo "Simulation Ended"
         
+        echo "IJK Optimized 1"
+        ./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk_opt1.csv
+        echo "=================================================================================="
+
+        echo "IJK Optimized 2"
+        ./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk_opt2.csv
+        echo "=================================================================================="
+    - name: Make Test 2
+      run: make clean
+    
+  edge-case-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Edge Case Tests
+      run: |
+        make
+        bash src/assets/scripts/edge_case_test.sh

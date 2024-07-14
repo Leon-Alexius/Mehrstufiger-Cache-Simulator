@@ -15,31 +15,59 @@
  * @brief
  * Prints the layout of the simulator and its initial attributes.
  * 
+ * @todo fix this
+ * 
  * @warning don't remove this! It's used for the initial layout of the simulator
  * @author Lie Leon Alexius
  */
-void print_layout(int cycles, int l1CacheLines, int l2CacheLines, int cacheLineSize, int l1CacheLatency, int l2CacheLatency, int memoryLatency, int numRequests) {
-    printf(
-        "Team 150 - Cache Simulator\n"
-        "An Overview of our simulation:\n\n"
-        "┌────────────────────────────────────────────────────────────────┐\n"
-        "|                            Processor                           |\n"
-        "| ┌────────────────────────────────────────────────────────────┐ |\n"
-        "| | Cycles: %-50d | |\n"
-        "| |────────────────────────────────────────────────────────────| |\n"
-        "| | L1 Cache       | L2 Cache       | Cache Line Size: %-7d | |\n"
-        "| | Lines: %-5d   | Lines: %-5d   |                          | |\n"
-        "| | Latency: %-5d | Latency: %-5d |                          | |\n"
-        "| └────────────────────────────────────────────────────────────┘ |\n"
-        "└────────────────────────────────┬───────────────────────────────┘\n"
-        "                                 ↓                                \n"
-        "┌────────────────────────────────────────────────────────────────┐\n"
-        "|                               RAM                              |\n"
-        "| Memory Latency: %-46d |\n"
-        "| Number of Requests: %-42d |\n"
-        "└────────────────────────────────────────────────────────────────┘\n\n",
-        cycles, cacheLineSize, l1CacheLines, l2CacheLines, l1CacheLatency, l2CacheLatency, memoryLatency, numRequests
-    );
+void print_layout(Config* config, Result* result) {
+    if (config->prettyPrint) {
+        printf(
+            "Team 150 - Cache Simulator\n"
+            "An Overview of our simulation:\n\n"
+            "┌────────────────────────────────────────────────────────────────┐\n"
+            "|                            Processor                           |\n"
+            "| ┌────────────────────────────────────────────────────────────┐ |\n"
+            "| | Cycles: %-50d | |\n"
+            "| |────────────────────────────────────────────────────────────| |\n"
+            "| | L1 Cache       | L2 Cache       | Cache Line Size: %-7d | |\n"
+            "| | Lines: %-5d   | Lines: %-5d   |                          | |\n"
+            "| | Latency: %-5d | Latency: %-5d |                          | |\n"
+            "| └────────────────────────────────────────────────────────────┘ |\n"
+            "| Number of Requests Processed: %-32ld |\n"
+            "└────────────────────────────────┬───────────────────────────────┘\n"
+            "                                 ↓                                \n"
+            "┌────────────────────────────────────────────────────────────────┐\n"
+            "|                           Buffers                              |\n"
+            "| ┌────────────────────────────────────────────────────────────┐ |\n"
+            "| | Prefetch Buffer: %-10d  |                             | |\n"
+            "| | Storeback Buffer: %-10d | Conditional: %-14d | |\n"
+            "| └────────────────────────────────────────────────────────────┘ |\n"
+            "└────────────────────────────────┬───────────────────────────────┘\n"
+            "                                 ↓                                \n"
+            "┌────────────────────────────────────────────────────────────────┐\n"
+            "|                               RAM                              |\n"
+            "| Memory Latency: %-46d |\n"
+            "| Number of RAM Requests: %-38ld |\n"
+            "| Number of Read Requests: %-37ld |\n"
+            "| Number of Write Requests: %-36ld |\n"
+            "└────────────────────────────────────────────────────────────────┘\n\n",
+            config->cycles, 
+            config->cacheLineSize, config->l1CacheLines, config->l2CacheLines, 
+            config->l1CacheLatency, config->l2CacheLatency,
+            config->numRequests,
+            config->prefetchBuffer, config->storebackBuffer, config->storebackBufferCondition,
+            config->memoryLatency, 
+            (result->cacheStats->read_misses_L2 + result->cacheStats->write_hits + result->cacheStats->write_misses),
+            result->cacheStats->read_misses_L2, 
+            (result->cacheStats->write_hits + result->cacheStats->write_misses)
+        );
+    }
+
+    printf("Number of Cycles: %lu \n", result->cycles);
+    printf("Number of Hits: %lu   \n", result->hits);
+    printf("Number of Misses: %lu \n", result->misses);
+    printf("Number of Gates: %lu  \n", result->primitiveGateCount);
 }
 
 // Variables for printing image: pixels, and ASCII (brightness levels)

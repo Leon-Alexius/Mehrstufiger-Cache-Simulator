@@ -8,6 +8,7 @@
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
 #include "storeback_buffer.hpp"
+#include "storeback_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -35,12 +36,14 @@ SC_MODULE(MEMORY) {
 
     STOREBACK* storeback;
 
+
     char memory_blocks[4294967296];     // Memory blocks represented by an array of char
     unsigned int latency;               // Latency of memory in clock cycles
 
     unsigned int cacheLineSize;         // Size of each cache line
     bool write_underway = false;
     char* temp = nullptr;
+
 
    /**
     * @brief Constructor for MEMORY module.
@@ -69,15 +72,21 @@ SC_MODULE(MEMORY) {
     */
     void update() {
         wait();
+        wait();
         while (true) {
             wait(SC_ZERO_TIME);
             wait(SC_ZERO_TIME);
 
             // mark as not done, and wait for signal from L2 is valid
             done->write(false);
+
+            wait(SC_ZERO_TIME);
+            wait(SC_ZERO_TIME);
+            
             
             while(!valid_in->read() && !write_underway) {
                 wait();
+                wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
             }
 
@@ -86,7 +95,10 @@ SC_MODULE(MEMORY) {
             // get the address
             unsigned int address_u = address->read();
 
+            
+
             // Case: Read
+ 
             if (!write_enable->read() ) {
                 // Load the data to the Bus, Load the whole cacheLine
 
@@ -94,10 +106,27 @@ SC_MODULE(MEMORY) {
                 for (unsigned i = 0; i < latency; i++) {
                     wait();
                 }
+
+
+                // Wait to sync with latency             
+                for (unsigned i = 0; i < latency; i++) {
+                    wait();
+                }
                 for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
+                    // If the address is now at its maximum, we stop any more write/read process
+                    if (address_u >= UINT_MAX) break;
                     address_u++;
                 }
+
+                // Signal as done, and continue writing if it was interrupted
+                done->write(true);
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
+                if (write_underway) {
+                    write_from_buffer();
+                }
+                
 
                 // Signal as done, and continue writing if it was interrupted
                 wait(SC_ZERO_TIME);
@@ -123,18 +152,22 @@ SC_MODULE(MEMORY) {
                     // Write data to memory (in_Bus is 4 Bytes - data is 4 Bytes)
                     for (unsigned i = 0; i < 4; i++) {
                         memory_blocks[address_u] = data_in_from_L2->read()[i];
+                        // If the address is now at its maximum, we stop any more write/read process
+                        if (address_u >= UINT_MAX) break;
                         address_u++;
                     }
                     // Signal as done
-                    
                     done->write(true);
-                    
+                    // Wait for next clock.
+                    wait();
                 }
             }
-            // Wait for next clock.
-            wait();
+            
+            
         }
     }
+
+
 
     void write_from_buffer() {
         done->write(false);
@@ -169,6 +202,7 @@ SC_MODULE(MEMORY) {
                 if (!write_enable->read() && valid_in->read()) {
                     write_underway = true;
                     temp = data;
+                    
                     return;
                 }
 
@@ -179,8 +213,11 @@ SC_MODULE(MEMORY) {
             // Write to memory
             for (unsigned i = 0; i < 4; i++) {
                 memory_blocks[address_u] = data[i];
+                // If the address is now at its maximum, we stop any more write/read process
+                if (address_u >= UINT_MAX) break;
                 address_u++;
             }
+            
 
             // Free the pointer from data
             delete[] data;

@@ -14,31 +14,38 @@
  * @brief The run_simulation method in C++
  * @author Lie Leon Alexius
  */
-extern struct Result run_simulation(
+extern Result* run_simulation(
     int cycles,
     unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
     unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
     size_t numRequests, struct Request* requests,
-    const char* tracefile
+    const char* tracefile,
+
+     // Optimization flags
+    unsigned prefetchBuffer, 
+    unsigned storebackBuffer, bool storebackBufferCondition
 );
 
 /**
  * @brief test the config
  * @author Lie Leon Alexius
  */
-void test_config(Config config) {
+void test_config(Config* config) {
     printf(" ================================= START TEST CONFIG =================================\n");
-    printf("Cycles: %d\n", config.cycles); // 1000000
-    printf("L1 Cache Line: %u\n", config.l1CacheLines); // 64
-    printf("L2 Cache Line: %u\n", config.l2CacheLines); // 256
-    printf("Cache Line Size: %u\n", config.cacheLineSize); // 64
-    printf("L1 Cache Latency: %u\n", config.l1CacheLatency); // 4
-    printf("L2 Cache Latency: %u\n", config.l2CacheLatency); // 12
-    printf("Memory Latency: %u\n", config.memoryLatency); // 100
-    printf("Num Requests: %lu\n", config.numRequests); // 1000
-    printf("Tracefile: %s\n", config.tracefile); // "src/assets/vcd/default_trace.vcd"
-    printf("Input Filename: %s\n", config.input_filename); // "src/assets/csv/test_valid.csv"
-    printf("customNumRequest: %d\n", config.customNumRequest); // 0 (false)
+    printf("Cycles: %d\n", config->cycles); // 1000000
+    printf("L1 Cache Line: %u\n", config->l1CacheLines); // 64
+    printf("L2 Cache Line: %u\n", config->l2CacheLines); // 256
+    printf("Cache Line Size: %u\n", config->cacheLineSize); // 64
+    printf("L1 Cache Latency: %u\n", config->l1CacheLatency); // 4
+    printf("L2 Cache Latency: %u\n", config->l2CacheLatency); // 12
+    printf("Memory Latency: %u\n", config->memoryLatency); // 100
+    printf("Num Requests: %lu\n", config->numRequests); // 1000
+    printf("Tracefile: %s\n", config->tracefile); // "src/assets/vcd/default_trace.vcd"
+    printf("Input Filename: %s\n", config->input_filename); // "src/assets/csv/test_valid.csv"
+    printf("customNumRequest: %d\n", config->customNumRequest); // 0 (false)
+    printf("Prefetch Buffer: %u\n", config->prefetchBuffer); // 0
+    printf("Storeback Buffer: %u\n", config->storebackBuffer); // 0
+    printf("Pretty Print: %d\n", config->prettyPrint); // 1 (true)
     printf(" ================================== END TEST CONFIG ==================================\n\n");
 }
 
@@ -58,38 +65,36 @@ void test_config(Config config) {
  */
 int main(int argc, char* argv[]) {
     // run parser
-    Config config = start_parse(argc, argv);
+    Config* config = start_parse(argc, argv);
 
     // Test (test Request is in simulator.cpp)
     // test_config(config);
 
     // run simulation
-    struct Result result = 
+    Result* result =
     run_simulation(
-        config.cycles, 
-        config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
-        config.l1CacheLatency, config.l2CacheLatency, config.memoryLatency, 
-        config.numRequests, config.requests, 
-        config.tracefile
+        config->cycles, 
+        config->l1CacheLines, config->l2CacheLines, config->cacheLineSize, 
+        config->l1CacheLatency, config->l2CacheLatency, config->memoryLatency, 
+        config->numRequests, config->requests, 
+        config->tracefile,
+        config->prefetchBuffer,
+        config->storebackBuffer, config->storebackBufferCondition
     );
 
     // Print the layout and result
-    print_layout(
-        config.cycles, 
-        config.l1CacheLines, config.l2CacheLines, config.cacheLineSize, 
-        config.l1CacheLatency, config.l2CacheLatency, config.memoryLatency, 
-        config.numRequests
-    );
+    print_layout(config, result);
 
-    printf("Number of Cycles: %lu \n", result.cycles);
-    printf("Number of Hits: %lu   \n", result.hits);
-    printf("Number of Misses: %lu \n", result.misses);
-    printf("Number of Gates: %lu  \n", result.primitiveGateCount);
-
+    // Print End of Simulation
     printf("Simulation has ended\n");
 
-    // free the Config.requests
-    free(config.requests);
+    // cleanup
+    free(config->requests);
+    config->requests = NULL;
+    free(config);
+    config = NULL;
+    free(result);
+    result = NULL;
 
     return 0;
 }

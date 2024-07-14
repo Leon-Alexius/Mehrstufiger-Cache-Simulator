@@ -54,31 +54,31 @@ int calculateLines(const char* input_filename) {
  * @brief Parser starts here
  * @author Lie Leon Alexius
  */
-Config start_parse(int argc, char* argv[]) {
+Config* start_parse(int argc, char* argv[]) {
 
     // Parse User Input
-    Config config = parse_user_input(argc, argv);
+    Config* config = parse_user_input(argc, argv);
 
     // ========================================================================================
 
     // Parse .csv
     // Get numRequest of the file - Read Warning calculateLines()
-    if (!(config.customNumRequest)) {
-        int totalRequest = calculateLines(config.input_filename);
-        config.numRequests = totalRequest;
+    if (!(config->customNumRequest)) {
+        int totalRequest = calculateLines(config->input_filename);
+        config->numRequests = totalRequest;
     }
 
     // Allocate (numRequests + 1) for the .we = -1 marker
-    config.requests = malloc((config.numRequests + 1) * sizeof(struct Request));
+    config->requests = malloc((config->numRequests + 1) * sizeof(struct Request));
 
     // check if malloc successful
-    if (config.requests == NULL) {
+    if (config->requests == NULL) {
         fprintf(stderr, "Error when initializing Request Struct in Config\n");
         exit(EXIT_FAILURE);
     }
 
     // run parse_csv
-    parse_csv(config.input_filename, config.requests, config.numRequests, config.customNumRequest);
+    parse_csv(config->input_filename, config->requests, config->numRequests, config->customNumRequest);
 
     // ========================================================================================
 

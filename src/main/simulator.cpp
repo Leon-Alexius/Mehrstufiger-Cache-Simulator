@@ -37,6 +37,28 @@ extern "C" {
             }
         }  
     }
+    
+    /**
+     * @brief updates the CacheSimulatorStats
+     * @author Lie Leon Alexius
+     */
+    void statsUpdater(CacheStats* cacheStats, CacheStats tempStats) {
+        cacheStats->cycles += tempStats.cycles;
+        cacheStats->misses += tempStats.misses;
+        cacheStats->hits += tempStats.hits;
+        cacheStats->read_hits += tempStats.read_hits;
+        cacheStats->read_misses += tempStats.read_misses;
+        cacheStats->write_hits += tempStats.write_hits;
+        cacheStats->write_misses += tempStats.write_misses;
+        cacheStats->read_hits_L1 += tempStats.read_hits_L1;
+        cacheStats->read_misses_L1 += tempStats.read_misses_L1;
+        cacheStats->write_hits_L1 += tempStats.write_hits_L1;
+        cacheStats->write_misses_L1 += tempStats.write_misses_L1;
+        cacheStats->read_hits_L2 += tempStats.read_hits_L2;
+        cacheStats->read_misses_L2 += tempStats.read_misses_L2;
+        cacheStats->write_hits_L2 += tempStats.write_hits_L2;
+        cacheStats->write_misses_L2 += tempStats.write_misses_L2;
+    }
 
     /**
      * @brief Runs the cache simulation
@@ -57,34 +79,46 @@ extern "C" {
      * @warning Not tested yet
      * @bug Not tested yet
      * 
+     * @todo can be optimized by checking cycles before sending request
+     * 
      * @authors
      * Lie Leon Alexius
      * Anthony Tang
      */
-    struct Result run_simulation(
+    Result* run_simulation(
         int cycles, 
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
         size_t numRequests, struct Request* requests,
-        const char* tracefile
+        const char* tracefile,
+
+        // Optimization flags
+        unsigned prefetchBuffer, 
+        unsigned storebackBuffer, bool storebackBufferCondition
     ) 
     {
         // Test the Requests
         // print_requests(numRequests, requests);
 
-        // Initialize the Components    
-    
-        CPU_L1_L2 caches(l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, tracefile, 4);
+        // Initialize the Components        
+        CPU_L1_L2 caches(
+            l1CacheLines, l2CacheLines, cacheLineSize, 
+            l1CacheLatency, l2CacheLatency, memoryLatency, 
+            tracefile, 
+            prefetchBuffer, storebackBuffer, storebackBufferCondition
+        );
         size_t cycleCount = 0;
         size_t missCount = 0; 
         size_t hitCount = 0;
-        size_t gateCount = 0;
+        CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
 
         // ========================================================================================
         
+        std::cout << "Running simulation..." << std::endl;
+
         // Process the request
         for (size_t i = 0; i < numRequests; i++) {
-            Request req = requests[i];
+            struct Request req = requests[i];
 
             // If req.we == -1, end simulation
             if (req.we == -1) {
@@ -92,33 +126,40 @@ extern "C" {
             }
             
             // Send request to cache
-            Result tempResult = caches.send_request(req);
+            CacheStats tempResult = caches.send_request(req);
+
+            // break if total simulated cache will be higher than limit
+            if (cycleCount + tempResult.cycles > cycles) {
+                break;
+            }
+
+            // update the cacheStats
+            statsUpdater(cacheStats, tempResult);
+
+            // add tempResult to total
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
-            gateCount = tempResult.primitiveGateCount; 
         }
 
         unsigned memory_cycles = caches.finish_memory();
         cycleCount += memory_cycles;
 
-        // stop the simulation and close the trace file
-        caches.close_trace_file();
-
         // ========================================================================================
-
         // assign Result
-        struct Result result;
-        result.cycles = cycleCount;
-        result.hits = hitCount;
-        result.misses = missCount;
-        result.primitiveGateCount = gateCount;
+        Result* result = (Result*) malloc(sizeof(Result));
+        result->cycles = cycleCount;
+        result->hits = hitCount;
+        result->misses = missCount;
+        result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
+        result->cacheStats = cacheStats;
+
+        // stop the simulation and close the trace file
+        (tracefile != nullptr) ? caches.close_trace_file() : caches.stop_simulation();
         
         // return the result
         return result;
     }
-
-
 }
 
 // The default sc_main implementation.

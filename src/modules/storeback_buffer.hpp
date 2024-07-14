@@ -16,6 +16,10 @@ using namespace std;
 * @details This module implements an sc_fifo for both the data and the address. The read() is called by the memory,
 * while the write() by the L2 cache. An in_buffer() method denotes if a certain tag is currently in the buffer.
 * is_empty() denotes if the buffer is now empty.
+*
+* @note Using a Write Through with Conditional Flush Buffer may not be faster than a Write Through with Unconditional Flush Buffer.
+* As a read from L2 without any dependency will abort any ongoing write, which means the aborted write needs to start from the start
+* and cost more cycles. But if a read hit is generated from the block, then the lost cycles will be recovered.
 * 
 * @author Alexander Anthony Tang
 */
@@ -29,18 +33,22 @@ SC_MODULE(STOREBACK){
     unsigned capacity;
 
     bool empty = true;
+    bool conditional = false;
 
     /**
-     * @brief Constructor for Store Back Buffer (Write Through w/ Conditional Flush Buffer) module.
+     * @brief Constructor for Store Back Buffer (Write Through w/ Unconditional/Conditional Flush Buffer) module.
      *
      * @param name The name of the module.
      * @param capacity The capacity of the buffer.
+     * @param conditional Sets if the buffer conditionally or unconditionally flushes in the case of a read. 
+     * If it is conditional, then it will only flush if the tag exists inside the buffer. 
+     * If it is not conditional, it will always flush
      *
      * @author
      * Alexander Anthony Tang
      */
     SC_CTOR(STOREBACK);
-    STOREBACK(sc_module_name name, unsigned capacity) : sc_module(name), capacity(capacity), storeback(capacity), address_storeback(capacity) {
+    STOREBACK(sc_module_name name, unsigned capacity, bool conditional) : sc_module(name), capacity(capacity), storeback(capacity), address_storeback(capacity), conditional(conditional) {
         tags_storeback.resize(capacity);
     };
 
@@ -102,11 +110,16 @@ SC_MODULE(STOREBACK){
     */
 
     bool in_buffer(uint32_t tag) {
-        for (unsigned i = 0; i < (tail - head + capacity) % capacity; i++) {
-            // std::cout << tag << " + " << tags_storeback[(i+head) % capacity] << std::endl;
-            if (tag == tags_storeback[(i+head) % capacity]) return true;
+        if (conditional) {
+            for (unsigned i = 0; i < (tail - head + capacity) % capacity; i++) {
+                // std::cout << tag << " + " << tags_storeback[(i+head) % capacity] << std::endl;
+                if (tag == tags_storeback[(i+head) % capacity]) return true;
+            }
+            return false;
+        } else {
+            if (empty) return false;
+            else return true;
         }
-        return false;
     }
 
     /**
