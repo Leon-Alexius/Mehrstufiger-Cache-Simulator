@@ -107,28 +107,24 @@ extern "C" {
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
-            gateCount = tempResult.primitiveGateCount;
         }
 
         unsigned memory_cycles = caches.finish_memory();
         cycleCount += memory_cycles;
 
-        // stop the simulation and close the trace file
-        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
-
         // ========================================================================================
-
         // assign Result
         Result* result = (Result*) malloc(sizeof(Result));
         result->cycles = cycleCount;
         result->hits = hitCount;
         result->misses = missCount;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
+
+        // stop the simulation and close the trace file
+        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
         
         // return the result
         return result;
-        
-        
     }
 }
 
