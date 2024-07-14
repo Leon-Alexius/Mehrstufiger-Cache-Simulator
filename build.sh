@@ -1,34 +1,23 @@
 make
 
-# echo "JIK"
-# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jik.csv
-# echo "=================================================================================="
-
-# echo "KIJ"
-# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/kij.csv
-# echo "=================================================================================="
-
-echo "IJK"
-./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ijk.csv
+echo "IJK Standard"
+./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk.csv
 echo "=================================================================================="
 
-echo "IJK with Storeback Buffer"
-./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 src/assets/matrix_multiplication/ijk.csv
+echo "IJK Optimized 1"
+./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk_opt1.csv
 echo "=================================================================================="
 
-echo "IJK with Storeback Buffer and Prefetching"
-./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --prefetch-buffer 4 src/assets/matrix_multiplication/ijk.csv  
+echo "IJK Optimized 2"
+./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk_opt2.csv
 echo "=================================================================================="
 
-# echo "IKJ"
-# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/ikj.csv
+# echo "IJK Standard with Storeback Buffer"
+# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --pretty-print true examples/ijk.csv
 # echo "=================================================================================="
 
-# echo "KJI"
-# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/kji.csv
+# echo "IJK Optimized 1 with Storeback Buffer"
+# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --pretty-print true examples/ijk_opt1.csv
 # echo "=================================================================================="
-
-# echo "JKI"
-# ./cache --cacheline-size 16 --l1-lines 4 --l2-lines 16 src/assets/matrix_multiplication/jki.csv
 
 make clean

@@ -1,0 +1,42 @@
+Test-Log: 14/07/2024
+Tested with n = 1000
+
+3 times test run
+
+| Method          | Time (s)   |  | Method          | Time (s)   |  | Method          | Time (s)   |
+|-----------------|------------|  |-----------------|------------|  |-----------------|------------|
+| ijk             | 4.606000   |  | ijk             | 4.581000   |  | ijk             | 4.494000   |
+| ikj             | 3.326000   |  | ikj             | 3.319000   |  | ikj             | 3.304000   |
+| jik             | 4.160000   |  | jik             | 4.169000   |  | jik             | 4.159000   |
+| jki             | 10.893000  |  | jki             | 10.740000  |  | jki             | 10.447000  |
+| kij             | 3.269000   |  | kij             | 3.266000   |  | kij             | 3.267000   |
+| kji             | 10.713000  |  | kji             | 10.612000  |  | kji             | 10.362000  |
+|-----------------|------------|  |-----------------|------------|  |-----------------|------------|
+| ijk_opt1        | 2.920000   |  | ijk_opt1        | 2.900000   |  | ijk_opt1        | 2.914000   |
+| ikj_opt1        | 2.533000   |  | ikj_opt1        | 2.536000   |  | ikj_opt1        | 2.527000   |
+| jik_opt1        | 2.770000   |  | jik_opt1        | 2.769000   |  | jik_opt1        | 2.761000   |
+| jki_opt1        | 10.652000  |  | jki_opt1        | 10.590000  |  | jki_opt1        | 10.377000  |
+| kij_opt1        | 2.531000   |  | kij_opt1        | 2.546000   |  | kij_opt1        | 2.594000   |
+| kji_opt1        | 10.578000  |  | kji_opt1        | 10.400000  |  | kji_opt1        | 10.353000  |
+|-----------------|------------|  |-----------------|------------|  |-----------------|------------|
+| ijk_opt2        | 2.310000   |  | ijk_opt2        | 2.309000   |  | ijk_opt2        | 2.320000   |
+| jik_opt2        | 2.310000   |  | jik_opt2        | 2.319000   |  | jik_opt2        | 2.305000   |
+| jki_opt2        | 2.534000   |  | jki_opt2        | 2.530000   |  | jki_opt2        | 2.528000   |
+| kij_opt2        | 2.520000   |  | kij_opt2        | 2.517000   |  | kij_opt2        | 2.522000   |
+| kji_opt2        | 2.516000   |  | kji_opt2        | 2.517000   |  | kji_opt2        | 2.497000   |
+
+Sorted method from fastest to slowest
+
+A. Without Optimization
+kij >= ikj > jik > ijk > kji > jki
+
+B. With Optimization (local variable)
+ikj > kij > jik > ijk > kji > jki
+
+C. With Optimization (Transpose)
+ijk > jik > kji > kij > jki
+
+Note that Transpose Metrix doesn't include the time needed to transpose the matrix!
+Average transpose time for a square-matrix of 1000: "0.004000 seconds"
+
+So, in "real time", all "*_opt2" is actually slower than "ikj"

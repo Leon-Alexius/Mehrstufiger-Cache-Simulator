@@ -26,6 +26,9 @@ typedef struct {
     size_t misses;
     size_t hits;
     size_t primitiveGateCount;
+    size_t ramRequests;
+    size_t ramReadRequests;
+    size_t ramWriteRequests;
 } Result;
 
 #endif

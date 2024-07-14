@@ -57,6 +57,8 @@ extern "C" {
      * @warning Not tested yet
      * @bug Not tested yet
      * 
+     * @todo can be optimized by checking cycles before sending request
+     * 
      * @authors
      * Lie Leon Alexius
      * Anthony Tang
@@ -70,7 +72,7 @@ extern "C" {
 
         // Optimization flags
         unsigned prefetchBuffer, 
-        unsigned storebackBuffer
+        unsigned storebackBuffer, bool storebackBufferCondition
     ) 
     {
         // Test the Requests
@@ -102,6 +104,13 @@ extern "C" {
             
             // Send request to cache
             Result tempResult = caches.send_request(req);
+
+            // break if total simulated cache will be higher than limit
+            if (cycleCount + tempResult.cycles > cycles) {
+                break;
+            }
+
+            // add tempResult to total
             cycleCount += tempResult.cycles;
             missCount += tempResult.misses;
             hitCount += tempResult.hits;
@@ -118,6 +127,9 @@ extern "C" {
         result->hits = hitCount;
         result->misses = missCount;
         result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
+        result->ramRequests = 10; // TODO
+        result->ramReadRequests = 20; // TODO
+        result->ramWriteRequests = 30; // TODO
         
         // return the result
         return result;
