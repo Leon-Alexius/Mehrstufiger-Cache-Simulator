@@ -189,7 +189,6 @@ struct CPU_L1_L2 {
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
-          
         unsigned prefetchBufferLines, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
@@ -197,7 +196,7 @@ struct CPU_L1_L2 {
 
        
         // Initialize L1, L2, and Memory
-        if (storeBufferCapacity != 0) {
+        if (storebackBufferLines != 0) {
             storeback = new STOREBACK("Storeback", storebackBufferLines, storeBufferConditional);
         }
         // storeback = nullptr;
