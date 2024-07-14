@@ -320,7 +320,6 @@ struct CPU_L1_L2 {
      */
 
     CacheStats send_request(struct Request request) {
-    CacheStats send_request(struct Request request) {
         uint32_t data_req = request.data;
 
         /*  Leon - Optimized from Base Anthony
@@ -383,7 +382,7 @@ struct CPU_L1_L2 {
         
         // create Result and send back
         CacheStats res = { 
-        CacheStats res = { 
+
             cycle_count, // cycles
             misses, // misses
             hits, // hits
