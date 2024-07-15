@@ -173,7 +173,7 @@ extern "C" {
             CacheStats tempResult = caches.send_request(req, original_cycles);
 
             // break if cycles already exceeded the limit
-            if (cycles < 0) {
+            if (original_cycles < 0) {
                 
                 simulatorForceTerminate = true;
                 break;
@@ -185,7 +185,7 @@ extern "C" {
         // Finish up the simulation (wait for memory write) if the simulator is not forced to terminate
         if (!simulatorForceTerminate) {
             unsigned int memory_cycles = caches.finish_memory(original_cycles);
-            if (cycles < 0) cacheStats->cycles = SIZE_MAX; 
+            if (original_cycles < 0) cacheStats->cycles = SIZE_MAX; 
             else cacheStats->cycles += memory_cycles;
         }
         else {
