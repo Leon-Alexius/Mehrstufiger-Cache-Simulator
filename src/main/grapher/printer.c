@@ -28,11 +28,20 @@ void print_layout(Config* config, Result* result) {
             "┌────────────────────────────────────────────────────────────────┐\n"
             "|                            Processor                           |\n"
             "| ┌────────────────────────────────────────────────────────────┐ |\n"
-            "| | Cycles: %-50d | |\n"
-            "| |────────────────────────────────────────────────────────────| |\n"
-            "| | L1 Cache       | L2 Cache       | Cache Line Size: %-7d | |\n"
-            "| | Lines: %-5d   | Lines: %-5d   |                          | |\n"
-            "| | Latency: %-5d | Latency: %-5d |                          | |\n"
+            "| | Max Simulated Cycles: %-36d | |\n"
+            "| | Cache Line Size: %-41d | |\n"
+            "| └────────────────────────────────────────────────────────────┘ |\n"
+            "| ┌────────────────────────────────────────────────────────────┐ |\n"
+            "| |                          L1 Cache                          | |\n"
+            "| | Lines: %-8d            | Latency: %-7d              | |\n"
+            "| | Read Hits: %-8ld        | Read Misses: %-7ld          | |\n"
+            "| | Write Hits: %-8ld       | Write Misses: %-7ld         | |\n"
+            "| └────────────────────────────────────────────────────────────┘ |\n"
+            "| ┌────────────────────────────────────────────────────────────┐ |\n"
+            "| |                          L2 Cache                          | |\n"
+            "| | Lines: %-8d            | Latency: %-7d              | |\n"
+            "| | Read Hits: %-8ld        | Read Misses: %-7ld          | |\n"
+            "| | Write Hits: %-8ld       | Write Misses: %-7ld         | |\n"
             "| └────────────────────────────────────────────────────────────┘ |\n"
             "| Number of Requests Processed: %-32ld |\n"
             "└────────────────────────────────┬───────────────────────────────┘\n"
@@ -53,8 +62,13 @@ void print_layout(Config* config, Result* result) {
             "| Number of Write Requests: %-36ld |\n"
             "└────────────────────────────────────────────────────────────────┘\n\n",
             config->cycles, 
-            config->cacheLineSize, config->l1CacheLines, config->l2CacheLines, 
-            config->l1CacheLatency, config->l2CacheLatency,
+            config->cacheLineSize,
+            config->l1CacheLines, config->l1CacheLatency, 
+            result->cacheStats->read_hits_L1, result->cacheStats->read_misses_L1,
+            result->cacheStats->write_hits_L1, result->cacheStats->write_misses_L1,
+            config->l2CacheLines, config->l2CacheLatency, 
+            result->cacheStats->read_hits_L2, result->cacheStats->read_misses_L2,
+            result->cacheStats->write_hits_L2, result->cacheStats->write_misses_L2,
             config->numRequests,
             config->prefetchBuffer, config->storebackBuffer, config->storebackBufferCondition,
             config->memoryLatency, 
@@ -65,8 +79,8 @@ void print_layout(Config* config, Result* result) {
     }
 
     printf("Number of Cycles: %lu \n", result->cycles);
-    printf("Number of Hits: %lu   \n", result->hits);
-    printf("Number of Misses: %lu \n", result->misses);
+    printf("Number of Cache Hits: %lu   \n", result->hits);
+    printf("Number of Cache Misses: %lu \n", result->misses);
     printf("Number of Gates: %lu  \n", result->primitiveGateCount);
 }
 
