@@ -34,16 +34,16 @@ void print_layout(Config* config, Result* result) {
             "| ┌────────────────────────────────────────────────────────────┐ |\n"
             "| |                          L1 Cache                          | |\n"
             "| | Lines: %-8d            | Latency: %-7d              | |\n"
-            "| | Read Hits: %-8ld        | Read Misses: %-7ld          | |\n"
-            "| | Write Hits: %-8ld       | Write Misses: %-7ld         | |\n"
+            "| | Read Hits: %-8zu        | Read Misses: %-7zu          | |\n"
+            "| | Write Hits: %-8zu       | Write Misses: %-7zu         | |\n"
             "| └────────────────────────────────────────────────────────────┘ |\n"
             "| ┌────────────────────────────────────────────────────────────┐ |\n"
             "| |                          L2 Cache                          | |\n"
             "| | Lines: %-8d            | Latency: %-7d              | |\n"
-            "| | Read Hits: %-8ld        | Read Misses: %-7ld          | |\n"
-            "| | Write Hits: %-8ld       | Write Misses: %-7ld         | |\n"
+            "| | Read Hits: %-8zu        | Read Misses: %-7zu          | |\n"
+            "| | Write Hits: %-8zu       | Write Misses: %-7zu         | |\n"
             "| └────────────────────────────────────────────────────────────┘ |\n"
-            "| Number of Requests Processed: %-32ld |\n"
+            "| Number of Requests Processed: %-32zu |\n"
             "└────────────────────────────────┬───────────────────────────────┘\n"
             "                                 ↓                                \n"
             "┌────────────────────────────────────────────────────────────────┐\n"
@@ -57,9 +57,9 @@ void print_layout(Config* config, Result* result) {
             "┌────────────────────────────────────────────────────────────────┐\n"
             "|                               RAM                              |\n"
             "| Memory Latency: %-46d |\n"
-            "| Number of RAM Requests: %-38ld |\n"
-            "| Number of Read Requests: %-37ld |\n"
-            "| Number of Write Requests: %-36ld |\n"
+            "| Number of RAM Requests: %-38zu |\n"
+            "| Number of Read Requests: %-37zu |\n"
+            "| Number of Write Requests: %-36zu |\n"
             "└────────────────────────────────────────────────────────────────┘\n\n",
             config->cycles, 
             config->cacheLineSize,
@@ -78,10 +78,10 @@ void print_layout(Config* config, Result* result) {
         );
     }
 
-    printf("Number of Cycles: %lu \n", result->cycles);
-    printf("Number of Cache Hits: %lu   \n", result->hits);
-    printf("Number of Cache Misses: %lu \n", result->misses);
-    printf("Number of Gates: %lu  \n", result->primitiveGateCount);
+    printf("Number of Cycles: %zu \n", result->cycles);
+    printf("Number of Cache Hits: %zu   \n", result->hits);
+    printf("Number of Cache Misses: %zu \n", result->misses);
+    printf("Number of Gates: %zu  \n", result->primitiveGateCount);
 }
 
 // Variables for printing image: pixels, and ASCII (brightness levels)
