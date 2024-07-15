@@ -132,6 +132,8 @@ extern "C" {
             prefetchBuffer, storebackBuffer, storebackBufferCondition
         );
 
+        unsigned original_cycles = cycles;
+
         // Initialize the cacheStats
         CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
         cacheStats->cycles = 0;
@@ -168,7 +170,7 @@ extern "C" {
             }
             
             // Send request to cache
-            CacheStats tempResult = caches.send_request(req, cycles);
+            CacheStats tempResult = caches.send_request(req, original_cycles);
 
             // break if cycles already exceeded the limit
             if (cycles < 0) {
@@ -182,7 +184,7 @@ extern "C" {
 
         // Finish up the simulation (wait for memory write) if the simulator is not forced to terminate
         if (!simulatorForceTerminate) {
-            unsigned int memory_cycles = caches.finish_memory(cycles);
+            unsigned int memory_cycles = caches.finish_memory(original_cycles);
             if (cycles < 0) cacheStats->cycles = SIZE_MAX; 
             else cacheStats->cycles += memory_cycles;
         }
