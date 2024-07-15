@@ -17,7 +17,7 @@
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
-    printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 1000000)\n");
+    printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 2_147_483_647 ~ INT32_MAX)\n");
     printf("      --cacheline-size <num>        The size of a cache line in bytes (default: 64)\n");
     printf("      --l1-lines <num>              The number of cache lines of the L1 cache (default: 64)\n");
     printf("      --l2-lines <num>              The number of cache lines of the L2 cache (default: 256)\n");
@@ -61,7 +61,7 @@ void print_help() {
 Config* parse_user_input(int argc, char* argv[]) {
 
     // Default Values
-    int cycles = 1000000;
+    int cycles = INT32_MAX;
     unsigned int l1CacheLines = 64;
     unsigned int l2CacheLines = 256;
     unsigned int cacheLineSize = 64;
