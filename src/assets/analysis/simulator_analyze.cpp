@@ -66,7 +66,7 @@ extern "C" {
         std::cout << "Running simulation..." << std::endl;
 
         // Process the request
-        for (size_t i = 0; i < 1; i++) {
+        for (size_t i = 0; i < numRequests; i++) {
             
             struct Request req = requests[i];
 

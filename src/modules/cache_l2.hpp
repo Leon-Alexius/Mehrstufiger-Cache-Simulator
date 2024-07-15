@@ -56,6 +56,7 @@ SC_MODULE(L2){
     // Optimization - Leon
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l2CacheLines = 0;     // log2(l2CacheLines)
+    unsigned int power_of_two = 1;
 
    /**
     * @brief Constructor for L2 cache module.
@@ -80,9 +81,13 @@ SC_MODULE(L2){
         while ((cacheLineSize >>= 1) > 0) {
             log2_cacheLineSize++;
         }
+        l2CacheLines -= 1;
         while ((l2CacheLines >>= 1) > 0) {
             log2_l2CacheLines++;
         }
+        log2_l2CacheLines++;
+
+        power_of_two <<= log2_l2CacheLines;
 
         SC_THREAD(update);
         sensitive << clk.pos();
@@ -114,8 +119,8 @@ SC_MODULE(L2){
 
             // extracts metadata bits from address - optimized (see L1)
             unsigned int offset = address_int & (cacheLineSize - 1);
-            unsigned int index = (address_int >> log2_cacheLineSize) & (l2CacheLines - 1);
-            unsigned int tag = address_int >> (log2_cacheLineSize + log2_l2CacheLines);
+            unsigned int index = ((address_int >> log2_cacheLineSize) & (power_of_two - 1)) % (l2CacheLines);
+            unsigned int tag = address_int >> (log2_cacheLineSize + log2_l2CacheLines - (power_of_two != l2CacheLines));
 
             // Tags and data is only accessible after l2 latency cyles
             // Here it is -1 so that the simulation logic stays consistent -

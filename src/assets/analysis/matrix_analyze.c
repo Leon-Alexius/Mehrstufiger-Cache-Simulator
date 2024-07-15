@@ -64,7 +64,7 @@ int main() {
     };
 
     // Cache attributes
-    unsigned l1CacheLines = 4;
+    unsigned l1CacheLines = 5;
     unsigned l2CacheLines = 16;
     unsigned cacheLineSize = 16;
     unsigned l1CacheLatency = 4;
