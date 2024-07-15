@@ -7,6 +7,7 @@
 // Request and Result struct
 #include "../simulator.hpp"
 
+
 // Config struct
 typedef struct {
     int cycles;

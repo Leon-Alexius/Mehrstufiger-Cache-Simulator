@@ -8,6 +8,8 @@ C_SRCS = src/main/executor.c
 PARSER = src/main/parser/csv_parser.c src/main/parser/parse.c src/main/parser/terminal_parser.c
 GRAPHER = src/main/grapher/printer.c
 CPP_SRCS = src/main/simulator.cpp
+ANALYZE_C_SRCS = src/assets/analysis/matrix_analyze.c
+ANALYZE_CPP_SRCS = src/assets/analysis/simulator_analyze.cpp
 
 # Object files
 # variables to the paths of the object files that will be generated from the C and C++ source files
@@ -15,12 +17,16 @@ CPP_SRCS = src/main/simulator.cpp
 C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
+ANALYZE_C_OBJS = $(ANALYZE_C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
+ANALYZE_CPP_OBJS = $(ANALYZE_CPP_SRCS:.cpp=.o)
+
 # Variable to the paths of the header files that the source files depend on
 HEADERS := src/modules/module.hpp
 
 # Target name
 # The name of the final executable that will be generated
 TARGET := cache
+ANALYZE_TARGET := src/assets/analysis/analyze
 
 # The path to SystemC installation (this project included Systemc to standardize the path)
 SCPATH = systemc
@@ -70,7 +76,7 @@ endif
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Targets in Makefile
-.PHONY: all debug release clean
+.PHONY: all debug release clean analyze
 
 # Default to release build for both app and library
 all: debug
@@ -95,9 +101,22 @@ release:
 $(TARGET): $(C_OBJS) $(CPP_OBJS)
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(LDFLAGS) -o $(TARGET)
 
+$(ANALYZE_TARGET): $(ANALYZE_C_OBJS) $(ANALYZE_CPP_OBJS)
+	$(CXX) $(CXXFLAGS) $(ANALYZE_C_OBJS) $(ANALYZE_CPP_OBJS) $(LDFLAGS) -o $(ANALYZE_TARGET)
+
+analyze: CXXFLAGS += -O2
+analyze: $(ANALYZE_TARGET)
+analyze:
+	rm -rf src/main/parser/*.o 
+	rm -rf src/main/grapher/*.o
+	rm -rf src/main/*.o 
+	rm -rf src/assets/analysis/*.o
+
+
 # clean up
 clean:
 	rm -f $(TARGET)
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o
+	rm -rf src/assets/analysis/*.o
