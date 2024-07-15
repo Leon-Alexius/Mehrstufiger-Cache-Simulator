@@ -1,0 +1,342 @@
+$date
+     Jul 12, 2024       17:13:15
+$end
+
+$version
+ SystemC 2.3.4-Accellera --- May 24 2024 22:14:56
+$end
+
+$timescale
+     1 ps
+$end
+
+$scope module SystemC $end
+$var wire   32  aaaaa  Data_In_0 [31:0]  $end
+$var wire   32  aaaab  Data_Out_0 [31:0]  $end
+$var wire   32  aaaac  Data_from_L1_to_L2_0 [31:0]  $end
+$var wire   32  aaaad  Data_from_L2_to_L1_0 [31:0]  $end
+$var wire   32  aaaae  Data_from_L2_to_L1_4 [31:0]  $end
+$var wire   32  aaaaf  Data_from_L2_to_L1_8 [31:0]  $end
+$var wire   32  aaaag  Data_from_L2_to_L1_12 [31:0]  $end
+$var wire   32  aaaah  Data_from_L2_to_Memory_0 [31:0]  $end
+$var wire   32  aaaai  Data_from_Memory_to_L2_0 [31:0]  $end
+$var wire   32  aaaaj  Data_from_Memory_to_L2_4 [31:0]  $end
+$var wire   32  aaaak  Data_from_Memory_to_L2_8 [31:0]  $end
+$var wire   32  aaaal  Data_from_Memory_to_L2_12 [31:0]  $end
+$var wire   32  aaaam  Address [31:0]  $end
+$var wire   32  aaaan  Address_from_L1_to_L2 [31:0]  $end
+$var wire   32  aaaao  Address_from_L2_to_Memory [31:0]  $end
+$var wire    1  aaaap  WE       $end
+$var wire    1  aaaaq  WE_from_L1_to_L2       $end
+$var wire    1  aaaar  WE_from_L2_to_Memory       $end
+$var wire    1  aaaas  Done_from_L1       $end
+$var wire    1  aaaat  Done_from_L2       $end
+$var wire    1  aaaau  Done_from_memory       $end
+$var wire    1  aaaav  Hit_from_L1       $end
+$var wire    1  aaaaw  Hit_from_L2       $end
+$upscope $end
+$enddefinitions  $end
+
+$comment
+All initial values are dumped below at time 0 sec = 0 timescale units.
+$end
+
+$dumpvars
+b0 aaaaa
+b0 aaaab
+b0 aaaac
+b0 aaaad
+b0 aaaae
+b0 aaaaf
+b0 aaaag
+b0 aaaah
+b0 aaaai
+b0 aaaaj
+b0 aaaak
+b0 aaaal
+b1010010110000 aaaam
+b0 aaaan
+b0 aaaao
+0aaaap
+0aaaaq
+0aaaar
+0aaaas
+0aaaat
+0aaaau
+0aaaav
+0aaaaw
+$end
+
+#4000000000000
+b1010010110000 aaaan
+
+#16000000000000
+b1010010110000 aaaao
+
+#116000000000000
+1aaaas
+1aaaat
+1aaaau
+
+#117000000000000
+b1100011000000 aaaam
+0aaaas
+0aaaat
+0aaaau
+
+#121000000000000
+b1100011000000 aaaan
+
+#133000000000000
+b1100011000000 aaaao
+
+#233000000000000
+1aaaas
+1aaaat
+1aaaau
+
+#234000000000000
+b110011101100000 aaaam
+0aaaas
+0aaaat
+0aaaau
+
+#238000000000000
+b110011101100000 aaaan
+
+#250000000000000
+b110011101100000 aaaao
+
+#350000000000000
+1aaaas
+1aaaat
+1aaaau
+
+#351000000000000
+b100111101110 aaaaa
+1aaaap
+0aaaas
+0aaaat
+0aaaau
+
+#355000000000000
+b100111101110 aaaac
+1aaaaq
+1aaaav
+
+#367000000000000
+b100111101110 aaaah
+1aaaar
+1aaaat
+1aaaaw
+
+#368000000000000
+1aaaas
+0aaaat
+0aaaaw
+
+#369000000000000
+b0 aaaaa
+b1010011110000 aaaam
+0aaaap
+0aaaas
+0aaaav
+
+#373000000000000
+b1010011110000 aaaan
+0aaaaq
+
+#385000000000000
+b1010011110000 aaaao
+0aaaar
+
+#486000000000000
+1aaaas
+1aaaat
+
+#487000000000000
+b1100011000000 aaaam
+0aaaas
+0aaaat
+
+#491000000000000
+1aaaas
+1aaaav
+
+#492000000000000
+b110011110100000 aaaam
+0aaaas
+0aaaav
+
+#496000000000000
+b110011110100000 aaaan
+
+#508000000000000
+b110011110100000 aaaao
+
+#609000000000000
+1aaaas
+1aaaat
+
+#610000000000000
+b1011100000010 aaaaa
+1aaaap
+0aaaas
+0aaaat
+
+#614000000000000
+b1011100000010 aaaac
+1aaaaq
+1aaaav
+
+#626000000000000
+b1011100000010 aaaah
+1aaaar
+1aaaat
+1aaaaw
+
+#627000000000000
+1aaaas
+0aaaat
+0aaaaw
+
+#628000000000000
+b0 aaaaa
+b1010100110000 aaaam
+0aaaap
+0aaaas
+0aaaav
+
+#632000000000000
+b1010100110000 aaaan
+0aaaaq
+
+#644000000000000
+b1010100110000 aaaao
+0aaaar
+
+#745000000000000
+1aaaas
+1aaaat
+
+#746000000000000
+b1100011000000 aaaam
+0aaaas
+0aaaat
+
+#750000000000000
+1aaaas
+1aaaav
+
+#751000000000000
+b110011111100000 aaaam
+0aaaas
+0aaaav
+
+#755000000000000
+b110011111100000 aaaan
+
+#767000000000000
+b110011111100000 aaaao
+
+#868000000000000
+1aaaas
+1aaaat
+
+#869000000000000
+b1000100110010 aaaaa
+1aaaap
+0aaaas
+0aaaat
+
+#873000000000000
+b1000100110010 aaaac
+1aaaaq
+1aaaav
+
+#885000000000000
+b1000100110010 aaaah
+1aaaar
+1aaaat
+1aaaaw
+
+#886000000000000
+1aaaas
+0aaaat
+0aaaaw
+
+#887000000000000
+b0 aaaaa
+b1010101110000 aaaam
+0aaaap
+0aaaas
+0aaaav
+
+#891000000000000
+b1010101110000 aaaan
+0aaaaq
+
+#903000000000000
+b1010101110000 aaaao
+0aaaar
+
+#1004000000000000
+1aaaas
+1aaaat
+
+#1005000000000000
+b1100011000000 aaaam
+0aaaas
+0aaaat
+
+#1009000000000000
+1aaaas
+1aaaav
+
+#1010000000000000
+b110100000100000 aaaam
+0aaaas
+0aaaav
+
+#1014000000000000
+b110100000100000 aaaan
+
+#1026000000000000
+b110100000100000 aaaao
+
+#1127000000000000
+1aaaas
+1aaaat
+
+#1128000000000000
+b110011010110 aaaaa
+1aaaap
+0aaaas
+0aaaat
+
+#1132000000000000
+b110011010110 aaaac
+1aaaaq
+1aaaav
+
+#1144000000000000
+b110011010110 aaaah
+1aaaar
+1aaaaw
+
+#1227000000000000
+1aaaat
+
+#1228000000000000
+1aaaas
+0aaaat
+0aaaaw
+
+#1229000000000000
+0aaaas
+0aaaav
+
+#1527000000000000
+1aaaau
+
+#1528000000000000
