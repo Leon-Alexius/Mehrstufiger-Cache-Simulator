@@ -1,7 +1,7 @@
 # Cache Simulation Project
 
 ## Overview
-This project aims to investigate the impact of multi-level caches on runtime and latency. It involves researching cache sizes, architectures, and latencies in modern processors, and implementing a cache simulation in SystemC with C++ and a framework program in C.
+This project aims to investigate the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
 
 ## Requirements
 
@@ -25,7 +25,7 @@ If you do not have these prerequisites installed, please refer to the respective
 1. **Clone the Repository**: Begin by cloning the project repository to your local machine. Open a terminal and execute the following command:
 `git clone https://github.com/Dark-Rosaleen/GRA-Abschlussprojekt.git`
 
-2. **Verify Installation of Prerequisites**: Ensure that the required versions of C, C++, and SystemC are installed on your system. If you are unsure or need to install the prerequisites, run the provided `setup.sh` script by executing: `./setup.sh`
+2. **Verify Installation of Prerequisites**: Ensure that the required versions of C, C++, and SystemC are installed on your system. If you are unsure or need to install the prerequisites, run the provided `setup.sh` script by executing: `bash ./src/assets/scripts/setup.sh`
 This script will guide you through the installation of any missing prerequisites.
 
 3. **Build the Project**: With the prerequisites in place, compile the project using the `make` command. In the terminal, navigate to the project directory and execute: `make`
@@ -49,13 +49,17 @@ Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `fi
 | `--memory-latency`| The latency of the main memory in cycles                           | `100`              |
 | `--tf=<filepath>` | Output file for a trace file with all signals                      | `default_trace.vcd`|
 | `--num-requests`  | Number of request to read from .csv file, default is all requests  | All requests       |
+| `--prefetch-buffer`     | The number of cache lines in the prefetch buffer             | `0`                |
+| `--storeback-buffer`    | The number of cache lines in the storeback buffer            | `0`                |
+| `--storeback-condition` | The condition for storeback buffer                           | `false`            |
+| `--pretty-print`        | Pretty Print the Simulator (le.g. layout)                    | `true`             |
 | `-h`, `--help`    | Display this help and exit                                         | N/A                |
 
 ## Theoretical Results
 Document the results of the theoretical part of your project here. This could include findings from your research on cache sizes, architectures, and latencies in modern processors.
 
 ## Contributors
-For more details, the `@author` or `@authors` is included in each Docstring.
+For more details, the `@author` or `@authors` is included in each Docstring documentation of a function.
 
 ### Alexander Anthony Tang
 Alexander is primarily responsible for the development of `src/modules`, with additional contributions to the development of `src/main/simulator.cpp`
@@ -63,27 +67,22 @@ Alexander is primarily responsible for the development of `src/modules`, with ad
 Other contributions include:
 - Creating the `Makefile`
 - Writing the `build.sh` script
-- Initiating the project
-- Documenting the project
+- Initiating, Optimizing and Documenting the project
 
 ### Lie Leon Alexius
 Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
 
 Other contributions include:
-- Writing the `build.sh` and `setup.sh` scripts
+- Writing the `build.sh` scripts
 - Authoring the `Readme.md`
-- Initiating and structuring the project
-- Optimizing the project
 - Implementing automated tests
-- Documenting the project
+- Initiating, Optimizing, Structuring and Documenting the project
 
 ### Trang Nguyen
 Trang is primarily responsible for the development of `src/modules`.
 
 Other contributions include:
-- Initiating the project
-- Optimizing the project
-- Documenting the project
+- Initiating, Optimizing and Documenting the project
 
 ## License
 All Rights Reserved © 2024 Team-150.
