@@ -25,15 +25,15 @@ echo "IJK Optimized 2 with Unconditional Storeback Buffer"
 echo "=================================================================================="
 
 echo "IJK Standard with Conditional Storeback Buffer"
-./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --storeback-condition false -p false examples/ijk.csv
+./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --storeback-condition true -p false examples/ijk.csv
 echo "=================================================================================="
 
 echo "IJK Optimized 1 with Conditional Storeback Buffer"
-./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --storeback-condition false -p false examples/ijk_opt1.csv
+./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --storeback-condition true -p false examples/ijk_opt1.csv
 echo "=================================================================================="
 
 echo "IJK Optimized 2 with Conditional Storeback Buffer"
-./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --storeback-condition false -p false examples/ijk_opt2.csv
+./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --storeback-buffer 4 --storeback-condition true -p false examples/ijk_opt2.csv
 echo "=================================================================================="
 
 # echo "IJK Standard with Prefetching"

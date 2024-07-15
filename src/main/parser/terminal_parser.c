@@ -95,6 +95,7 @@ Config* parse_user_input(int argc, char* argv[]) {
         {"num-requests", required_argument, 0, 0},
         {"prefetch-buffer", required_argument, 0, 0}, // Optimization: Prefetch Buffer
         {"storeback-buffer", required_argument, 0, 0}, // Optimization: Storeback Buffer
+        {"storeback-condition", required_argument, 0, 0}, // Optimization: Conditional Storeback Buffer
         {"pretty-print", required_argument, 0, 'p'}, // New: Pretty Print Option
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
@@ -231,6 +232,21 @@ Config* parse_user_input(int argc, char* argv[]) {
                     // Check for errors during conversion then print it
                     if (errno != 0 || *endptr != '\0') {
                         fprintf(stderr, "Invalid input for storeback-buffer\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                // Optimization: Conditional Storeback Buffer
+                else if (strcmp("storeback-condition", long_options[long_index].name) == 0) {
+                    errno = 0;
+
+                    if (strcmp("true", optarg) == 0) {
+                    storebackBufferCondition = 1;
+                    } 
+                    else if (strcmp("false", optarg) == 0) {
+                        storebackBufferCondition = 0;
+                    } 
+                    else {
+                        fprintf(stderr, "Invalid input for storeback-condition\n");
                         exit(EXIT_FAILURE);
                     }
                 }
