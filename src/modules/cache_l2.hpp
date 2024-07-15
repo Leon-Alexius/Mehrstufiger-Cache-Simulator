@@ -198,7 +198,7 @@ SC_MODULE(L2){
                 // Read miss, propagate to mem
                 else 
                 {
-                    // If there is a storeback buffer -> check the tag in the storeback buffer if the tag is there or not
+                    // If there is a storeback buffer -> check the tag and the address in the storeback buffer if the tag and address is there or not
                     if (storeback != nullptr && storeback->in_buffer((address_int >> log2_cacheLineSize))) {
                         // If yes, flush all contents of the buffer into the memory
                         // NOTE: We can also flush the data with the same tag, while leaving the others,
@@ -276,12 +276,11 @@ SC_MODULE(L2){
                 wait();
                 wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
-                std::cout << sc_time_stamp().to_seconds() << std::endl;
             }
 
             uint32_t address_new = address_u;
-            unsigned int index_new = ((address_new >> log2_cacheLineSize)) % (l2CacheLines);
-            unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines);
+            unsigned int index_new = ((address_new >> log2_cacheLineSize) & (power_of_two - 1)) % (l2CacheLines);;
+            unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines - (power_of_two != l2CacheLines));;
             
             // Write to memory
             for (unsigned i = 0; i < cacheLineSize; i++) {

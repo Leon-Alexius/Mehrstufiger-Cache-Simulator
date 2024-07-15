@@ -104,7 +104,7 @@ SC_MODULE(L1){
         }
         log2_l1CacheLines++;
 
-        power_of_two <<= log2_l1CacheLines;
+        power_of_two <<= (log2_l1CacheLines);
 
         // std::cout << log2_l1CacheLines << std::endl;
         // std::cout << power_of_two << std::endl;
@@ -167,10 +167,11 @@ SC_MODULE(L1){
                 2. tag was address_int >> (log2_cacheLineSize + log2_l1CacheLines);
             */
             unsigned int offset = address_int & (cacheLineSize - 1);
+            
             unsigned int index = ((address_int >> log2_cacheLineSize) & (power_of_two - 1)) % l1CacheLines;
             unsigned int tag = address_int >> (log2_cacheLineSize + (log2_l1CacheLines - (power_of_two != l1CacheLines)));
 
-            // std::cout << tag << " " << index << " " << sc_time_stamp().to_seconds() << std::endl;
+            // std::cout << tag << " " << index << " " << tags[index] << " " << sc_time_stamp().to_seconds() << std::endl;
             
             // Tags and Data is only accessible after l1 latency cycles.
             for (unsigned i = 0; i < l1CacheLatency; i++) {

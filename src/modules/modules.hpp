@@ -1,25 +1,6 @@
 #ifndef MODULES_HPP
 #define MODULES_HPP
 
-struct CacheStats {
-    size_t cycles;
-    size_t misses;
-    size_t hits;
-    size_t primitiveGateCount;
-    size_t read_hits;
-    size_t read_misses;
-    size_t write_hits;
-    size_t write_misses;
-    size_t read_hits_L1;
-    size_t read_misses_L1;
-    size_t write_hits_L1;
-    size_t write_misses_L1;
-    size_t read_hits_L2;
-    size_t read_misses_L2;
-    size_t write_hits_L2;
-    size_t write_misses_L2;
-};
-
 #ifdef __cplusplus // added #ifdef __cplusplus so that it works as a c header - anthony
 
 // Split modules here + imported several libs - Leon
@@ -165,7 +146,9 @@ struct CPU_L1_L2 {
     
 
     // Clock and Trace File (60 MHz)
-    sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
+    int period = 16;
+    sc_time_unit unit = SC_NS;
+    sc_clock* clk = new sc_clock("clk", period, unit);
     sc_trace_file* trace_file;
 
    /**
@@ -371,7 +354,7 @@ struct CPU_L1_L2 {
         // run the simulation (+1) to process the request
         do {
 
-            sc_start(1, SC_SEC);
+            sc_start(period, unit);
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -439,7 +422,7 @@ struct CPU_L1_L2 {
         // std::cout << memory->write_underway << std::endl;
         if (!memory->write_underway && storeback->is_empty()) return 0;
         while (!done_from_Memory) {
-            sc_start(1, SC_SEC);
+            sc_start(period, unit);
             cycle_count++;
         }
 
