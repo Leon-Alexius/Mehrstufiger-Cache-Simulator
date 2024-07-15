@@ -122,8 +122,6 @@ SC_MODULE(L1){
         {
                    
             // std::cout << "bruh again?" << std::endl;
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
             
             hit->write(false);
             done->write(false);
@@ -133,7 +131,6 @@ SC_MODULE(L1){
             
             // wait until cpu's signal is valid
             while (!valid_in->read()) {
-                std::cout << " why " << std::endl;
                 wait();
             }
             
@@ -199,6 +196,8 @@ SC_MODULE(L1){
                     wait(SC_ZERO_TIME);
                     wait(SC_ZERO_TIME);
                     wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
                 }
                 valid_out->write(false);
             } 
@@ -227,9 +226,10 @@ SC_MODULE(L1){
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
                     }
                     valid_out->write(false);
-
 
 
                     // Write the data to the appropriate CacheLine

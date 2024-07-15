@@ -9,6 +9,7 @@
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
 #include "storeback_buffer.hpp"
+#include "prefetch_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -48,6 +49,7 @@ SC_MODULE(L2){
 
     // We will use a WTCB (Write Through with Conditional Flush buffer)
     STOREBACK* storeback;
+    PREFETCH* prefetch;
 
 
     unsigned cacheLineSize;                 // Size of each cache line
@@ -57,9 +59,8 @@ SC_MODULE(L2){
     // Optimization - Leon
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l2CacheLines = 0;     // log2(l2CacheLines)
-
     unsigned int buffer_size;
-    sc_fifo<char*>* prefetch_buffer;
+    
 
     
 
@@ -76,12 +77,12 @@ SC_MODULE(L2){
     * Lie Leon Alexius
     */
     SC_CTOR(L2);
-    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency, STOREBACK* storeback, sc_fifo<char*>* prefetch_buffer) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency), storeback(storeback), prefetch_buffer(prefetch_buffer) {
+    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency, PREFETCH* prefetch, STOREBACK* storeback) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency), storeback(storeback), prefetch(prefetch) {
         cache_blocks.resize(l2CacheLines, vector<char> (cacheLineSize));
         valid.resize(l2CacheLines);
         tags.resize(l2CacheLines);
         
-
+        
         // Optimization - Leon
         while ((cacheLineSize >>= 1) > 0) {
             log2_cacheLineSize++;
@@ -130,14 +131,7 @@ SC_MODULE(L2){
             for (unsigned i = 0; i < l2CacheLatency; i++) {
                 wait();
             }
-
-            // Tags and data is only accessible after l2 latency cyles
-            // Here it is -1 so that the simulation logic stays consistent -
-            // the data is available after the wait() in the very end, so + 1.
-            for (unsigned i = 0; i < l2CacheLatency; i++) {
-                wait();
-            }
-
+            
             // write operation
             if(write_enable->read()){
                 
@@ -213,19 +207,6 @@ SC_MODULE(L2){
                     }
                     valid_out->write(true);
 
-                    // If there is a storeback buffer -> check the tag in the storeback buffer if the tag is there or not
-                    if (storeback != nullptr && storeback->in_buffer((address_int >> log2_cacheLineSize))) {
-                        // If yes, flush all contents of the buffer into the memory
-                        // NOTE: We can also flush the data with the same tag, while leaving the others,
-                        // but this overcomplicates the structure of the buffer and will not make it
-                        // FIFO again.
-                        while (!done_from_Mem->read()) {
-                            wait();
-                            wait(SC_ZERO_TIME);
-                            wait(SC_ZERO_TIME);
-                        }
-                    }
-                    valid_out->write(true);
 
                     // Signal to RAM, then mark as valid propagation
                     address_out->write(address->read()); 
@@ -253,42 +234,11 @@ SC_MODULE(L2){
                     tags[index] = tag; // update tag
 
                     
-                    //Optimization: Prefetching - Trang
-                    //Prefetching - load 4 cache lines starting from address
-                    for (int i = 1; i < 2; i++)
-                    {
-                        wait();
-                        // std::cout << "Fetching line " << i << std::endl;
-                        prefetch_next_line(address_int + i*(cacheLineSize));
-                        
-                    }
-                    
                     //load the prefetched lines into cache
-                    if (prefetch_buffer != nullptr)
-                    {
-                        int j = 1;
-                        
-                        while (prefetch_buffer->num_available() > 0) {
-                            char* prefetch_data = new char[cacheLineSize];
-                            uint32_t address_new = address_new + j*cacheLineSize;
-                            unsigned int index_new = (address_new >> log2_cacheLineSize) & (l2CacheLines - 1);
-                            unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines);
-                            //assign the next line to prefetch_data
-                            // std::cout << "waiting" << std::endl;
-                            prefetch_buffer->read(prefetch_data);
-                            //load the line stored in prefetch_data into cache
-                            for (unsigned i = 0; i < cacheLineSize; i++) {
-                                cache_blocks[index_new][i] = prefetch_data[i];
-                                // std::cout << "0";
-                            }
-                            // std::cout << std::endl;
-                            tags[index_new] = tag_new;
-                            valid[index_new] = true;
-                            j++;
-                        }
+                    if (prefetch != nullptr) {
+                        read_from_prefetch();
                     }
                     
-
                 }
 
                 //bring the read data back to L1
@@ -307,31 +257,43 @@ SC_MODULE(L2){
         }
     }
 
-    //load the next line into the buffer - Trang
-     void prefetch_next_line(uint32_t address_of_line) {
-        address_out->write(address_of_line);
-        write_enable_out->write(false);
-        valid_out->write(true);
-        
-        wait(SC_ZERO_TIME);
-        wait(SC_ZERO_TIME);
-        
-        // std::cout << done_from_Mem->read() << std::endl;
-        while (!done_from_Mem->read()) {
-            wait();
-            wait(SC_ZERO_TIME);
-            wait(SC_ZERO_TIME);
-            // std::cout << "WAITING FOR MEM " << std::endl;
-        }
-        valid_out->write(false);
+    void read_from_prefetch() {
 
-        char* prefetched_line = new char[cacheLineSize];
-        for (unsigned i = 0; i < cacheLineSize; i++) {
-            prefetched_line[i] = data_in_from_Mem->read()[i];
+        char* data;
+        uint32_t address_u;
+
+        for (int i = 0; i < prefetch->capacity; i++) {
+            
+            // If no write was underway, then read from buffer. But if the buffer is empty, then
+            // memory has finished its task and will await further instructions.
+
+            while (!prefetch->read(data, address_u)) {
+                wait();
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
+                std::cout << sc_time_stamp().to_seconds() << std::endl;
+            }
+
+            uint32_t address_new = address_u;
+            unsigned int index_new = ((address_new >> log2_cacheLineSize)) % (l2CacheLines);
+            unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines);
+            
+            // Write to memory
+            for (unsigned i = 0; i < cacheLineSize; i++) {
+                cache_blocks[index_new][i] = data[i];
+            }
+
+            tags[index_new] = tag_new;
+            valid[index_new] = true;
+
+            // Free the pointer from data
+            delete[] data;
         }
-        prefetch_buffer->write(prefetched_line);
-        wait();
-    };
+        
+        return;
+    }
+
+    
 
     
     

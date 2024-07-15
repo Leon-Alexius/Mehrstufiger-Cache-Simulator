@@ -8,6 +8,7 @@
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
 #include "storeback_buffer.hpp"
+#include "prefetch_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -34,6 +35,7 @@ SC_MODULE(MEMORY) {
     sc_in<bool> valid_in;               // Whether Signal propagated from L2 to Memory is valid
 
     STOREBACK* storeback;
+    PREFETCH* prefetch;
 
 
     char memory_blocks[4294967296];     // Memory blocks represented by an array of char
@@ -54,8 +56,8 @@ SC_MODULE(MEMORY) {
     * @author Alexander Anthony Tang
     */
     SC_CTOR(MEMORY);
-    MEMORY(sc_module_name name, unsigned int cacheLineSize, unsigned int latency, STOREBACK* storeback) 
-    : sc_module(name), latency(latency), cacheLineSize(cacheLineSize), storeback(storeback) {
+    MEMORY(sc_module_name name, unsigned int cacheLineSize, unsigned int latency, PREFETCH* prefetch, STOREBACK* storeback) 
+    : sc_module(name), latency(latency), cacheLineSize(cacheLineSize), storeback(storeback), prefetch(prefetch) {
         SC_THREAD(update);
         sensitive << clock.pos();
     }
@@ -96,7 +98,6 @@ SC_MODULE(MEMORY) {
             
 
             // Case: Read
- 
             if (!write_enable->read() ) {
                 // Load the data to the Bus, Load the whole cacheLine
 
@@ -105,25 +106,30 @@ SC_MODULE(MEMORY) {
                     wait();
                 }
 
-
-                // Wait to sync with latency             
-                for (unsigned i = 0; i < latency; i++) {
-                    wait();
-                }
                 for (unsigned i = 0; i < cacheLineSize; i++) {
                     data_out_to_L2->read()[i] = memory_blocks[address_u];
                     // If the address is now at its maximum, we stop any more write/read process
                     if (address_u >= UINT_MAX) break;
                     address_u++;
                 }
-                
 
-                // Signal as done, and continue writing if it was interrupted
-                wait(SC_ZERO_TIME);
-                wait(SC_ZERO_TIME);
                 done->write(true);
                 wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
+                if (prefetch != nullptr) {
+                    //Optimization: Prefetching - Trang
+                    //Prefetching - load 1 cache line starting from address
+                    for (int i = 1; i <= prefetch->capacity; i++)
+                    {
+                        
+                        prefetch_next_line(address_u + i*(cacheLineSize));
+                    }
+                    
+                }
+                
+
+                
+                
                 if (write_underway) {
                     write_from_buffer();
                 }
@@ -213,6 +219,29 @@ SC_MODULE(MEMORY) {
             // Free the pointer from data
             delete[] data;
         }
+    }
+
+    //load the next line into the buffer - Trang
+    void prefetch_next_line(uint32_t address_u) {
+        
+        
+        char* prefetched_line = new char[cacheLineSize] ();
+        uint32_t address_temp = address_u;
+
+        for (unsigned i = 0; i < cacheLineSize; i++) {
+            prefetched_line[i] = memory_blocks[address_temp];
+            // If the address is now at its maximum, we stop any more write/read process
+            if (address_temp >= UINT_MAX) break;
+            address_temp++;
+        }
+
+         // Wait to sync with latency
+        for (unsigned i = 0; i < latency; i++) {
+
+            wait();
+        }
+        prefetch->write(prefetched_line, address_u);
+
     }
 };
 

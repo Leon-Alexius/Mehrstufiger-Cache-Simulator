@@ -8,6 +8,7 @@
 #include "cache_l1.hpp"
 #include "cache_l2.hpp"
 #include "storeback_buffer.hpp"
+#include "prefetch_buffer.hpp"
 
 #include <cmath>
 
@@ -94,6 +95,7 @@ struct CPU_L1_L2 {
     L2* l2;                     // Pointer to L2 cache
     MEMORY* memory;             // Pointer to main memory
     STOREBACK* storeback = nullptr;       // Pointer to Store back buffer
+    PREFETCH* prefetch = nullptr;
 
     // Bus between CPU and Cache (L1)
     sc_signal<char*> data_in;
@@ -170,7 +172,7 @@ struct CPU_L1_L2 {
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
-        unsigned prefetchBufferLines, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
+        unsigned prefetchBufferLines = 0, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
@@ -181,10 +183,13 @@ struct CPU_L1_L2 {
         }
 
         //prefetch buffer
-        sc_fifo<char*>* prefetch_buffer = new sc_fifo<char*>(4);
+        if (prefetchBufferLines != 0) {
+            prefetch = new PREFETCH("Prefetch", prefetchBufferLines);
+        }
+
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
-        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback,prefetch_buffer);
-        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
+        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency,  prefetch, storeback);
+        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, prefetch, storeback);
 
 
         
@@ -281,7 +286,7 @@ struct CPU_L1_L2 {
             trace(trace_file, data_in, 4, "Data_In");
             trace(trace_file, data_out, 4, "Data_Out");
 
-            trace(trace_file, data_from_L1_to_L2, 4, "Data-from_L1_to_L2");
+            trace(trace_file, data_from_L1_to_L2, 4, "Data_from_L1_to_L2");
             trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
 
             trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
