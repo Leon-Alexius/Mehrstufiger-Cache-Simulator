@@ -6,6 +6,10 @@
 #include "../modules/modules.hpp"
 #include "parser/parse.h"
 
+extern "C" {
+    #include "grapher/printer.h"
+}
+
 // prevent the C++ compiler from mangling the function name
 extern "C" {
     Config* config = nullptr;
@@ -15,7 +19,7 @@ extern "C" {
      * @author Lie Leon Alexius
      */
     void set_config(Config* c) {
-        std::cout << "Setting config..." << std::endl;
+        std::cout << "Fetching config..." << std::endl;
         config = c;
     }
 
@@ -185,7 +189,33 @@ extern "C" {
         result->cacheStats = cacheStats;
 
         // stop the simulation and close the trace file
-        (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
+        (tracefile != nullptr) ? caches.close_trace_file() : caches.stop_simulation();
+
+        // Case this function is not called by "executor.c"
+        if (config == nullptr) {
+            // re-create config
+            config = (Config*) malloc(sizeof(Config));
+            config->cycles = cycles;
+            config->l1CacheLines = l1CacheLines;
+            config->l2CacheLines = l2CacheLines;
+            config->cacheLineSize = cacheLineSize;
+            config->l1CacheLatency = l1CacheLatency;
+            config->l2CacheLatency = l2CacheLatency;
+            config->memoryLatency = memoryLatency;
+            config->numRequests = numRequests;
+            config->tracefile = nullptr;
+            config->input_filename = nullptr;
+            config->requests = nullptr;
+            config->customNumRequest = false;
+            config->prefetchBuffer = prefetchBuffer;
+            config->storebackBuffer = storebackBuffer;
+            config->storebackBufferCondition = storebackBufferCondition;
+            config->prettyPrint = true;
+
+            std::cout << "Simulator is not called from executor.c" << std::endl;
+
+            print_layout(config, result);
+        }
         
         // return the result
         return result;
