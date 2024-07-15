@@ -132,7 +132,7 @@ extern "C" {
             prefetchBuffer, storebackBuffer, storebackBufferCondition
         );
 
-        unsigned original_cycles = cycles;
+        int original_cycles = cycles;
 
         // Initialize the cacheStats
         CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
