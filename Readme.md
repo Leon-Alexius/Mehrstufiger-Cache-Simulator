@@ -47,7 +47,7 @@ Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `fi
 | `--l1-latency`    | The latency of the L1 cache in cycles                              | `4`                |
 | `--l2-latency`    | The latency of the L2 cache in cycles                              | `12`               |
 | `--memory-latency`| The latency of the main memory in cycles                           | `100`              |
-| `--tf=<filepath>` | Output file for a trace file with all signals                      | `default_trace.vcd`|
+| `--tf=<filepath>` | Output file for a trace file with all signals                      | N/A                |
 | `--num-requests`  | Number of request to read from .csv file, default is all requests  | All requests       |
 | `--prefetch-buffer`     | The number of cache lines in the prefetch buffer             | `0`                |
 | `--storeback-buffer`    | The number of cache lines in the storeback buffer            | `0`                |

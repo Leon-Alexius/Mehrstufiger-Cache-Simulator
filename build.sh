@@ -1,7 +1,7 @@
 make
 
 echo "IJK Standard"
-./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk.csv
+./cache -c 2147483646 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --tf=src/assets/vcd/default_trace --pretty-print true examples/ijk.csv
 echo "=================================================================================="
 
 echo "IJK Optimized 1"

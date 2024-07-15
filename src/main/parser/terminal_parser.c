@@ -24,8 +24,8 @@ void print_help() {
     printf("      --l1-latency <num>            The latency of the L1 cache in cycles (default: 4)\n");
     printf("      --l2-latency <num>            The latency of the L2 cache in cycles (default: 12)\n");
     printf("      --memory-latency <num>        The latency of the main memory in cycles (default: 100)\n");
-    printf("      --tf=<filepath>               Output file for a trace file with all signals (default: default_trace.vcd)\n");
-    printf("      --num-requests <num>          Number of request to read from .csv file, default is all requests\n");
+    printf("      --tf=<filepath>               Output file for a trace file with all signals (default: None)\n");
+    printf("      --num-requests <num>          Number of request to read from .csv file (default: all requests)\n");
     printf("      --prefetch-buffer <num>       The number of cache lines in the prefetch buffer (default: 0)\n");
     printf("      --storeback-buffer <num>      The number of cache lines in the storeback buffer (default: 0)\n");
     printf("      --storeback-condition <bool>  The condition for storeback buffer (default: false)\n");
@@ -52,7 +52,8 @@ void print_help() {
  *  11. customNumRequest = false (flag for custom number of requests)
  *  12. prefetchBuffer = 0 (default prefetch buffer)
  *  13. storebackBuffer = 0 (default storeback buffer)
- *  13. prettyPrint = true (default pretty print flag)
+ *  14. prettyPrint = true (default pretty print flag)
+ *  15. storebackBufferCondition = false (default storeback buffer condition)
  * 
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
