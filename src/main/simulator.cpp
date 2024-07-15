@@ -149,10 +149,14 @@ extern "C" {
         cacheStats->read_misses_L2 = 0;
         cacheStats->write_hits_L2 = 0;
         cacheStats->write_misses_L2 = 0;
+        cacheStats->currentMemoryCycles = 0;
 
         // ========================================================================================
         
         std::cout << "Running simulation..." << std::endl;
+
+        // Added flag: true if the simulator stopped due to exceeding the cycle limit
+        bool simulatorForceTerminate = false;
 
         // Process the request
         for (size_t i = 0; i < numRequests; i++) {
@@ -166,8 +170,9 @@ extern "C" {
             // Send request to cache
             CacheStats tempResult = caches.send_request(req);
 
-            // break if total simulated cache will be higher than limit
-            if (cacheStats->cycles + tempResult.cycles > cycles) {
+            // break if next cycle will exceed the limit
+            if (cacheStats->cycles + tempResult.cycles + tempResult.currentMemoryCycles > cycles) {
+                simulatorForceTerminate = true;
                 break;
             }
 
@@ -175,9 +180,15 @@ extern "C" {
             statsUpdater(cacheStats, tempResult);
         }
 
-        // All request has been sent, wait until the simulation finishes
-        unsigned int memory_cycles = caches.finish_memory();
-        cacheStats->cycles += memory_cycles;
+        // Finish up the simulation (wait for memory write) if the simulator is not forced to terminate
+        if (!simulatorForceTerminate) {
+            unsigned int memory_cycles = caches.finish_memory();
+            cacheStats->cycles += memory_cycles;
+        }
+        else {
+            // if forced to stop, cycles need to be SIZE_MAX
+            cacheStats->cycles = SIZE_MAX;
+        }
 
         // ========================================================================================
         // assign Result
