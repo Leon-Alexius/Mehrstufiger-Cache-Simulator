@@ -125,17 +125,15 @@ Config* parse_user_input(int argc, char* argv[]) {
                 exit(EXIT_SUCCESS);
                 break;
             case 'p':
-                if (strcmp("pretty-print", long_options[long_index].name) == 0) {
-                    if (strcmp("true", optarg) == 0) {
-                        prettyPrint = true;
-                    } 
-                    else if (strcmp("false", optarg) == 0) {
-                        prettyPrint = false;
-                    } 
-                    else {
-                        fprintf(stderr, "Invalid input for pretty-print\n");
-                        exit(EXIT_FAILURE);
-                    }
+                if (strcmp("true", optarg) == 0) {
+                    prettyPrint = 1;
+                } 
+                else if (strcmp("false", optarg) == 0) {
+                    prettyPrint = 0;
+                } 
+                else {
+                    fprintf(stderr, "Invalid input for pretty-print\n");
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case 0:

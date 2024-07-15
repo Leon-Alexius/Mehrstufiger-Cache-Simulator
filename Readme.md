@@ -52,7 +52,7 @@ Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `fi
 | `--prefetch-buffer`     | The number of cache lines in the prefetch buffer             | `0`                |
 | `--storeback-buffer`    | The number of cache lines in the storeback buffer            | `0`                |
 | `--storeback-condition` | The condition for storeback buffer                           | `false`            |
-| `--pretty-print`        | Pretty Print the Simulator (le.g. layout)                    | `true`             |
+| `-p`, `--pretty-print`  | Pretty Print the Simulator (le.g. layout)                    | `true`             |
 | `-h`, `--help`    | Display this help and exit                                         | N/A                |
 
 ## Theoretical Results
