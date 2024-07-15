@@ -59,6 +59,7 @@ SC_MODULE(L1){
     // Optimization - Leon
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l1CacheLines = 0;     // log2(l1CacheLines)
+    unsigned int power_of_two = 1;
 
    
 
@@ -93,12 +94,20 @@ SC_MODULE(L1){
             0000.0001 - 4
             0000.0000 - stop
         */
+
         while ((cacheLineSize >>= 1) > 0) {
             log2_cacheLineSize++;
         }
+        l1CacheLines -= 1;    
         while ((l1CacheLines >>= 1) > 0) {
             log2_l1CacheLines++;
         }
+        log2_l1CacheLines++;
+
+        power_of_two <<= (log2_l1CacheLines);
+
+        // std::cout << log2_l1CacheLines << std::endl;
+        // std::cout << power_of_two << std::endl;
 
         /*
             Use SC_THREAD() instead of C_THREAD() because:
@@ -153,12 +162,16 @@ SC_MODULE(L1){
 
                 Optimized - Leon (with log)
                 Should be faster because we don't calculate log2() every call to update()
-                1. index was (address_int >> int(log2(cacheLineSize))) & (l1CacheLines - 1);
+                1. index is (address_int >> int(log2(cacheLineSize))) % (l1CacheLines) as 
+                it is not guaranteed that cache lines are a power of two;
                 2. tag was address_int >> (log2_cacheLineSize + log2_l1CacheLines);
             */
             unsigned int offset = address_int & (cacheLineSize - 1);
-            unsigned int index = (address_int >> log2_cacheLineSize) & (l1CacheLines - 1);
-            unsigned int tag = address_int >> (log2_cacheLineSize + log2_l1CacheLines);
+            
+            unsigned int index = ((address_int >> log2_cacheLineSize) & (power_of_two - 1)) % l1CacheLines;
+            unsigned int tag = address_int >> (log2_cacheLineSize + (log2_l1CacheLines - (power_of_two != l1CacheLines)));
+
+            // std::cout << tag << " " << index << " " << tags[index] << " " << sc_time_stamp().to_seconds() << std::endl;
             
             // Tags and Data is only accessible after l1 latency cycles.
             for (unsigned i = 0; i < l1CacheLatency; i++) {

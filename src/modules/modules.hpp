@@ -10,10 +10,13 @@
 #include "storeback_buffer.hpp"
 #include "prefetch_buffer.hpp"
 
+
 #include <cmath>
 
 using namespace sc_core;
 using namespace std;
+
+
 
 /**
  * @brief custom sc_trace() method for pointer values
@@ -143,7 +146,9 @@ struct CPU_L1_L2 {
     
 
     // Clock and Trace File (60 MHz)
-    sc_clock* clk = new sc_clock("clk", 1, SC_SEC);
+    int period = 16;
+    sc_time_unit unit = SC_NS;
+    sc_clock* clk = new sc_clock("clk", period, unit);
     sc_trace_file* trace_file;
 
    /**
@@ -169,7 +174,7 @@ struct CPU_L1_L2 {
     * Van Trang Nguyen
     * Lie Leon Alexius
     */
-    CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
+    CPU_L1_L2 (unsigned l1CacheLines, unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
         unsigned prefetchBufferLines = 0, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
@@ -323,7 +328,7 @@ struct CPU_L1_L2 {
      * Lie Leon Alexius
      */
 
-    CacheStats send_request(struct Request request) {
+    CacheStats send_request(struct Request request, int &cycles) {
         uint32_t data_req = request.data;
 
         /*  Leon - Optimized from Base Anthony
@@ -349,7 +354,12 @@ struct CPU_L1_L2 {
         // run the simulation (+1) to process the request
         do {
 
-            sc_start(1, SC_SEC);
+            sc_start(period, unit);
+            cycles--;
+            if (cycles < 0) {
+                CacheStats res = {};
+                return res;
+            }
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -367,7 +377,7 @@ struct CPU_L1_L2 {
             */
             
         } while (!done_from_L1.read());
-
+        
         /*
             Calculating the misses and hits
             cache_l2_executes is true IFF "valid_from_l1_to_l2" is true
@@ -386,7 +396,6 @@ struct CPU_L1_L2 {
         
         // create Result and send back
         CacheStats res = { 
-
             cycle_count, // cycles
             misses, // misses
             hits, // hits
@@ -408,7 +417,7 @@ struct CPU_L1_L2 {
         return res;
     }
 
-    unsigned finish_memory() {
+    unsigned finish_memory(int &cycles) {
         if (storeback == nullptr) return 0;
         valid_from_L1_to_L2 = false;
         unsigned cycle_count = 0;
@@ -417,7 +426,9 @@ struct CPU_L1_L2 {
         // std::cout << memory->write_underway << std::endl;
         if (!memory->write_underway && storeback->is_empty()) return 0;
         while (!done_from_Memory) {
-            sc_start(1, SC_SEC);
+            cycles--;
+            if (cycles < 0) return -1;
+            sc_start(period, unit);
             cycle_count++;
         }
 
@@ -463,6 +474,19 @@ struct CPU_L1_L2 {
         delete[] data_from_L2_to_L1.read();
         delete[] data_from_L2_to_Memory.read();
         delete[] data_from_Memory_to_L2.read();
+    }
+
+    void reset_cache() {
+        std::fill(l1->cache_blocks.begin(), l1->cache_blocks.end(), vector<char>(cacheLineSize));
+        std::fill(l1->tags.begin(), l1->tags.end(), 0);
+        std::fill(l1->valid.begin(), l1->valid.end(), 0);
+
+        std::fill(l2->cache_blocks.begin(), l2->cache_blocks.end(), vector<char>(cacheLineSize));
+        std::fill(l2->tags.begin(), l2->tags.end(), 0);
+        std::fill(l2->valid.begin(), l2->valid.end(), 0);
+
+        memset(memory->memory_blocks, 0, sizeof(memory->memory_blocks));
+
     }
 
     /**
