@@ -39,6 +39,7 @@ typedef struct {
     size_t read_misses_L2; // 0 or 1 - read miss in L2
     size_t write_hits_L2; // 0 or 1 - write hit in L2
     size_t write_misses_L2; // 0 or 1 - write miss in L2
+    size_t currentMemoryCycles; // cycles needed to finish currently queued memory writes
 } CacheStats;
 
 /**

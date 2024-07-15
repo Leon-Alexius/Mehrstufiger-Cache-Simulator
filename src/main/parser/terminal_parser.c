@@ -17,15 +17,15 @@
 void print_help() {
     printf("Usage: ./cache [OPTIONS] filename.csv\n");
     printf("Options:\n");
-    printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 1000000)\n");
+    printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 2_147_483_647 ~ INT32_MAX)\n");
     printf("      --cacheline-size <num>        The size of a cache line in bytes (default: 64)\n");
     printf("      --l1-lines <num>              The number of cache lines of the L1 cache (default: 64)\n");
     printf("      --l2-lines <num>              The number of cache lines of the L2 cache (default: 256)\n");
     printf("      --l1-latency <num>            The latency of the L1 cache in cycles (default: 4)\n");
     printf("      --l2-latency <num>            The latency of the L2 cache in cycles (default: 12)\n");
     printf("      --memory-latency <num>        The latency of the main memory in cycles (default: 100)\n");
-    printf("      --tf=<filepath>               Output file for a trace file with all signals (default: default_trace.vcd)\n");
-    printf("      --num-requests <num>          Number of request to read from .csv file, default is all requests\n");
+    printf("      --tf=<filepath>               Output file for a trace file with all signals (default: None)\n");
+    printf("      --num-requests <num>          Number of request to read from .csv file (default: all requests)\n");
     printf("      --prefetch-buffer <num>       The number of cache lines in the prefetch buffer (default: 0)\n");
     printf("      --storeback-buffer <num>      The number of cache lines in the storeback buffer (default: 0)\n");
     printf("      --storeback-condition <bool>  The condition for storeback buffer (default: false)\n");
@@ -52,7 +52,8 @@ void print_help() {
  *  11. customNumRequest = false (flag for custom number of requests)
  *  12. prefetchBuffer = 0 (default prefetch buffer)
  *  13. storebackBuffer = 0 (default storeback buffer)
- *  13. prettyPrint = true (default pretty print flag)
+ *  14. prettyPrint = true (default pretty print flag)
+ *  15. storebackBufferCondition = false (default storeback buffer condition)
  * 
  * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
@@ -60,7 +61,7 @@ void print_help() {
 Config* parse_user_input(int argc, char* argv[]) {
 
     // Default Values
-    int cycles = 1000000;
+    int cycles = INT32_MAX;
     unsigned int l1CacheLines = 64;
     unsigned int l2CacheLines = 256;
     unsigned int cacheLineSize = 64;
@@ -94,6 +95,7 @@ Config* parse_user_input(int argc, char* argv[]) {
         {"num-requests", required_argument, 0, 0},
         {"prefetch-buffer", required_argument, 0, 0}, // Optimization: Prefetch Buffer
         {"storeback-buffer", required_argument, 0, 0}, // Optimization: Storeback Buffer
+        {"storeback-condition", required_argument, 0, 0}, // Optimization: Conditional Storeback Buffer
         {"pretty-print", required_argument, 0, 'p'}, // New: Pretty Print Option
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
@@ -124,17 +126,15 @@ Config* parse_user_input(int argc, char* argv[]) {
                 exit(EXIT_SUCCESS);
                 break;
             case 'p':
-                if (strcmp("pretty-print", long_options[long_index].name) == 0) {
-                    if (strcmp("true", optarg) == 0) {
-                        prettyPrint = true;
-                    } 
-                    else if (strcmp("false", optarg) == 0) {
-                        prettyPrint = false;
-                    } 
-                    else {
-                        fprintf(stderr, "Invalid input for pretty-print\n");
-                        exit(EXIT_FAILURE);
-                    }
+                if (strcmp("true", optarg) == 0) {
+                    prettyPrint = 1;
+                } 
+                else if (strcmp("false", optarg) == 0) {
+                    prettyPrint = 0;
+                } 
+                else {
+                    fprintf(stderr, "Invalid input for pretty-print\n");
+                    exit(EXIT_FAILURE);
                 }
                 break;
             case 0:
@@ -232,6 +232,21 @@ Config* parse_user_input(int argc, char* argv[]) {
                     // Check for errors during conversion then print it
                     if (errno != 0 || *endptr != '\0') {
                         fprintf(stderr, "Invalid input for storeback-buffer\n");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                // Optimization: Conditional Storeback Buffer
+                else if (strcmp("storeback-condition", long_options[long_index].name) == 0) {
+                    errno = 0;
+
+                    if (strcmp("true", optarg) == 0) {
+                    storebackBufferCondition = 1;
+                    } 
+                    else if (strcmp("false", optarg) == 0) {
+                        storebackBufferCondition = 0;
+                    } 
+                    else {
+                        fprintf(stderr, "Invalid input for storeback-condition\n");
                         exit(EXIT_FAILURE);
                     }
                 }
