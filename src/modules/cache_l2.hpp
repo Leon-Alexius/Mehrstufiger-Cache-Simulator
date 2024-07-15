@@ -9,6 +9,7 @@
 
 #include "../main/simulator.hpp" // the struct moved here - Leon
 #include "storeback_buffer.hpp"
+#include "prefetch_buffer.hpp"
 
 // using namespace directives won't get carried over. 
 using namespace sc_core;
@@ -48,6 +49,8 @@ SC_MODULE(L2){
 
     // We will use a WTCB (Write Through with Conditional Flush buffer)
     STOREBACK* storeback;
+    PREFETCH* prefetch;
+
 
     unsigned cacheLineSize;                 // Size of each cache line
     unsigned l2CacheLines;                  // Number of cache lines in the L2 cache
@@ -56,6 +59,10 @@ SC_MODULE(L2){
     // Optimization - Leon
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l2CacheLines = 0;     // log2(l2CacheLines)
+    unsigned int buffer_size;
+    
+
+    
 
    /**
     * @brief Constructor for L2 cache module.
@@ -70,12 +77,12 @@ SC_MODULE(L2){
     * Lie Leon Alexius
     */
     SC_CTOR(L2);
-    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency, STOREBACK* storeback) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency), storeback(storeback) {
+    L2(sc_module_name name, unsigned cacheLineSize, unsigned l2CacheLines, unsigned l2CacheLatency, PREFETCH* prefetch, STOREBACK* storeback) : sc_module(name), cacheLineSize(cacheLineSize), l2CacheLines(l2CacheLines), l2CacheLatency(l2CacheLatency), storeback(storeback), prefetch(prefetch) {
         cache_blocks.resize(l2CacheLines, vector<char> (cacheLineSize));
         valid.resize(l2CacheLines);
         tags.resize(l2CacheLines);
         
-
+        
         // Optimization - Leon
         while ((cacheLineSize >>= 1) > 0) {
             log2_cacheLineSize++;
@@ -96,6 +103,7 @@ SC_MODULE(L2){
     void update(){
         wait(); // wait for next clk event
         while (true) { 
+            
             
            
             done->write(false);
@@ -123,7 +131,7 @@ SC_MODULE(L2){
             for (unsigned i = 0; i < l2CacheLatency; i++) {
                 wait();
             }
-
+            
             // write operation
             if(write_enable->read()){
                 
@@ -148,6 +156,7 @@ SC_MODULE(L2){
                 valid_out->write(true);
 
 
+
                 if (storeback != nullptr) {
                     char* new_data = new char[4]();
                     //write to buffer
@@ -167,6 +176,7 @@ SC_MODULE(L2){
                         wait(SC_ZERO_TIME);
                     }
                 }
+
 
                 valid_out->write(false);
             } 
@@ -197,6 +207,7 @@ SC_MODULE(L2){
                     }
                     valid_out->write(true);
 
+
                     // Signal to RAM, then mark as valid propagation
                     address_out->write(address->read()); 
                     write_enable_out->write(write_enable->read());
@@ -209,7 +220,9 @@ SC_MODULE(L2){
                     }
                     
                     
+                    
                     valid_out->write(false);
+
                     
                     
                     // Write the data from RAM to the appropriate CacheLine
@@ -219,14 +232,23 @@ SC_MODULE(L2){
                     }
                     valid[index] = true; // set data is valid
                     tags[index] = tag; // update tag
+
+                    
+                    //load the prefetched lines into cache
+                    if (prefetch != nullptr) {
+                        read_from_prefetch();
+                    }
+                    
                 }
 
                 //bring the read data back to L1
                 for (unsigned i = 0; i < 4; i++) {
                     data_out_to_L1->read()[i] = cache_blocks[index][i];
                 }
+            
             }
 
+            
             
             done->write(true); // signal as done
             wait(SC_ZERO_TIME);
@@ -234,6 +256,47 @@ SC_MODULE(L2){
             wait(); // wait for next clk event
         }
     }
+
+    void read_from_prefetch() {
+
+        char* data;
+        uint32_t address_u;
+
+        for (int i = 0; i < prefetch->capacity; i++) {
+            
+            // If no write was underway, then read from buffer. But if the buffer is empty, then
+            // memory has finished its task and will await further instructions.
+
+            while (!prefetch->read(data, address_u)) {
+                wait();
+                wait(SC_ZERO_TIME);
+                wait(SC_ZERO_TIME);
+                std::cout << sc_time_stamp().to_seconds() << std::endl;
+            }
+
+            uint32_t address_new = address_u;
+            unsigned int index_new = ((address_new >> log2_cacheLineSize)) % (l2CacheLines);
+            unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines);
+            
+            // Write to memory
+            for (unsigned i = 0; i < cacheLineSize; i++) {
+                cache_blocks[index_new][i] = data[i];
+            }
+
+            tags[index_new] = tag_new;
+            valid[index_new] = true;
+
+            // Free the pointer from data
+            delete[] data;
+        }
+        
+        return;
+    }
+
+    
+
+    
+    
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include "cache_l1.hpp"
 #include "cache_l2.hpp"
 #include "storeback_buffer.hpp"
+#include "prefetch_buffer.hpp"
 
 #include <cmath>
 
@@ -94,6 +95,7 @@ struct CPU_L1_L2 {
     L2* l2;                     // Pointer to L2 cache
     MEMORY* memory;             // Pointer to main memory
     STOREBACK* storeback = nullptr;       // Pointer to Store back buffer
+    PREFETCH* prefetch = nullptr;
 
     // Bus between CPU and Cache (L1)
     sc_signal<char*> data_in;
@@ -170,7 +172,7 @@ struct CPU_L1_L2 {
     CPU_L1_L2 (const unsigned l1CacheLines, const unsigned l2CacheLines, const unsigned cacheLineSize,
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency,
         const char* tracefile,
-        unsigned prefetchBufferLines, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
+        unsigned prefetchBufferLines = 0, unsigned storebackBufferLines = 0, bool storeBufferConditional = false) :
         l1CacheLines(l1CacheLines), l2CacheLines(l2CacheLines), cacheLineSize(cacheLineSize), 
         l1CacheLatency(l1CacheLatency), l2CacheLatency(l2CacheLatency), memoryLatency(memoryLatency),
         tracefile(tracefile) {
@@ -179,10 +181,17 @@ struct CPU_L1_L2 {
         if (storebackBufferLines != 0) {
             storeback = new STOREBACK("Storeback", storebackBufferLines, storeBufferConditional);
         }
-        // storeback = nullptr;
+
+        //prefetch buffer
+        if (prefetchBufferLines != 0) {
+            prefetch = new PREFETCH("Prefetch", prefetchBufferLines);
+        }
+
         l1 = new L1("L1", cacheLineSize, l1CacheLines, l1CacheLatency);
-        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency, storeback);
-        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, storeback);
+        l2 = new L2("L2", cacheLineSize, l2CacheLines, l2CacheLatency,  prefetch, storeback);
+        memory = new MEMORY("Memory", cacheLineSize, memoryLatency, prefetch, storeback);
+
+
         
         // Initialize data_in, etc. and set value to '\0'
         // Bus from Memory -> L2 -> L1 is as big as a cacheLine, while the other is only 4 Bytes
@@ -270,14 +279,14 @@ struct CPU_L1_L2 {
         */
 
         // Bind to trace - only if tracefile is not NULL
-        if (tracefile != NULL) {
+        if (tracefile != nullptr) {
             trace_file = sc_create_vcd_trace_file(tracefile);
 
             // Custom Trace - Array
             trace(trace_file, data_in, 4, "Data_In");
             trace(trace_file, data_out, 4, "Data_Out");
 
-            trace(trace_file, data_from_L1_to_L2, 4, "Data-from_L1_to_L2");
+            trace(trace_file, data_from_L1_to_L2, 4, "Data_from_L1_to_L2");
             trace(trace_file, data_from_L2_to_L1, cacheLineSize, "Data_from_L2_to_L1");
 
             trace(trace_file, data_from_L2_to_Memory, 4, "Data_from_L2_to_Memory");
@@ -377,6 +386,7 @@ struct CPU_L1_L2 {
         
         // create Result and send back
         CacheStats res = { 
+
             cycle_count, // cycles
             misses, // misses
             hits, // hits

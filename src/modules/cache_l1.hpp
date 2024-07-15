@@ -19,6 +19,9 @@ using namespace std;
 * its write miss policy is no-write-allocate, no-fetch-on-write, and no-write-before-hit
 * its write hit policy is write-through
 * 
+* its write miss policy is no-write-allocate, no-fetch-on-write, and no-write-before-hit
+* its write hit policy is write-through
+* 
 * @author Van Trang Nguyen
 */
 SC_MODULE(L1){
@@ -57,6 +60,9 @@ SC_MODULE(L1){
     unsigned int log2_cacheLineSize = 0;    // log2(cacheLineSize)
     unsigned int log2_l1CacheLines = 0;     // log2(l1CacheLines)
 
+   
+
+
     /**
      * @brief Constructor for L1 cache module.
      *
@@ -70,10 +76,11 @@ SC_MODULE(L1){
      * Lie Leon Alexius
      */
     SC_CTOR(L1);
-    L1(sc_module_name name, unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) : sc_module(name), cacheLineSize(cacheLineSize), l1CacheLines(l1CacheLines), l1CacheLatency(l1CacheLatency) {
+    L1(sc_module_name name, unsigned cacheLineSize, unsigned l1CacheLines, unsigned l1CacheLatency) : sc_module(name), cacheLineSize(cacheLineSize), l1CacheLines(l1CacheLines), l1CacheLatency(l1CacheLatency){
         cache_blocks.resize(l1CacheLines, vector<char> (cacheLineSize));
         valid.resize(l1CacheLines);
         tags.resize(l1CacheLines);
+
 
         /*
             Optimization - Leon
@@ -110,9 +117,12 @@ SC_MODULE(L1){
      */
     void update(){
         wait(); // wait for next clk event (refer to SC_START(ZERO) in CPU_L1_L2)
+        // wait();
         while (true)
         {
                    
+            // std::cout << "bruh again?" << std::endl;
+            
             hit->write(false);
             done->write(false);
             
@@ -152,6 +162,7 @@ SC_MODULE(L1){
             
             // Tags and Data is only accessible after l1 latency cycles.
             for (unsigned i = 0; i < l1CacheLatency; i++) {
+                
                 wait();
             }
 
@@ -185,6 +196,8 @@ SC_MODULE(L1){
                     wait(SC_ZERO_TIME);
                     wait(SC_ZERO_TIME);
                     wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
+                    wait(SC_ZERO_TIME);
                 }
                 valid_out->write(false);
             } 
@@ -195,6 +208,7 @@ SC_MODULE(L1){
                 // cache hit
                 if (valid[index] && tags[index]==tag)
                 {
+                    // std::cout << std::hex << address << std::endl;
                     hit->write(true);                    
                 }
 
@@ -212,18 +226,22 @@ SC_MODULE(L1){
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
                         wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
+                        wait(SC_ZERO_TIME);
                     }
                     valid_out->write(false);
-
 
 
                     // Write the data to the appropriate CacheLine
                     // Data that is sent by L2 is a whole cacheLine
                     for (unsigned i = 0; i < cacheLineSize; i++) {
-                        cache_blocks[index][i] = data_in_from_L2->read()[i];
+                        cache_blocks[index][i] = data_in_from_L2->read()[i]; 
                     }
                     valid[index] = true; // set data is valid
                     tags[index] = tag; // update tag
+
+
+
                 }
 
                 // Write data to bus for the CPU (4 Bytes)
