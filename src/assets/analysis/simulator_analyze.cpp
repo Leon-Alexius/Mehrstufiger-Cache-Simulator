@@ -79,7 +79,7 @@ extern "C" {
             
             // Send request to cache
             
-            CacheStats tempResult = caches->send_request(req);
+            CacheStats tempResult = caches->send_request(req, cycles);
 
             
             result->cycles += tempResult.cycles;
@@ -99,7 +99,7 @@ extern "C" {
             result->write_misses_L2 += tempResult.write_misses_L2;
         }
 
-        unsigned memory_cycles = caches->finish_memory();
+        unsigned memory_cycles = caches->finish_memory(cycles);
         result->cycles += memory_cycles;
 
         

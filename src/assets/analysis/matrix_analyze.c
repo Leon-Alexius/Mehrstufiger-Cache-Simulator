@@ -102,7 +102,7 @@ int main() {
     fpt = fopen(csv_file_name, "w+");
     fprintf(fpt, "matrix, cycles, misses, hits, read-hits, read-miss, write-hits, write-miss, read-hits-l1, read-miss-l1, write-hits-l1, write-miss-l1, read-hits-l2, read-miss-l2, write-hits-l2, write-miss-l2\n");
     for (int i = 0; i < 17; i++) {
-        int cycles = 0;
+        int cycles = INT_MAX;
         
         // Parsing requests
         unsigned numRequests = calculateLinesAnalyze(input_filename[i]);

@@ -168,22 +168,23 @@ extern "C" {
             }
             
             // Send request to cache
-            CacheStats tempResult = caches.send_request(req);
+            CacheStats tempResult = caches.send_request(req, cycles);
 
-            // break if next cycle will exceed the limit
-            if (cacheStats->cycles + tempResult.cycles + tempResult.currentMemoryCycles > cycles) {
+            // break if cycles already exceeded the limit
+            if (cycles < 0) {
+                
                 simulatorForceTerminate = true;
                 break;
             }
-
             // update the cacheStats
             statsUpdater(cacheStats, tempResult);
         }
 
         // Finish up the simulation (wait for memory write) if the simulator is not forced to terminate
         if (!simulatorForceTerminate) {
-            unsigned int memory_cycles = caches.finish_memory();
-            cacheStats->cycles += memory_cycles;
+            unsigned int memory_cycles = caches.finish_memory(cycles);
+            if (cycles < 0) cacheStats->cycles = SIZE_MAX; 
+            else cacheStats->cycles += memory_cycles;
         }
         else {
             // if forced to stop, cycles need to be SIZE_MAX

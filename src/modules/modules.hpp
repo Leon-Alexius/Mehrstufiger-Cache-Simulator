@@ -328,7 +328,7 @@ struct CPU_L1_L2 {
      * Lie Leon Alexius
      */
 
-    CacheStats send_request(struct Request request) {
+    CacheStats send_request(struct Request request, int &cycles) {
         uint32_t data_req = request.data;
 
         /*  Leon - Optimized from Base Anthony
@@ -355,6 +355,11 @@ struct CPU_L1_L2 {
         do {
 
             sc_start(period, unit);
+            cycles--;
+            if (cycles < 0) {
+                CacheStats res = {};
+                return res;
+            }
 
             // if L1 miss, then request propagated to L2, thus valid_from_L1_to_L2 = true
             if (valid_from_L1_to_L2) {
@@ -391,7 +396,6 @@ struct CPU_L1_L2 {
         
         // create Result and send back
         CacheStats res = { 
-
             cycle_count, // cycles
             misses, // misses
             hits, // hits
@@ -413,7 +417,7 @@ struct CPU_L1_L2 {
         return res;
     }
 
-    unsigned finish_memory() {
+    unsigned finish_memory(int &cycles) {
         if (storeback == nullptr) return 0;
         valid_from_L1_to_L2 = false;
         unsigned cycle_count = 0;
@@ -422,6 +426,8 @@ struct CPU_L1_L2 {
         // std::cout << memory->write_underway << std::endl;
         if (!memory->write_underway && storeback->is_empty()) return 0;
         while (!done_from_Memory) {
+            cycles--;
+            if (cycles < 0) return -1;
             sc_start(period, unit);
             cycle_count++;
         }
