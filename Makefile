@@ -23,9 +23,6 @@ HEADERS := src/modules/module.hpp
 # Target name
 # The name of the final executable that will be generated
 TARGET := cache
-ANALYZE_TARGET := src/assets/analysis/analyze
-CSV_TARGET := examples/matrix_csv
-MATRIX_TARGET := examples/matrix
 
 # The path to SystemC installation (this project included Systemc to standardize the path)
 SCPATH = systemc
