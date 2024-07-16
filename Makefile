@@ -39,8 +39,8 @@ SCPATH = systemc
 CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
 
 # Flags for the C compiler
-# 1. Address Sanitizer
-CFLAGS := -fsanitize=address
+# 1. C17 Standard (std=c17)
+CFLAGS := -std=c17
 
 # ---------------------------------------
 # CONFIGURATION END
@@ -81,7 +81,7 @@ endif
 all: release
 
 # Debug build
-debug: CXXFLAGS += -g -fsanitize=address# include debugging information in the output file -fsanitize=address
+debug: CXXFLAGS += -g -fsanitize=address # include debugging information in the output file 
 debug: $(TARGET)
 debug: 
 	rm -rf src/main/parser/*.o 
@@ -99,7 +99,6 @@ release:
 # Rule to link object files to executables, flags, etc.
 $(TARGET): $(C_OBJS) $(CPP_OBJS)
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) -o $(TARGET)
-
 
 
 # clean up
