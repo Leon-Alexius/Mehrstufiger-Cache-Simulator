@@ -44,6 +44,63 @@ extern "C" {
     }
 
     /**
+     * @brief This function checks the inputs for the simulation
+     * @note 
+     * Only called if the `run_simulation` is not called by `executor.c`
+     * Since every input has been checked by parsers that are called by `executor.c`
+     * @author Lie Leon Alexius
+     */
+    void input_checker(
+        int cycles, 
+        unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
+        unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
+        size_t numRequests, struct Request* requests
+    ) 
+    {
+        // Check if the inputs are valid
+        if (cycles < 0) {
+            fprintf(stderr, "Invalid cycles input, must be greater or equal than 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLines == 0) {
+            fprintf(stderr, "Invalid L1 cache lines input, must be greater or equal than 1\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l2CacheLines == 0) {
+            fprintf(stderr, "Invalid L2 cache lines input, must be greater or equal than 1\n");
+            exit(EXIT_FAILURE);
+        }
+        if (cacheLineSize == 0) {
+            fprintf(stderr, "Invalid cache line size input, must be greater or equal than 1\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLines > l2CacheLines) {
+            fprintf(stderr, "Invalid input: L1 cache lines count is greater than L2 cache lines count\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLatency == 0) {
+            fprintf(stderr, "Invalid L1 cache latency input, must not be 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l2CacheLatency == 0) {
+            fprintf(stderr, "Invalid L2 cache latency input, must not be 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (memoryLatency == 0) {
+            fprintf(stderr, "Invalid memory latency input, must not be 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLatency > l2CacheLatency || l2CacheLatency > memoryLatency) {
+            fprintf(stderr, "Invalid input: L1 latency is greater than L2 latency or L2 latency is greater than memory latency\n");
+            exit(EXIT_FAILURE);
+        }
+        if (numRequests != 0 && requests == NULL) {
+            fprintf(stderr, "Invalid requests input, NULL requests only permitted when numRequests is 0\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /**
      * @brief Runs the cache simulation
      * 
      * @note This function will try to print the result of the simulation
@@ -71,6 +128,14 @@ extern "C" {
         const char* tracefile
     ) 
     {
+        // Check the inputs if this function is not called by "executor.c"
+        if (config == NULL) {
+            input_checker(
+                cycles, l1CacheLines, l2CacheLines, cacheLineSize, 
+                l1CacheLatency, l2CacheLatency, memoryLatency, numRequests, requests
+            );
+        }
+        
         // Get the config if any (Optimization flags)
         unsigned int prefetchBuffer = 0; 
         unsigned int storebackBuffer = 0; 

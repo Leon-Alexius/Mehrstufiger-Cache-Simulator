@@ -299,7 +299,7 @@ Config* parse_user_input(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (l1CacheLines == 0 || l2CacheLines == 0 || cacheLineSize < 1) {
+    if (l1CacheLines == 0 || l2CacheLines == 0 || cacheLineSize == 0) {
         fprintf(stderr, "Invalid input: L1 cache lines, L2 cache lines or cache line size is set to 0\n");
         exit(EXIT_FAILURE);
     }
