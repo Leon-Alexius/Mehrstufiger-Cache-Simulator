@@ -45,6 +45,8 @@ Caches are small but fast memories that temporarily store data and instructions 
 
 The implementation of the Store-Back Buffer and Prefetch Buffer showed the potential in improving cache performance, particularly the reduction in write access times through store back buffer and the increase in hit rates through prefetching data
 
+### Contributors
+
 ### Lie Leon Alexius
 Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
 
