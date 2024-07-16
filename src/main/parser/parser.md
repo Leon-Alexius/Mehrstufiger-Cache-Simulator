@@ -45,3 +45,4 @@ The parameters
 Note: 
 - returns `ULONG_MAX` if overflow. 
 - Sets `errno` to `ERANGE` if overflow.
+- Lie Leon Alexius

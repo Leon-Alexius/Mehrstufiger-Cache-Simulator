@@ -1,7 +1,7 @@
 # Cache Simulation Project
 
 ## Overview
-This project aims to investigate the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
+This project aims to analyze the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
 
 ## Requirements
 
@@ -65,7 +65,7 @@ For more details, the `@author` or `@authors` is included in each Docstring docu
 Alexander is primarily responsible for the development of `src/modules`, with additional contributions to the development of `src/main/simulator.cpp`
 
 Other contributions include:
-- Creating the `Makefile`
+- Writing the `Makefile`
 - Writing the `build.sh` script
 - Initiating, Optimizing and Documenting the project
 
@@ -73,6 +73,7 @@ Other contributions include:
 Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
 
 Other contributions include:
+- Writing the `Makefile`
 - Writing the `build.sh` scripts
 - Authoring the `Readme.md`
 - Implementing automated tests

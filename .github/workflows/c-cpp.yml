@@ -1,4 +1,5 @@
-name: C/C++ CI
+# Lie Leon Alexius
+name: Simulator Test
 
 # control the action to triggers on all push, pull request to main branch
 on: 
@@ -13,28 +14,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    # - name: Setup environment
-    #   run: bash src/assets/scripts/setup.sh
     - name: Make Test 1
       run: make
-    - name: Run Samples
-      run: |
-        echo "IJK Standard"
-        ./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk/ijk.csv
-        echo "=================================================================================="
-        
-        echo "IJK Optimized 1"
-        ./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk/ijk_opt1.csv
-        echo "=================================================================================="
-
-        echo "IJK Optimized 2"
-        ./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --pretty-print true examples/ijk/ijk_opt2.csv
-        echo "=================================================================================="
     - name: Make Test 2
       run: make clean
+    - name: Run Samples
+      run: bash src/assets/scripts/build.sh
     
   edge-case-tests:
     runs-on: ubuntu-latest
@@ -43,5 +30,6 @@ jobs:
     - uses: actions/checkout@v4
     - name: Run Edge Case Tests
       run: |
-        make
+        make release
         bash src/assets/scripts/edge_case_test.sh
+        make clean
