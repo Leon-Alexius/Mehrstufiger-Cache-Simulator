@@ -944,13 +944,3 @@ int create_csv(const int n) {
 
     return 0;
 }
-
-/**
- * @warning Don't forget to comment out this before submission
- * @author Lie Leon Alexius
- */
-// int main() {
-//     // create csv for square matrix of size n
-//     const int n = 1000;
-//     return create_csv(n);
-// }
