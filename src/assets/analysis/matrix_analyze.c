@@ -26,6 +26,8 @@ extern void initialize_caches(
     bool conditionalBuffer
 );
 
+extern void free_caches();
+
 int calculateLinesAnalyze(const char* input_filename) {
     FILE* file = fopen(input_filename, "r");
     if (file == NULL) {
@@ -80,10 +82,10 @@ int main() {
     unsigned cacheLineSize = 16;
     unsigned l1CacheLatency = 4;
     unsigned l2CacheLatency = 12;
-    unsigned memoryLatency = 100;
+    unsigned memoryLatency = 80;
     const char* tracefile = NULL;
     unsigned prefetchBuffer = 0;
-    unsigned storebackBuffer = 0;
+    unsigned storebackBuffer = 4;
     bool conditionalBuffer = false;
     
     initialize_caches(
@@ -98,15 +100,14 @@ int main() {
     FILE *fpt;
 
     char csv_file_name[200];
-    sprintf(csv_file_name, "src/assets/analysis/mul_%d_%d_%d_%d_%d_%d_%d_%d_%d.csv", l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, prefetchBuffer, storebackBuffer, conditionalBuffer);
+    sprintf(csv_file_name, "src/assets/analysis/csv_stats/mul_%d_%d_%d_%d_%d_%d_%d_%d_%d.csv", l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, prefetchBuffer, storebackBuffer, conditionalBuffer);
     fpt = fopen(csv_file_name, "w+");
     fprintf(fpt, "matrix, cycles, misses, hits, read-hits, read-miss, write-hits, write-miss, read-hits-l1, read-miss-l1, write-hits-l1, write-miss-l1, read-hits-l2, read-miss-l2, write-hits-l2, write-miss-l2\n");
     for (int i = 0; i < 17; i++) {
         int cycles = INT_MAX;
         
         // Parsing requests
-        // unsigned numRequests = calculateLinesAnalyze(input_filename[i])
-        unsigned numRequests = 1000;
+        unsigned numRequests = calculateLinesAnalyze(input_filename[i]);
         
         struct Request* requests = malloc((numRequests + 1) * sizeof(struct Request));
         
@@ -117,7 +118,6 @@ int main() {
             numRequests, requests
         );
 
-        // printf("%d\n", stats.cycles);
 
         fprintf(fpt, "%s, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu\n",
         input_filename[i], stats->cycles, stats->misses, stats->hits, 
@@ -125,7 +125,8 @@ int main() {
         stats->read_hits_L1, stats->read_misses_L1, stats->write_hits_L1, stats->write_misses_L1, 
         stats->read_hits_L2, stats->read_misses_L2, stats->write_hits_L2, stats->write_misses_L2);
         free(stats);
+        free(requests);
     }
-
+    free_caches();
     fclose(fpt);
 }

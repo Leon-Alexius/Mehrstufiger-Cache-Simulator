@@ -76,13 +76,15 @@ extern "C" {
             if (req.we == -1) {
                 break;
             }
+
+            // std::cout << cycles << std::endl;
             
             // Send request to cache
             
             CacheStats tempResult = caches->send_request(req, cycles);
 
             if (cycles < 0) {
-                return result;
+                break;
             }
 
             
