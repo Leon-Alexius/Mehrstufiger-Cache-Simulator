@@ -9,15 +9,23 @@ PARSER = src/main/parser/csv_parser.c src/main/parser/parse.c src/main/parser/te
 GRAPHER = src/main/grapher/printer.c
 CPP_SRCS = src/main/simulator.cpp
 
+
 # Object files
 # variables to the paths of the object files that will be generated from the C and C++ source files
 # Pattern substitution: replace the .c and .cpp extensions with .o
 C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
+
+# Variable to the paths of the header files that the source files depend on
+HEADERS := src/modules/module.hpp
+
 # Target name
 # The name of the final executable that will be generated
 TARGET := cache
+ANALYZE_TARGET := src/assets/analysis/analyze
+CSV_TARGET := examples/matrix_csv
+MATRIX_TARGET := examples/matrix
 
 # The path to SystemC installation (this project included Systemc to standardize the path)
 SCPATH = systemc
@@ -31,9 +39,8 @@ SCPATH = systemc
 CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
 
 # Flags for the C compiler
-# 1. C17 standard (-std=c17)
-# 2. Address Sanitizer (-fsanitize=address)
-CFLAGS := -std=c17
+# 1. Address Sanitizer
+CFLAGS := -fsanitize=address
 
 # ---------------------------------------
 # CONFIGURATION END
@@ -70,15 +77,11 @@ endif
 # Targets in Makefile
 .PHONY: all debug release clean
 
-# Rule to link object files to executables, flags, etc.
-$(TARGET): $(C_OBJS) $(CPP_OBJS)
-	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) -o $(TARGET)
-
 # Default to release build for both app and library
 all: release
 
 # Debug build
-debug: CXXFLAGS += -g -fsanitize=address # include debugging information in the output file
+debug: CXXFLAGS += -g -fsanitize=address# include debugging information in the output file -fsanitize=address
 debug: $(TARGET)
 debug: 
 	rm -rf src/main/parser/*.o 
@@ -92,6 +95,12 @@ release:
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o 
+
+# Rule to link object files to executables, flags, etc.
+$(TARGET): $(C_OBJS) $(CPP_OBJS)
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) -o $(TARGET)
+
+
 
 # clean up
 clean:
