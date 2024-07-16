@@ -1,7 +1,7 @@
 # Cache Simulation Project
 
 ## Overview
-This project aims to investigate the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
+This project aims to analyze the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
 
 ## Requirements
 
