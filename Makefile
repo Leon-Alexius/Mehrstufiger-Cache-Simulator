@@ -10,6 +10,8 @@ GRAPHER = src/main/grapher/printer.c
 CPP_SRCS = src/main/simulator.cpp
 ANALYZE_C_SRCS = src/assets/analysis/matrix_analyze.c
 ANALYZE_CPP_SRCS = src/assets/analysis/simulator_analyze.cpp
+MATRIX_C_SRCS = examples/matrix.c
+MATRIX_CSV_SRCS = examples/matrix_csv.c
 
 # Object files
 # variables to the paths of the object files that will be generated from the C and C++ source files
@@ -20,6 +22,9 @@ CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 ANALYZE_C_OBJS = $(ANALYZE_C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 ANALYZE_CPP_OBJS = $(ANALYZE_CPP_SRCS:.cpp=.o)
 
+MATRIX_C_OBJS = $(MATRIX_C_SRCS:.c=.o)
+MATRIX_CSV_OBJS = $(MATRIX_CSV_SRCS:.c=.o)
+
 # Variable to the paths of the header files that the source files depend on
 HEADERS := src/modules/module.hpp
 
@@ -27,6 +32,8 @@ HEADERS := src/modules/module.hpp
 # The name of the final executable that will be generated
 TARGET := cache
 ANALYZE_TARGET := src/assets/analysis/analyze
+CSV_TARGET := examples/matrix_csv
+MATRIX_TARGET := examples/matrix
 
 # The path to SystemC installation (this project included Systemc to standardize the path)
 SCPATH = systemc
@@ -104,6 +111,12 @@ $(TARGET): $(C_OBJS) $(CPP_OBJS)
 $(ANALYZE_TARGET): $(ANALYZE_C_OBJS) $(ANALYZE_CPP_OBJS)
 	$(CXX) $(CXXFLAGS) $(ANALYZE_C_OBJS) $(ANALYZE_CPP_OBJS) $(LDFLAGS) -o $(ANALYZE_TARGET)
 
+$(CSV_TARGET): $(MATRIX_CSV_OBJS)
+	$(CXX) $(MATRIX_CSV_OBJS) $(LDFLAGS) -o $(CSV_TARGET)
+
+$(MATRIX_TARGET): $(MATRIX_C_OBJS)
+	$(CXX) $(MATRIX_C_OBJS) $(LDFLAGS) -o $(MATRIX_TARGET)
+
 analyze: CXXFLAGS += -O2
 analyze: $(ANALYZE_TARGET)
 analyze:
@@ -112,11 +125,24 @@ analyze:
 	rm -rf src/main/*.o 
 	rm -rf src/assets/analysis/*.o
 
+matrix: CXXFLAGS += -O2
+matrix: $(MATRIX_TARGET)
+matrix: 
+	rm -rf examples/*.o 
+
+csv: CXXFLAGS += -O2
+csv: $(CSV_TARGET)
+csv: 
+	rm -rf examples/*.o 
 
 # clean up
 clean:
 	rm -f $(TARGET)
+	rm -f $(ANALYZE_TARGET)
+	rm -f $(MATRIX_TARGET)
+	rm -f $(CSV_TARGET)
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o
 	rm -rf src/assets/analysis/*.o
+	rm -rf examples/*.o

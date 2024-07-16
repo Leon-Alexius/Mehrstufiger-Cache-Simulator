@@ -285,6 +285,7 @@ struct CPU_L1_L2 {
 
         // Bind to trace - only if tracefile is not NULL
         if (tracefile != nullptr) {
+            std::cout << tracefile << std::endl;
             trace_file = sc_create_vcd_trace_file(tracefile);
 
             // Custom Trace - Array

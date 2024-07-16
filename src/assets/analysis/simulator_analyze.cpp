@@ -81,6 +81,10 @@ extern "C" {
             
             CacheStats tempResult = caches->send_request(req, cycles);
 
+            if (cycles < 0) {
+                return result;
+            }
+
             
             result->cycles += tempResult.cycles;
             result->misses += tempResult.misses;
@@ -115,8 +119,14 @@ extern "C" {
         // return the result
         return result;
     }
+
+    void free_caches() {
+        caches->free_memory();
+        delete caches;
+    }
     
 }
+
 
 // The default sc_main implementation.
 int sc_main(int argc, char* argv[])

@@ -55,34 +55,34 @@ int calculateLinesAnalyze(const char* input_filename) {
 int main() {
 
     const char* input_filename[17] = {
-        "examples/ijk.csv",
-        "examples/ijk_opt1.csv",
-        "examples/ijk_opt2.csv",
-        "examples/ikj.csv",
-        "examples/ikj_opt1.csv",
-        "examples/jik.csv",
-        "examples/jik_opt1.csv",
-        "examples/jik_opt2.csv",
-        "examples/jki.csv",
-        "examples/jki_opt1.csv",
-        "examples/jki_opt2.csv",
-        "examples/kij.csv",
-        "examples/kij_opt1.csv",
-        "examples/kij_opt2.csv",
-        "examples/kji.csv",
-        "examples/kji_opt1.csv",
-        "examples/kji_opt2.csv"
+        "examples/ijk/ijk.csv",
+        "examples/ijk/ijk_opt1.csv",
+        "examples/ijk/ijk_opt2.csv",
+        "examples/ikj/ikj.csv",
+        "examples/ikj/ikj_opt1.csv",
+        "examples/jik/jik.csv",
+        "examples/jik/jik_opt1.csv",
+        "examples/jik/jik_opt2.csv",
+        "examples/jki/jki.csv",
+        "examples/jki/jki_opt1.csv",
+        "examples/jki/jki_opt2.csv",
+        "examples/kij/kij.csv",
+        "examples/kij/kij_opt1.csv",
+        "examples/kij/kij_opt2.csv",
+        "examples/kji/kji.csv",
+        "examples/kji/kji_opt1.csv",
+        "examples/kji/kji_opt2.csv"
     };
 
     // Cache attributes
     unsigned l1CacheLines = 4;
     unsigned l2CacheLines = 16;
-    unsigned cacheLineSize = 32;
+    unsigned cacheLineSize = 16;
     unsigned l1CacheLatency = 4;
     unsigned l2CacheLatency = 12;
     unsigned memoryLatency = 100;
     const char* tracefile = NULL;
-    unsigned prefetchBuffer = 2;
+    unsigned prefetchBuffer = 0;
     unsigned storebackBuffer = 0;
     bool conditionalBuffer = false;
     
@@ -98,14 +98,15 @@ int main() {
     FILE *fpt;
 
     char csv_file_name[200];
-    sprintf(csv_file_name, "src/assets/analysis/csv_stats/mul_%d_%d_%d_%d_%d_%d_%d_%d_%d.csv", l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, prefetchBuffer, storebackBuffer, conditionalBuffer);
+    sprintf(csv_file_name, "src/assets/analysis/mul_%d_%d_%d_%d_%d_%d_%d_%d_%d.csv", l1CacheLines, l2CacheLines, cacheLineSize, l1CacheLatency, l2CacheLatency, memoryLatency, prefetchBuffer, storebackBuffer, conditionalBuffer);
     fpt = fopen(csv_file_name, "w+");
     fprintf(fpt, "matrix, cycles, misses, hits, read-hits, read-miss, write-hits, write-miss, read-hits-l1, read-miss-l1, write-hits-l1, write-miss-l1, read-hits-l2, read-miss-l2, write-hits-l2, write-miss-l2\n");
     for (int i = 0; i < 17; i++) {
         int cycles = INT_MAX;
         
         // Parsing requests
-        unsigned numRequests = calculateLinesAnalyze(input_filename[i]);
+        // unsigned numRequests = calculateLinesAnalyze(input_filename[i])
+        unsigned numRequests = 1000;
         
         struct Request* requests = malloc((numRequests + 1) * sizeof(struct Request));
         
@@ -123,6 +124,7 @@ int main() {
         stats->read_hits, stats->read_misses, stats->write_hits, stats->write_misses, 
         stats->read_hits_L1, stats->read_misses_L1, stats->write_hits_L1, stats->write_misses_L1, 
         stats->read_hits_L2, stats->read_misses_L2, stats->write_hits_L2, stats->write_misses_L2);
+        free(stats);
     }
 
     fclose(fpt);
