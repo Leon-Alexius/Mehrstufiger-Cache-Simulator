@@ -17,9 +17,6 @@ C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
 
-# Variable to the paths of the header files that the source files depend on
-HEADERS := src/modules/module.hpp
-
 # Target name
 # The name of the final executable that will be generated
 TARGET := cache
