@@ -70,6 +70,10 @@ endif
 # Targets in Makefile
 .PHONY: all debug release clean
 
+# Rule to link object files to executables, flags, etc.
+$(TARGET): $(C_OBJS) $(CPP_OBJS)
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) -o $(TARGET)
+
 # Default to release build for both app and library
 all: release
 
@@ -88,10 +92,6 @@ release:
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o 
-
-# Rule to link object files to executables, flags, etc.
-$(TARGET): $(C_OBJS) $(CPP_OBJS)
-	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(LDFLAGS) -o $(TARGET)
 
 # clean up
 clean:
