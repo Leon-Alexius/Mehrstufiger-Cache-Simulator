@@ -21,7 +21,7 @@ jobs:
     - name: Make Test 2
       run: make clean
     - name: Run Samples
-      run: bash src/assets/scripts/build.sh
+      run: bash src/assets/scripts/build_test.sh
     
   edge-case-tests:
     runs-on: ubuntu-latest
