@@ -1,73 +1,49 @@
-# Cache Simulation Project
+### Introduction
 
-## Overview
-This project aims to analyze the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
+This report documents the results of Project Group 150 on the simulation, analysis, and optimization of the L1 and L2 cache memory hierarchy systems in modern computer systems.
 
-## Requirements
+---
+### Background
 
-Ensure you have the following software installed on your system:
+Caches is a strategy to mitigate the Von Neumann bottleneck.
 
-| Language | Version |
-|----------|---------|
-| C        | C17     |
-| C++      | C++14   |
-| SystemC  | 2.3.3   |
+Caches are small but fast memories that temporarily store data and instructions to reduce the access time to frequently used data. In modern processors, L1 (Level 1) and L2 (Level 2) caches are crucial. The L1 cache is the smallest and fastest memory, while the L2 cache is larger but somewhat slower.
 
-More Details:
-- C Compiler (GCC recommended) supporting C17 standard
-- C++ Compiler (G++ recommended) supporting C++14 standard
-- SystemC library version 2.3.3
+### Objectives
 
-If you do not have these prerequisites installed, please refer to the respective documentation for installation instructions.
+1. Simulation of the current L1 and L2 cache architecture.
+2. Implementation of a command-line interface for inputting simulation parameters such as cache line size.
+3. Implementation of optimization strategies: Store-Back Buffer and Prefetch Buffer.
+4. Analysis of the impact of these optimizations on cache performance.
 
-## Installation
+### Methodology
 
-1. **Clone the Repository**: Begin by cloning the project repository to your local machine. Open a terminal and execute the following command:
-`git clone https://github.com/Dark-Rosaleen/GRA-Abschlussprojekt.git`
+1. **Simulation of the current cache architecture:**
+    - Creation of a simulation model of the L1 and L2 cache structure.
+    - Performance testing and analysis of the initial states (without optimization).
+2. **Implementation of optimization strategies:**
+    - **Store-Back Buffer:** Introduction of a buffer that caches write operations to relieve the memory bus.
+    - **Prefetch Buffer:** Prefetching frequently needed data with the custom buffer size
+3. **Analysis and evaluation:**
+    - Comparison of performance before and after the implementation of the optimizations.
+    - Measurement of access times, hit rates, and overall system performance.
 
-2. **Verify Installation of Prerequisites**: Ensure that the required versions of C, C++, and SystemC are installed on your system. If you are unsure or need to install the prerequisites, run the provided `setup.sh` script by executing: `bash ./src/assets/scripts/setup.sh`
-This script will guide you through the installation of any missing prerequisites.
+### Results
 
-3. **Build the Project**: With the prerequisites in place, compile the project using the `make` command. In the terminal, navigate to the project directory and execute: `make`
+1. **Simulation of the memory hierarchy system architecture:**
+    - The initial simulation showed average hit rates of 94% in the L1 cache and 87% in the L2 cache.
+    - Bottlenecks in the simulation are primarily caused by waiting for fetching data from memory
+2. **Implementation and impact of optimization strategies:**
+    - **Store-Back Buffer:** Reduced average write access times by??
+    - **Prefetch Buffer:** Increased hit rates in the L2 cache with our matrix multiplication algorithm from 23.8% to 40.5%  with a prefetch buffer with the size of 4 cache lines by preloading frequently needed data.
+3. **Analysis and evaluation:**
+    - The optimized caches with **Store-Back Buffer** showed improved efficiency in case of cycles
+    - The optimized caches with **Prefetch Buffer** showed significantly improved efficiency in case of hit rates in L2
 
-## Running the Simulation
 
-After successfully compiling the project, you can run the cache simulation with the following command: `./cache [FLAG(s)] filename.csv`
+### Discussion
 
-Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `filename.csv` with the path to your input CSV file containing the simulation requests.
-
-### List of Available Flags
-
-| Flag              | Description                                                        | Default Value      |
-|-------------------|--------------------------------------------------------------------|--------------------|
-| `-c`, `--cycles`  | The number of cycles to be simulated                               | `INT32_MAX`        |
-| `--cacheline-size`| The size of a cache line in bytes                                  | `64`               |
-| `--l1-lines`      | The number of cache lines of the L1 cache                          | `64`               |
-| `--l2-lines`      | The number of cache lines of the L2 cache                          | `256`              |
-| `--l1-latency`    | The latency of the L1 cache in cycles                              | `4`                |
-| `--l2-latency`    | The latency of the L2 cache in cycles                              | `12`               |
-| `--memory-latency`| The latency of the main memory in cycles                           | `100`              |
-| `--tf=<filepath>` | Output file for a trace file with all signals                      | N/A                |
-| `--num-requests`  | Number of request to read from .csv file, default is all requests  | All requests       |
-| `--prefetch-buffer`     | The number of cache lines in the prefetch buffer             | `0`                |
-| `--storeback-buffer`    | The number of cache lines in the storeback buffer            | `0`                |
-| `--storeback-condition` | The condition for storeback buffer                           | `false`            |
-| `-p`, `--pretty-print`  | Pretty Print the Simulator (le.g. layout)                    | `true`             |
-| `-h`, `--help`    | Display this help and exit                                         | N/A                |
-
-## Theoretical Results
-Document the results of the theoretical part of your project here. This could include findings from your research on cache sizes, architectures, and latencies in modern processors.
-
-## Contributors
-For more details, the `@author` or `@authors` is included in each Docstring documentation of a function.
-
-### Alexander Anthony Tang
-Alexander is primarily responsible for the development of `src/modules`, with additional contributions to the development of `src/main/simulator.cpp`
-
-Other contributions include:
-- Writing the `Makefile`
-- Writing the `build.sh` script
-- Initiating, Optimizing and Documenting the project
+The implementation of the Store-Back Buffer and Prefetch Buffer showed the potential in improving cache performance, particularly the reduction in write access times through store back buffer and the increase in hit rates through prefetching data
 
 ### Lie Leon Alexius
 Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
