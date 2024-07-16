@@ -1,10 +1,4 @@
 // Lie Leon Alexius
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <limits.h>
-#include <getopt.h>
-#include <string.h>
 
 #include "csv_parser.h"
 
@@ -40,19 +34,19 @@ void remove_whitespaces(char* input) {
  * @param numRequests The number of requests to be simulated.
  * @param customReq Read to the end of csv if false
  *
- * @return void
+ * @return int (0 if successful, -1 if failed)
  *
  * @warning DO NOT REMOVE ANY OF THE COMMENTS!
  * @author Lie Leon Alexius
  */
-void parse_csv(const char* input_filename, struct Request* requests, int numRequests, bool customReq) {
+int parse_csv(const char* input_filename, struct Request* requests, int numRequests, bool customReq) {
     // Open the file
     // Syntax: FILE* fptr; fptr = fopen(filename, mode);
     FILE* file = fopen(input_filename, "r");
     if (!file) {
         // No need to close file here since fopen will return NULL
-        perror("Failed to open input file");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Failed to open input file\n");
+        return -1;
     }
 
     // Initialize buffer
@@ -110,7 +104,7 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
         // strchr() returns a pointer to the first occurrence of the character c in the string s
         if (strchr(data_str, ',') != NULL) {
             fprintf(stderr, "Invalid third collumn: %s\n", data_str);
-            exit(EXIT_FAILURE);
+            return -1;
         }
         
         // Case: trailing whitespace in the data field for read requests
@@ -124,28 +118,30 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
         //       We ignore Empty lines (look at if-else if-else)
         if (fields < 2 && (rw[0] != '\0' || addr_str[0] != '\0' || data_str[0] != '\0')) {
             fprintf(stderr, "Error in parsing the data - wrong format\n");
-            exit(EXIT_FAILURE);
+            return -1;
         }
 
         // Case: Write
         if (strcmp(rw, "W") == 0) {
             if (fields != 3) {
                 fprintf(stderr, "Error in parsing the data - wrong format for write request\n");
-                exit(EXIT_FAILURE);
+                return -1;
             }
             requests[i].we = 1;
             
             // Parse address
             if (addr_str[1] == 'x' || addr_str[1] == 'X') {
                 sscanf(addr_str, "%x", &requests[i].addr);
-            } else {
+            } 
+            else {
                 sscanf(addr_str, "%u", &requests[i].addr);
             }
 
             // Parse data
             if (data_str[1] == 'x' || data_str[1] == 'X') {
                 sscanf(data_str, "%x", &requests[i].data);
-            } else {
+            } 
+            else {
                 sscanf(data_str, "%u", &requests[i].data);
             }
 
@@ -156,7 +152,7 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
         else if (strcmp(rw, "R") == 0) {
             if (fields != 2) {
                 fprintf(stderr, "Error in parsing the data - wrong format for read request\n");
-                exit(EXIT_FAILURE);
+                return -1;
             }
 
             requests[i].we = 0;
@@ -165,7 +161,8 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
             // Parse address
             if (addr_str[1] == 'x' || addr_str[1] == 'X') {
                 sscanf(addr_str, "%x", &requests[i].addr);
-            } else {
+            } 
+            else {
                 sscanf(addr_str, "%u", &requests[i].addr);
             }
 
@@ -180,7 +177,7 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
             }
             else {
                 fprintf(stderr, "Error in parsing the data - unrecognized command\n");
-                exit(EXIT_FAILURE);
+                return -1;
             }
         }
 
@@ -196,9 +193,11 @@ void parse_csv(const char* input_filename, struct Request* requests, int numRequ
     // check if numRequests has been fulfilled
     if (customReq && i != numRequests) {
         fprintf(stderr, "Error: number of requests parsed does not match numRequests\n");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
-    // safety: initialize request[i] as invalid value to know when to stop
+    // safety: initialize request[i].we as invalid value to know when to stop
     requests[i].we = -1;
+
+    return 0;
 }

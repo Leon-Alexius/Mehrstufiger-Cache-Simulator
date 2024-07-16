@@ -32,8 +32,5 @@ run_test "./cache -c 2147483646 --cacheline-size 0 examples/ijk/ijk.csv" "L1 cac
 # Test 4: Cycles to simulate is less than 0
 run_test "./cache --cycles -1 examples/ijk/ijk.csv" "Cycles to simulate is less than 0"
 
-# Make the script executable with chmod +x edge_cases_tests.sh
-# Run the script with ./edge_cases_tests.sh
-
 # Exit with the overall test status
 exit $test_status

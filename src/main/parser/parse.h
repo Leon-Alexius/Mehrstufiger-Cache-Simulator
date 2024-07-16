@@ -1,8 +1,15 @@
+// Lie Leon Alexius
+
 #ifndef PARSE_H
 #define PARSE_H
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <errno.h>
+#include <limits.h>
+#include <getopt.h>
+#include <string.h>
 
 // Request and Result struct
 #include "../simulator.hpp"

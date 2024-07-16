@@ -10,10 +10,7 @@
  * This is done because it is faster to just transpose the matrix once (e.g. a, b) and use it for all algorithms.
  * @author Lie Leon Alexius
  */
-int main() {
-    // for runtime, we set matrix as 1000 x 1000, total size of matrix = 4MB
-    const int n = 1000;
-
+int time_analysis(const int n) {
     // Allocate Memory
     float* a = (float*) malloc(n * n * sizeof(float));
     if (a == NULL) {

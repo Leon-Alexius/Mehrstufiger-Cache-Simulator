@@ -1,17 +1,15 @@
 // Lie Leon Alexius
-#include <systemc>
 
-// Request and Result struct
+#include <systemc>
 #include "simulator.hpp"
 #include "../modules/modules.hpp"
-#include "parser/parse.h"
-
-extern "C" {
-    #include "grapher/printer.h"
-}
 
 // prevent the C++ compiler from mangling the function name
 extern "C" {
+    #include "parser/parse.h"
+    #include "grapher/printer.h"
+
+    // custom config variable
     Config* config = NULL;
 
     /**
@@ -19,43 +17,12 @@ extern "C" {
      * @author Lie Leon Alexius
      */
     void set_config(Config* c) {
-        std::cout << "Fetching config..." << std::endl;
         config = c;
-    }
-
-    /**
-     * @brief For testing the request
-     * 
-     * @details
-     * "src/assets/csv/test_valid.csv"
-     * Adr: 1 Data: 0 WE: 0
-     * Adr: 2 Data: 100 WE: 1
-     * Adr: 3 Data: 0 WE: 0
-     * Adr: 4 Data: 100 WE: 1
-     * Adr: 5 Data: 0 WE: 0
-     * Adr: 6 Data: 200 WE: 1
-     * Adr: 2 Data: 0 WE: 0
-     * Adr: 3 Data: 0 WE: 0
-     * Adr: 3 Data: 300 WE: 1
-     * Adr: 4 Data: 0 WE: 0
-     * Adr: 0 Data: 0 WE: -1
-     * 
-     * @author Lie Leon Alexius
-     */
-    void print_requests(size_t numRequests, struct Request* requests) {
-        for (size_t i = 0; i < numRequests; i++) {
-            struct Request r = requests[i];
-            std::cout << "Adr: " << r.addr << " Data: " << r.data << " WE: " << r.we << std::endl;
-
-            // stop printing
-            if (r.we == -1) {
-                break;
-            }
-        }  
     }
     
     /**
-     * @brief updates the CacheSimulatorStats
+     * @brief updates the CacheStats
+     * @note ignores `primitiveGateCount`
      * @author Lie Leon Alexius
      */
     void statsUpdater(CacheStats* cacheStats, CacheStats tempStats) {
@@ -77,31 +44,83 @@ extern "C" {
     }
 
     /**
+     * @brief This function checks the inputs for the simulation
+     * @note 
+     * Only called if the `run_simulation` is not called by `executor.c`
+     * Since every input has been checked by parsers that are called by `executor.c`
+     * @author Lie Leon Alexius
+     */
+    void input_checker(
+        int cycles, 
+        unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
+        unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
+        size_t numRequests, struct Request* requests
+    ) 
+    {
+        // Check if the inputs are valid
+        if (cycles < 0) {
+            fprintf(stderr, "Invalid cycles input, must be greater or equal than 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLines == 0) {
+            fprintf(stderr, "Invalid L1 cache lines input, must be greater or equal than 1\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l2CacheLines == 0) {
+            fprintf(stderr, "Invalid L2 cache lines input, must be greater or equal than 1\n");
+            exit(EXIT_FAILURE);
+        }
+        if (cacheLineSize == 0) {
+            fprintf(stderr, "Invalid cache line size input, must be greater or equal than 1\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLines > l2CacheLines) {
+            fprintf(stderr, "Invalid input: L1 cache lines count is greater than L2 cache lines count\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLatency == 0) {
+            fprintf(stderr, "Invalid L1 cache latency input, must not be 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l2CacheLatency == 0) {
+            fprintf(stderr, "Invalid L2 cache latency input, must not be 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (memoryLatency == 0) {
+            fprintf(stderr, "Invalid memory latency input, must not be 0\n");
+            exit(EXIT_FAILURE);
+        }
+        if (l1CacheLatency > l2CacheLatency || l2CacheLatency > memoryLatency) {
+            fprintf(stderr, "Invalid input: L1 latency is greater than L2 latency or L2 latency is greater than memory latency\n");
+            exit(EXIT_FAILURE);
+        }
+        if (numRequests != 0 && requests == NULL) {
+            fprintf(stderr, "Invalid requests input, NULL requests only permitted when numRequests is 0\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /**
      * @brief Runs the cache simulation
+     * 
+     * @note This function will try to print the result of the simulation
      *
-     * @param cycles The number of cycles for the simulation. Default value is `1000000`.
-     * @param l1CacheLines The number of lines in L1 cache. Default value is `64`.
-     * @param l2CacheLines The number of lines in L2 cache. Default value is `256`.
-     * @param cacheLineSize The cache line size in bytes. Default value is `64`.
-     * @param l1CacheLatency The latency for L1 cache in cycles. Default value is `4`.
-     * @param l2CacheLatency The latency for L2 cache in cycles. Default value is `12`.
-     * @param memoryLatency The latency for memory access in cycles. Default value is `100`.
-     * @param numRequests The number of requests. Default value is `1000`.
+     * @param cycles The number of cycles for the simulation.
+     * @param l1CacheLines The number of lines in L1 cache.
+     * @param l2CacheLines The number of lines in L2 cache.
+     * @param cacheLineSize The cache line size in bytes.
+     * @param l1CacheLatency The latency for L1 cache in cycles.
+     * @param l2CacheLatency The latency for L2 cache in cycles.
+     * @param memoryLatency The latency for memory access in cycles.
+     * @param numRequests The number of requests.
      * @param requests A pointer to the array of Request structures.
-     * @param tracefile The name of the trace file. Default value is "default_trace.vcd".
+     * @param tracefile The name of the trace file.
      * 
      * @return Result struct
      * 
-     * @warning Not tested yet
-     * @bug Not tested yet
-     * 
-     * @todo Cycle breaker needs to be adjusted (due to cache.finish_memory())
-     * 
-     * @authors
-     * Lie Leon Alexius
-     * Anthony Tang
+     * @author Lie Leon Alexius
      */
-    Result* run_simulation(
+    Result run_simulation(
         int cycles, 
         unsigned l1CacheLines, unsigned l2CacheLines, unsigned cacheLineSize, 
         unsigned l1CacheLatency, unsigned l2CacheLatency, unsigned memoryLatency, 
@@ -109,16 +128,20 @@ extern "C" {
         const char* tracefile
     ) 
     {
-        // Test the Requests
-        // print_requests(numRequests, requests);
-
-        // Get the config (Optimization flags)
+        // Check the inputs if this function is not called by "executor.c"
+        if (config == NULL) {
+            input_checker(
+                cycles, l1CacheLines, l2CacheLines, cacheLineSize, 
+                l1CacheLatency, l2CacheLatency, memoryLatency, numRequests, requests
+            );
+        }
+        
+        // Get the config if any (Optimization flags)
         unsigned int prefetchBuffer = 0; 
         unsigned int storebackBuffer = 0; 
         bool storebackBufferCondition= false;
 
         if (config != NULL) {
-            std::cout << "Using config..." << std::endl;
             prefetchBuffer = config->prefetchBuffer;
             storebackBuffer = config->storebackBuffer;
             storebackBufferCondition = config->storebackBufferCondition;
@@ -132,13 +155,12 @@ extern "C" {
             prefetchBuffer, storebackBuffer, storebackBufferCondition
         );
 
-        int original_cycles = cycles;
-
         // Initialize the cacheStats
         CacheStats* cacheStats = (CacheStats*) malloc(sizeof(CacheStats));
         cacheStats->cycles = 0;
         cacheStats->misses = 0;
         cacheStats->hits = 0;
+        cacheStats->primitiveGateCount = 0;
         cacheStats->read_hits = 0;
         cacheStats->read_misses = 0;
         cacheStats->write_hits = 0;
@@ -154,10 +176,11 @@ extern "C" {
         cacheStats->currentMemoryCycles = 0;
 
         // ========================================================================================
-        
-        std::cout << "Running simulation..." << std::endl;
 
-        // Added flag: true if the simulator stopped due to exceeding the cycle limit
+        // Cycle Limit Counter
+        int original_cycles = cycles;
+
+        // Flag: true if the simulator stopped due to exceeding the cycle limit
         bool simulatorForceTerminate = false;
 
         // Process the request
@@ -174,10 +197,10 @@ extern "C" {
 
             // break if cycles already exceeded the limit
             if (original_cycles < 0) {
-                
                 simulatorForceTerminate = true;
                 break;
             }
+
             // update the cacheStats
             statsUpdater(cacheStats, tempResult);
         }
@@ -185,30 +208,45 @@ extern "C" {
         // Finish up the simulation (wait for memory write) if the simulator is not forced to terminate
         if (!simulatorForceTerminate) {
             unsigned int memory_cycles = caches.finish_memory(original_cycles);
-            if (original_cycles < 0) cacheStats->cycles = SIZE_MAX; 
-            else cacheStats->cycles += memory_cycles;
+            if (original_cycles < 0) {
+                cacheStats->cycles = SIZE_MAX; 
+            }
+            else {
+                cacheStats->cycles += memory_cycles;
+            }
         }
         else {
             // if forced to stop, cycles need to be SIZE_MAX
             cacheStats->cycles = SIZE_MAX;
         }
 
-        // ========================================================================================
-        // assign Result
-        Result* result = (Result*) malloc(sizeof(Result));
-        result->cycles = cacheStats->cycles;
-        result->hits = cacheStats->hits;
-        result->misses = cacheStats->misses;
-        result->primitiveGateCount = caches.get_gate_count(); // fetch the gate count
-        result->cacheStats = cacheStats;
+        // Get gateCount
+        cacheStats->primitiveGateCount = caches.get_gate_count();
 
         // stop the simulation and close the trace file
         (tracefile != NULL) ? caches.close_trace_file() : caches.stop_simulation();
 
-        // Case this function is not called by "executor.c"
+        // ========================================================================================
+
+        // build the Result
+        Result result;
+        result.cycles = cacheStats->cycles;
+        result.hits = cacheStats->hits;
+        result.misses = cacheStats->misses;
+        result.primitiveGateCount = cacheStats->primitiveGateCount;
+
+        // Print the simulation result
         if (config == NULL) {
-            // re-create config
+            // Case this function is not called by "executor.c"
             config = (Config*) malloc(sizeof(Config));
+
+            // check if allocation successful (else, skip printing output)
+            if (config == NULL) {
+                fprintf(stderr, "Memory allocation for Config failed, printing the result skipped\n");
+                goto instant;
+            }
+
+            // create config
             config->cycles = cycles;
             config->l1CacheLines = l1CacheLines;
             config->l2CacheLines = l2CacheLines;
@@ -220,29 +258,42 @@ extern "C" {
             config->tracefile = NULL;
             config->input_filename = NULL;
             config->requests = NULL;
-            config->customNumRequest = false;
-            config->prefetchBuffer = prefetchBuffer;
-            config->storebackBuffer = storebackBuffer;
-            config->storebackBufferCondition = storebackBufferCondition;
+            config->customNumRequest = true;
+            config->prefetchBuffer = 0;
+            config->storebackBuffer = 0;
+            config->storebackBufferCondition = false;
             config->prettyPrint = true;
 
             // print the layout
-            std::cout << "Simulator is not called from executor.c, trying to recreate Config" << std::endl;
-            print_layout(config, result);
-
-            // cleanup
-            free(config);
-            config = NULL;
+            print_layout(config, cacheStats);
         }
-        
-        // return the result
-        return result;
+        else {
+            // This function is called by "executor.c"
+            // print the layout
+            print_layout(config, cacheStats);
+
+            // Extra cleanup
+            free(config->requests);
+            config->requests = NULL;
+        }
+
+        // Cleanup Standard
+        free(cacheStats);
+        cacheStats = NULL;
+        free(config);
+        config = NULL;
+
+        instant:        
+        return result; // return the result
     }
 }
 
-// The default sc_main implementation.
+/**
+ * @brief The default sc_main implementation.
+ * @author Lie Leon Alexius
+ */
 int sc_main(int argc, char* argv[])
 {
-    std::cout << "ERROR" << std::endl;
+    std::cout << "TEAM 150 - BUSY NOW" << std::endl;
     return 1;
 }

@@ -1,10 +1,4 @@
 // Lie Leon Alexius
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <limits.h>
-#include <getopt.h>
-#include <string.h>
 
 #include "terminal_parser.h"
 
@@ -15,7 +9,7 @@
  * @author Lie Leon Alexius
  */
 void print_help() {
-    printf("Usage: ./cache [OPTIONS] filename.csv\n");
+    printf("Usage: ./cache [OPTIONS] path/to/file/filename.csv\n");
     printf("Options:\n");
     printf("  -c, --cycles <num>                The number of cycles to be simulated (default: 2_147_483_647 ~ INT32_MAX)\n");
     printf("      --cacheline-size <num>        The size of a cache line in bytes (default: 64)\n");
@@ -39,7 +33,7 @@ void print_help() {
  * 
  * @details
  * Each of the variables has default values:
- *  1. cycles = 1000000 (default simulation cycles)
+ *  1. cycles = INT32_MAX (default simulation cycles)
  *  2. l1CacheLines = 64 (default number of lines in L1 cache)
  *  3. l2CacheLines = 256 (default number of lines in L2 cache)
  *  4. cacheLineSize = 64 (default cache line size in bytes)
@@ -55,7 +49,6 @@ void print_help() {
  *  14. prettyPrint = true (default pretty print flag)
  *  15. storebackBufferCondition = false (default storeback buffer condition)
  * 
- * @link https://d-nb.info/978930487/34 (source for default value)
  * @author Lie Leon Alexius
  */
 Config* parse_user_input(int argc, char* argv[]) {
@@ -69,7 +62,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     unsigned int l2CacheLatency = 12;
     unsigned int memoryLatency = 100;
     size_t numRequests = 0; // unsigned integer
-    const char* tracefile = NULL; // "src/assets/vcd/default_trace"
+    const char* tracefile = NULL;
     const char* input_filename = NULL;
     bool customNumRequest = false;
     bool prettyPrint = true;
@@ -306,7 +299,7 @@ Config* parse_user_input(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (l1CacheLines == 0 || l2CacheLines == 0 || cacheLineSize < 1) {
+    if (l1CacheLines == 0 || l2CacheLines == 0 || cacheLineSize == 0) {
         fprintf(stderr, "Invalid input: L1 cache lines, L2 cache lines or cache line size is set to 0\n");
         exit(EXIT_FAILURE);
     }
@@ -319,6 +312,12 @@ Config* parse_user_input(int argc, char* argv[]) {
     // ========================================================================================
 
     Config* config = (Config*) malloc(sizeof(Config));
+
+    // Check if memory allocation is successful
+    if (config == NULL) {
+        fprintf(stderr, "Error when allocating Config Struct\n");
+        exit(EXIT_FAILURE);
+    }
 
     // set-up the config
     config->cycles = cycles;
@@ -335,7 +334,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     config->customNumRequest = customNumRequest;
     config->prefetchBuffer = prefetchBuffer; // Optimization: Prefetch Buffer
     config->storebackBuffer = storebackBuffer; // Optimization: Storeback Buffer
-    config->storebackBufferCondition = storebackBufferCondition;
+    config->storebackBufferCondition = storebackBufferCondition; // Optimization: Conditional Storeback Buffer
     config->prettyPrint = prettyPrint;
 
     return config;
