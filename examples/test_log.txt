@@ -1,4 +1,4 @@
-Test-Log: 14/07/2024
+Test_Log: 14/07/2024
 Tested with n = 1000
 
 3 times test run
