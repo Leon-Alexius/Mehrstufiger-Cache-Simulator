@@ -8,10 +8,6 @@ C_SRCS = src/main/executor.c
 PARSER = src/main/parser/csv_parser.c src/main/parser/parse.c src/main/parser/terminal_parser.c
 GRAPHER = src/main/grapher/printer.c
 CPP_SRCS = src/main/simulator.cpp
-# ANALYZE_C_SRCS = src/assets/analysis/matrix_analyze.c
-# ANALYZE_CPP_SRCS = src/assets/analysis/simulator_analyze.cpp
-# MATRIX_C_SRCS = examples/matrix.c
-# MATRIX_CSV_SRCS = examples/matrix_csv.c
 
 # Object files
 # variables to the paths of the object files that will be generated from the C and C++ source files
@@ -19,21 +15,9 @@ CPP_SRCS = src/main/simulator.cpp
 C_OBJS = $(C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
 CPP_OBJS = $(CPP_SRCS:.cpp=.o)
 
-# ANALYZE_C_OBJS = $(ANALYZE_C_SRCS:.c=.o) $(PARSER:.c=.o) $(GRAPHER:.c=.o)
-# ANALYZE_CPP_OBJS = $(ANALYZE_CPP_SRCS:.cpp=.o)
-
-# MATRIX_C_OBJS = $(MATRIX_C_SRCS:.c=.o)
-# MATRIX_CSV_OBJS = $(MATRIX_CSV_SRCS:.c=.o)
-
-# Variable to the paths of the header files that the source files depend on
-HEADERS := src/modules/module.hpp
-
 # Target name
 # The name of the final executable that will be generated
 TARGET := cache
-# ANALYZE_TARGET := src/assets/analysis/analyze
-# CSV_TARGET := examples/matrix_csv
-# MATRIX_TARGET := examples/matrix
 
 # The path to SystemC installation (this project included Systemc to standardize the path)
 SCPATH = systemc
@@ -47,8 +31,9 @@ SCPATH = systemc
 CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
 
 # Flags for the C compiler
-# 1. Address Sanitizer
-# CFLAGS := -fsanitize=address
+# 1. C17 standard (-std=c17)
+# 2. Address Sanitizer (-fsanitize=address)
+CFLAGS := -std=c17
 
 # ---------------------------------------
 # CONFIGURATION END
@@ -89,7 +74,7 @@ endif
 all: release
 
 # Debug build
-debug: CXXFLAGS += -g -fsanitize=address # include debugging information in the output file (e.g. -fsanitize=address)
+debug: CXXFLAGS += -g -fsanitize=address # include debugging information in the output file
 debug: $(TARGET)
 debug: 
 	rm -rf src/main/parser/*.o 
@@ -104,42 +89,11 @@ release:
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o 
 
-# Analyze build
-# analyze: CXXFLAGS += -O2
-# analyze: $(ANALYZE_TARGET)
-# analyze:
-# 	rm -rf src/main/parser/*.o 
-# 	rm -rf src/main/grapher/*.o
-# 	rm -rf src/main/*.o 
-# 	rm -rf src/assets/analysis/*.o
-
-# Matrix - time_analysis build
-# matrix: CXXFLAGS += -O2
-# matrix: $(MATRIX_TARGET)
-# matrix: 
-# 	rm -rf examples/*.o 
-
-# Matrix - csv_maker build
-# csv: CXXFLAGS += -O2
-# csv: $(CSV_TARGET)
-# csv: 
-# 	rm -rf examples/*.o 
-
 # Rule to link object files to executables, flags, etc.
 $(TARGET): $(C_OBJS) $(CPP_OBJS)
 	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(LDFLAGS) -o $(TARGET)
 
-# $(ANALYZE_TARGET): $(ANALYZE_C_OBJS) $(ANALYZE_CPP_OBJS)
-# 	$(CXX) $(CXXFLAGS) $(ANALYZE_C_OBJS) $(ANALYZE_CPP_OBJS) $(LDFLAGS) -o $(ANALYZE_TARGET)
-
-# $(CSV_TARGET): $(MATRIX_CSV_OBJS)
-# 	$(CXX) $(MATRIX_CSV_OBJS) $(LDFLAGS) -o $(CSV_TARGET)
-
-# $(MATRIX_TARGET): $(MATRIX_C_OBJS)
-# 	$(CXX) $(MATRIX_C_OBJS) $(LDFLAGS) -o $(MATRIX_TARGET)
-
 # clean up
-# (additions: "rm -f $(MATRIX_TARGET)", etc. )
 clean:
 	rm -f $(TARGET)
 	rm -rf src/main/parser/*.o 
