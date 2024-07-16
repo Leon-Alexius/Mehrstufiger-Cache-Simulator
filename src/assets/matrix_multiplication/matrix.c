@@ -193,13 +193,3 @@ int time_analysis(const int n) {
 
     return 0;
 }
-
-/**
- * @warning Don't forget to comment out this before submission
- * @author Lie Leon Alexius
- */
-// int main() {
-//     // for runtime, we set matrix as 1000 x 1000, total size of matrix = 4MB
-//     const int n = 1000;
-//     return time_analysis(n);
-// }
