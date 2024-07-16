@@ -80,7 +80,8 @@ debug:
 	rm -rf src/main/*.o 
 
 # Release build
-release: CXXFLAGS += -O2 # optimize the code using O2
+release: CXXFLAGS += -O3 # optimize the code using O3
+release: CFLAGS += -O3 # optimize the code using O3
 release: $(TARGET)
 release:
 	rm -rf src/main/parser/*.o 
