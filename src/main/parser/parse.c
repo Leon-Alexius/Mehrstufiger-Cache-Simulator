@@ -1,10 +1,4 @@
 // Lie Leon Alexius
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <limits.h>
-#include <getopt.h>
-#include <string.h>
 
 #include "parse.h"
 #include "csv_parser.h"
@@ -28,7 +22,7 @@ int calculateLines(const char* input_filename) {
     FILE* file = fopen(input_filename, "r");
     if (file == NULL) {
         fprintf(stderr, "In calculateLines - failed to open file: %s\n", input_filename);
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     int count = 0; // count should be incremented only if a line contains at least one character
@@ -47,7 +41,7 @@ int calculateLines(const char* input_filename) {
     }
 
     fclose(file);
-    return count + 1; // + 1 for last row (not having `\n`)
+    return count;
 }
 
 /**
@@ -65,6 +59,12 @@ Config* start_parse(int argc, char* argv[]) {
     // Get numRequest of the file - Read Warning calculateLines()
     if (!(config->customNumRequest)) {
         int totalRequest = calculateLines(config->input_filename);
+        if (totalRequest == -1) {
+            free(config);
+            config = NULL;
+            fprintf(stderr, "Error when calculating total requests in CSV\n");
+            exit(EXIT_FAILURE);
+        }
         config->numRequests = totalRequest;
     }
 
@@ -73,12 +73,21 @@ Config* start_parse(int argc, char* argv[]) {
 
     // check if malloc successful
     if (config->requests == NULL) {
-        fprintf(stderr, "Error when initializing Request Struct in Config\n");
+        free(config);
+        config = NULL;
+        fprintf(stderr, "Error when allocating Request Struct in Config\n");
         exit(EXIT_FAILURE);
     }
 
     // run parse_csv
-    parse_csv(config->input_filename, config->requests, config->numRequests, config->customNumRequest);
+    if (parse_csv(config->input_filename, config->requests, config->numRequests, config->customNumRequest) == -1) {
+        free(config->requests);
+        config->requests = NULL;
+        free(config);
+        config = NULL;
+        fprintf(stderr, "Error when parsing CSV\n");
+        exit(EXIT_FAILURE);
+    }
 
     // ========================================================================================
 

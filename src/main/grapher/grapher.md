@@ -68,3 +68,4 @@ Length modifiers can be used with the format specifiers to specify the size of t
 
 ### Notes
 - The `%zu` and `%zd` specifiers are specifically used for `size_t` values, (for correct handling across different platforms + avoid potential issues with type size mismatches).
+- Lie Leon Alexius
