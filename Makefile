@@ -27,12 +27,10 @@ SCPATH = systemc
 # 2. paths to include files (-I$(SCPATH)/include) 
 # 3. paths to library files (-L$(SCPATH)/lib)
 # 4. libraries to link against (-lsystemc -lm)
-# 5. Warnings (-W -Wall -Wextra)
 CXXFLAGS := -std=c++14  -I$(SCPATH)/include -L$(SCPATH)/lib -lsystemc -lm
 
 # Flags for the C compiler
 # 1. C17 standard (-std=c17)
-# 2. Address Sanitizer (-fsanitize=address)
 CFLAGS := -std=c17
 
 # ---------------------------------------
@@ -70,10 +68,6 @@ endif
 # Targets in Makefile
 .PHONY: all debug release clean
 
-# Rule to link object files to executables, flags, etc.
-$(TARGET): $(C_OBJS) $(CPP_OBJS)
-	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) -o $(TARGET)
-
 # Default to release build for both app and library
 all: release
 
@@ -92,6 +86,10 @@ release:
 	rm -rf src/main/parser/*.o 
 	rm -rf src/main/grapher/*.o
 	rm -rf src/main/*.o 
+
+# Rule to link object files to executables, flags, etc.
+$(TARGET): $(C_OBJS) $(CPP_OBJS)
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) -o $(TARGET)
 
 # clean up
 clean:
