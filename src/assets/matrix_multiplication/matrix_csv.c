@@ -790,10 +790,7 @@ void matrix_multiplication_kji_opt2(const float* a, const float* b, float* resul
  * @brief Creates .csv for each of the patterns
  * @author Lie Leon Alexius
  */
-int main() {
-    // for csv, we set matrix also as 1000 x 1000, total size of matrix = 4MB
-    const int n = 16;
-
+int create_csv(const int n) {
     // Allocate Memory
     float* a = (float*) malloc(n * n * sizeof(float));
     if (a == NULL) {
@@ -947,3 +944,13 @@ int main() {
 
     return 0;
 }
+
+/**
+ * @warning Don't forget to comment out this before submission
+ * @author Lie Leon Alexius
+ */
+// int main() {
+//     // create csv for square matrix of size n
+//     const int n = 1000;
+//     return create_csv(n);
+// }

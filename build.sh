@@ -1,4 +1,4 @@
-make
+make release
 
 echo "IJK Standard"
 ./cache -c 2000000 --cacheline-size 16 --l1-lines 4 --l2-lines 16 --tf=src/assets/vcd/default_trace -p true examples/ijk/ijk.csv
