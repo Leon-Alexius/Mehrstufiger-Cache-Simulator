@@ -1,69 +1,70 @@
-# Project Report: Simulation, Analysis, and Optimization of Memory Hierarchy System
+# Projektbericht: Simulation, Analyse und Optimierung des Speicherhierarchiesystems
 
-## Introduction
-This report documents the results of Project Group 150 on the simulation, analysis, and optimization of the L1 and L2 cache memory hierarchy systems in modern computer systems.
+## Einführung
+Dieser Bericht dokumentiert die Ergebnisse der Projektgruppe 150 zur Simulation, Analyse und Optimierung der L1- und L2-Cache-Speicherhierarchiesysteme in modernen Computersystemen.
 
+## Hintergrund
+Caches sind eine Strategie zur Minderung des Von-Neumann-Flaschenhalses.
 
-## Background
-Caches is a strategy to mitigate the Von Neumann bottleneck.
+Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorübergehend speichern, um die Zugriffszeit auf häufig verwendete Daten zu reduzieren. In modernen Prozessoren sind L1- (Level 1) und L2- (Level 2) Caches von entscheidender Bedeutung. Der L1-Cache ist der kleinste und schnellste Speicher, während der L2-Cache größer, aber etwas langsamer ist.
 
-Caches are small but fast memories that temporarily store data and instructions to reduce the access time to frequently used data. In modern processors, L1 (Level 1) and L2 (Level 2) caches are crucial. The L1 cache is the smallest and fastest memory, while the L2 cache is larger but somewhat slower.
+## Methodik
+### Simulation der aktuellen Cache-Architektur:
+- Erstellung eines Simulationsmodells der L1- und L2-Cache-Struktur.
+- Leistungstests und Analyse der Anfangszustände (ohne Optimierung).
+- Implementierung einer Befehlszeilenschnittstelle zur Eingabe von Simulationsparametern wie der Cache-Zeilengröße.
 
+### Implementierung von Optimierungsstrategien:
+- **Store-Back-Buffer**: Einführung eines Puffers, der Schreiboperationen zwischenspeichert, um den Speicherbus zu entlasten.
+- **Prefetch-Buffer**: Vorabrufen häufig benötigter Daten mit einer benutzerdefinierten Puffergröße.
 
+### Analyse und Bewertung:
+- Vergleich der Leistung vor und nach der Implementierung der Optimierungen.
+- Messung der Zugriffszeiten, Trefferquoten und der Gesamtleistung des Systems.
 
-## Methodology
-1. **Simulation of the current cache architecture:**
-    - Creation of a simulation model of the L1 and L2 cache structure.
-    - Performance testing and analysis of the initial states (without optimization).
-2. **Implementation of a command-line interface for inputting simulation parameters such as cache line size.**
-3. **Implementation of optimization strategies:**
-    - **Store-Back Buffer:** Introduction of a buffer that caches write operations to relieve the memory bus.
-    - **Prefetch Buffer:** Prefetching frequently needed data with the custom buffer size
-4. **Analysis and evaluation:**
-    - Comparison of performance before and after the implementation of the optimizations.
-    - Measurement of access times, hit rates, and overall system performance.
+## Ergebnisse
+### Simulation der Speicherhierarchiesystem-Architektur:
+- Engpässe in der Simulation werden hauptsächlich durch das Warten auf das Abrufen von Daten aus dem Speicher verursacht.
 
-## Results
-1. **Simulation of the memory hierarchy system architecture:**
-    - Bottlenecks in the simulation are primarily caused by waiting for fetching data from memory
-3. **Implementation and impact of optimization strategies:**
-    - **Store-Back Buffer:** Reduced average write access times by??
-    - **Prefetch Buffer:** Increased hit rates in the L2 cache with our matrix multiplication algorithm from 23.8% to 40.5%  with a prefetch buffer with the size of 4 cache lines by preloading frequently needed data.
-4. **Analysis and evaluation:**
-    - The optimized caches with **Store-Back Buffer** showed improved efficiency in case of cycles
-    - The optimized caches with **Prefetch Buffer** showed significantly improved efficiency in case of hit rates in L2
+### Implementierung und Auswirkungen der Optimierungsstrategien:
+- **Store-Back-Buffer**: Verringerte durchschnittliche Schreibzugriffszeiten um ??
+- **Prefetch-Buffer**: Erhöhte Trefferquoten im L2-Cache bei unserem Matrixmultiplikationsalgorithmus von 23,8 % auf 40,5 % durch Vorabrufen häufig benötigter Daten mit einer Puffergröße von 4 Cache-Zeilen.
 
+### Analyse und Bewertung:
+- Die optimierten Caches mit Store-Back-Buffer zeigten eine verbesserte Effizienz in Bezug auf Zyklen.
+- Die optimierten Caches mit Prefetch-Buffer zeigten eine signifikant verbesserte Effizienz in Bezug auf die Trefferquoten im L2-Cache.
 
-## Discussion
-The implementation of the Store-Back Buffer and Prefetch Buffer showed the potential in improving cache performance, particularly the reduction in write access times through store back buffer and the increase in hit rates through prefetching data
+## Diskussion
+Die Implementierung des Store-Back-Buffers und des Prefetch-Buffers zeigte das Potenzial zur Verbesserung der Cache-Leistung, insbesondere die Reduzierung der Schreibzugriffszeiten durch den Store-Back-Buffer und die Erhöhung der Trefferquoten durch das Vorabrufen von Daten.
 
-## Contributors
-
+## Mitwirkende
 ### Alexander Anthony Tang
-Alexander is primarily responsible for the development of `src/modules`, with additional contributions to the development of `src/main/simulator.cpp`
+Alexander war hauptsächlich für die Entwicklung von src/modules verantwortlich, mit zusätzlichen Beiträgen zur Entwicklung von src/main/simulator.cpp.
 
-Other contributions include:
-- Writing the `Makefile`
-- Writing the `build.sh` script
-- Initiating, Optimizing and Documenting the project
+Weitere Beiträge umfassen:
+- Schreiben des Makefile
+- Schreiben des build.sh-Skripts
+- Initiierung, Optimierung und Dokumentation des Projekts
+
 ### Lie Leon Alexius
-Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
+Leon war hauptsächlich für die Entwicklung von examples, src/main und src/assets verantwortlich, mit zusätzlichen Beiträgen zur Entwicklung von src/modules.
 
-Other contributions include:
-- Writing the `Makefile`
-- Writing the `build.sh` scripts
-- Authoring the `Readme.md`
-- Implementing automated tests
-- Initiating, Optimizing, Structuring and Documenting the project
+Weitere Beiträge umfassen:
+- Schreiben des Makefile
+- Schreiben der build.sh-Skripte
+- Verfassen der Readme.md
+- Implementierung automatisierter Tests
+- Initiierung, Optimierung, Strukturierung und Dokumentation des Projekts
 
 ### Trang Nguyen
-Trang is primarily responsible for the development of `src/modules`.
+Trang war hauptsächlich für die Entwicklung von src/modules verantwortlich.
 
-Other contributions include:
-- Initiating, Optimizing and Documenting the project
+Weitere Beiträge umfassen:
+- Initiierung, Optimierung und Dokumentation des Projekts
 
+## Lizenz
+---
+Alle Rechte vorbehalten © 2024 Team-150.
 
-## License
-All Rights Reserved © 2024 Team-150.
-
-This project and its contents are the property of Team-150. No reproduction, distribution, or transmission of the copyrighted materials in this project is permitted without the written permission of Team-150.
+Dieses Projekt und dessen Inhalte sind Eigentum von Team-150. Keine Vervielfältigung, Verbreitung oder Übertragung der urheberrechtlich geschützten Materialien in diesem Projekt ist ohne die schriftliche Genehmigung von Team-150 gestattet.
+```
