@@ -1,25 +1,21 @@
 # Project Report: Simulation, Analysis, and Optimization of Memory Hierarchy Systems
 
 ## Introduction
----
 This report documents the results of Project Group 150 on the simulation, analysis, and optimization of the L1 and L2 cache memory hierarchy systems in modern computer systems.
 
 
 ## Background
----
 Caches is a strategy to mitigate the Von Neumann bottleneck.
 
 Caches are small but fast memories that temporarily store data and instructions to reduce the access time to frequently used data. In modern processors, L1 (Level 1) and L2 (Level 2) caches are crucial. The L1 cache is the smallest and fastest memory, while the L2 cache is larger but somewhat slower.
 
 ## Objectives
----
 1. Simulation of the current L1 and L2 cache architecture.
 2. Implementation of a command-line interface for inputting simulation parameters such as cache line size.
 3. Implementation of optimization strategies: Store-Back Buffer and Prefetch Buffer.
 4. Analysis of the impact of these optimizations on cache performance.
 
 ## Methodology
----
 1. **Simulation of the current cache architecture:**
     - Creation of a simulation model of the L1 and L2 cache structure.
     - Performance testing and analysis of the initial states (without optimization).
@@ -31,7 +27,6 @@ Caches are small but fast memories that temporarily store data and instructions 
     - Measurement of access times, hit rates, and overall system performance.
 
 ## Results
----
 1. **Simulation of the memory hierarchy system architecture:**
     - The initial simulation showed average hit rates of 94% in the L1 cache and 87% in the L2 cache.
     - Bottlenecks in the simulation are primarily caused by waiting for fetching data from memory
@@ -44,11 +39,9 @@ Caches are small but fast memories that temporarily store data and instructions 
 
 
 ## Discussion
----
 The implementation of the Store-Back Buffer and Prefetch Buffer showed the potential in improving cache performance, particularly the reduction in write access times through store back buffer and the increase in hit rates through prefetching data
 
 ## Contributors
----
 
 ### Lie Leon Alexius
 Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
@@ -68,7 +61,6 @@ Other contributions include:
 
 
 ## License
----
 All Rights Reserved © 2024 Team-150.
 
 This project and its contents are the property of Team-150. No reproduction, distribution, or transmission of the copyrighted materials in this project is permitted without the written permission of Team-150.
