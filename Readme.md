@@ -25,7 +25,6 @@ Caches are small but fast memories that temporarily store data and instructions 
 
 ## Results
 1. **Simulation of the memory hierarchy system architecture:**
-    - The initial simulation showed average hit rates of 94% in the L1 cache and 87% in the L2 cache.
     - Bottlenecks in the simulation are primarily caused by waiting for fetching data from memory
 3. **Implementation and impact of optimization strategies:**
     - **Store-Back Buffer:** Reduced average write access times by??
