@@ -18,8 +18,11 @@ Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorüberge
 - **Store-Back-Buffer**: Einführung eines Puffers, der Schreiboperationen zwischenspeichert, um den Speicherbus zu entlasten.
 - **Prefetch-Buffer**: Vorabrufen häufig benötigter Daten mit einer benutzerdefinierten Puffergröße.
 
+### Analysierte Algorithmen
+- 17 Varianten von Matrixmultiplikationen werden analysiert, und zwar nach ihre Lokalität. Gegeben sind zwei 16 x 16 `float`-Matrizen A und B und sie werden miteinander zu einer Ergebnismatrix C multipliziert. Der Zugriff auf einzelnen Elementen wird durch die Indizierung `A[i][j]`, `B[j][k]`, und `C[i][k]` ausgeführt. Je nach welcher Index am weitesten draußen oder drinnen in der Schleife angeordnet wird, kann es zu verschiedene Lokalitäten kommen. Insgesamt gibt es 6 Anordnungen, nämlich von außen zu innen: `ijk`. `ikj`, `jik`, `jki`, `kij`, `kji`. Jede Anordnung hat 2 mögliche Optimierungen außer `jik`, welches nur 1 hat.
+
 ### Analyse und Bewertung:
-- Analyse der Entwicklung von Zyklenanzahl, Hit-Rate, usw. der Matrixmultiplikaltionen nach Cachezeilengröße, L1- und L2- Zeilenanzahl, und verschiedene Latenzzeiten. 
+- Analyse der Entwicklung von Zyklenanzahl, Hit-Rate, usw. der Matrixmultiplikaltionen nach Cachezeilengröße, L1- und L2- Zeilenanzahl, und verschiedene Latenzzeiten.  Es wird standardmäßig zur Analyse eine Cache mit 4 Zyklen für L1-Latenzzeit, 12 Zyklen für L2-Latenzzeit, und 100 Zyklen für Memory benutzt.
 - Vergleich der Leistung vor und nach der Implementierung der Optimierungen.
 - Messung der Zugriffszeiten, Trefferquoten und der Gesamtleistung des Systems.
 
@@ -27,12 +30,12 @@ Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorüberge
 ### Simulation der Speicherhierarchiesystem-Architektur:
 - Engpässe in der Simulation werden hauptsächlich durch das Warten auf das Abrufen von Daten aus dem Speicher verursacht.
 
+### Matrix
+- Im Durchschnitt ist `jik_opt2` am schnellsten zu erledigen.
+
 ### Implementierung und Auswirkungen der Optimierungsstrategien:
 - **Store-Back-Buffer**: Verringerte durchschnittliche Schreibzugriffszeiten um ??
 - **Prefetch-Buffer**: Erhöhte Trefferquoten im L2-Cache bei unserem Matrixmultiplikationsalgorithmus von 23,8 % auf 40,5 % durch Vorabrufen häufig benötigter Daten mit einer Puffergröße von 4 Cache-Zeilen.
-
-### Analysierte Algorithmen
-- 17 Varianten von Matrixmultiplikationen werden analysiert, und zwar nach ihre Lokalität. Gegeben sind zwei 16 x 16 Matrizen A und B und sie werden miteinander zu einer Ergebnismatrix C multipliziert. Der Zugriff auf einzelnen Elementen wird durch die Indizierung `A[i][j]`, `B[j][k]`, und `C[i][k]` ausgeführt. Je nach welcher Index am weitesten draußen oder drinnen in der Schleife angeordnet wird, kann es zu verschiedene Lokalitäten kommen. Insgesamt gibt es 6 Anordnungen, nämlich von außen zu innen: `ijk`. `ikj`, `jik`, `jki`, `kij`, `kji`. Jede Anordnung hat 2 mögliche Optimierungen außer `jik`, welches nur 1 hat.
 
 ### Analyse und Bewertung:
 - Die optimierten Caches mit Store-Back-Buffer zeigten eine verbesserte Effizienz in Bezug auf Zyklen.
