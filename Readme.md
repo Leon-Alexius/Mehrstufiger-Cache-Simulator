@@ -1,23 +1,24 @@
-# Projektbericht: Simulation, Analyse und Optimierung von Memory Hierarchie System
-### Introduction
+# Project Report: Simulation, Analysis, and Optimization of Memory Hierarchy Systems
+
+## Introduction
 ---
 This report documents the results of Project Group 150 on the simulation, analysis, and optimization of the L1 and L2 cache memory hierarchy systems in modern computer systems.
 
 
-### Background
+## Background
 ---
 Caches is a strategy to mitigate the Von Neumann bottleneck.
 
 Caches are small but fast memories that temporarily store data and instructions to reduce the access time to frequently used data. In modern processors, L1 (Level 1) and L2 (Level 2) caches are crucial. The L1 cache is the smallest and fastest memory, while the L2 cache is larger but somewhat slower.
 
-### Objectives
+## Objectives
 ---
 1. Simulation of the current L1 and L2 cache architecture.
 2. Implementation of a command-line interface for inputting simulation parameters such as cache line size.
 3. Implementation of optimization strategies: Store-Back Buffer and Prefetch Buffer.
 4. Analysis of the impact of these optimizations on cache performance.
 
-### Methodology
+## Methodology
 ---
 1. **Simulation of the current cache architecture:**
     - Creation of a simulation model of the L1 and L2 cache structure.
@@ -29,7 +30,7 @@ Caches are small but fast memories that temporarily store data and instructions 
     - Comparison of performance before and after the implementation of the optimizations.
     - Measurement of access times, hit rates, and overall system performance.
 
-### Results
+## Results
 ---
 1. **Simulation of the memory hierarchy system architecture:**
     - The initial simulation showed average hit rates of 94% in the L1 cache and 87% in the L2 cache.
@@ -42,11 +43,11 @@ Caches are small but fast memories that temporarily store data and instructions 
     - The optimized caches with **Prefetch Buffer** showed significantly improved efficiency in case of hit rates in L2
 
 
-### Discussion
+## Discussion
 ---
 The implementation of the Store-Back Buffer and Prefetch Buffer showed the potential in improving cache performance, particularly the reduction in write access times through store back buffer and the increase in hit rates through prefetching data
 
-### Contributors
+## Contributors
 ---
 
 ### Lie Leon Alexius
