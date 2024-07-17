@@ -19,6 +19,7 @@ Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorüberge
 - **Prefetch-Buffer**: Vorabrufen häufig benötigter Daten mit einer benutzerdefinierten Puffergröße.
 
 ### Analyse und Bewertung:
+- Analyse der Entwicklung von Zyklenanzahl, Hit-Rate, usw. der Matrixmultiplikaltionen nach Cachezeilengröße, L1- und L2- Zeilenanzahl, und verschiedene Latenzzeiten. 
 - Vergleich der Leistung vor und nach der Implementierung der Optimierungen.
 - Messung der Zugriffszeiten, Trefferquoten und der Gesamtleistung des Systems.
 
@@ -30,6 +31,9 @@ Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorüberge
 - **Store-Back-Buffer**: Verringerte durchschnittliche Schreibzugriffszeiten um ??
 - **Prefetch-Buffer**: Erhöhte Trefferquoten im L2-Cache bei unserem Matrixmultiplikationsalgorithmus von 23,8 % auf 40,5 % durch Vorabrufen häufig benötigter Daten mit einer Puffergröße von 4 Cache-Zeilen.
 
+### Analysierte Algorithmen
+- 17 Varianten von Matrixmultiplikationen werden analysiert, und zwar nach ihre Lokalität.
+
 ### Analyse und Bewertung:
 - Die optimierten Caches mit Store-Back-Buffer zeigten eine verbesserte Effizienz in Bezug auf Zyklen.
 - Die optimierten Caches mit Prefetch-Buffer zeigten eine signifikant verbesserte Effizienz in Bezug auf die Trefferquoten im L2-Cache.
@@ -39,7 +43,7 @@ Die Implementierung des Store-Back-Buffers und des Prefetch-Buffers zeigte das P
 
 ## Mitwirkende
 ### Alexander Anthony Tang
-Alexander war hauptsächlich für die Entwicklung von src/modules verantwortlich, mit zusätzlichen Beiträgen zur Entwicklung von src/main/simulator.cpp.
+Anthony war hauptsächlich für die Entwicklung von src/modules verantwortlich, mit zusätzlichen Beiträgen zur Entwicklung von src/main/simulator.cpp.
 
 Weitere Beiträge umfassen:
 - Schreiben des Makefile
@@ -62,9 +66,3 @@ Trang war hauptsächlich für die Entwicklung von src/modules verantwortlich.
 Weitere Beiträge umfassen:
 - Initiierung, Optimierung und Dokumentation des Projekts
 
-## Lizenz
----
-Alle Rechte vorbehalten © 2024 Team-150.
-
-Dieses Projekt und dessen Inhalte sind Eigentum von Team-150. Keine Vervielfältigung, Verbreitung oder Übertragung der urheberrechtlich geschützten Materialien in diesem Projekt ist ohne die schriftliche Genehmigung von Team-150 gestattet.
-```
