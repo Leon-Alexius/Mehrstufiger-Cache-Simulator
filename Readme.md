@@ -32,7 +32,7 @@ Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorüberge
 - **Prefetch-Buffer**: Erhöhte Trefferquoten im L2-Cache bei unserem Matrixmultiplikationsalgorithmus von 23,8 % auf 40,5 % durch Vorabrufen häufig benötigter Daten mit einer Puffergröße von 4 Cache-Zeilen.
 
 ### Analysierte Algorithmen
-- 17 Varianten von Matrixmultiplikationen werden analysiert, und zwar nach ihre Lokalität.
+- 17 Varianten von Matrixmultiplikationen werden analysiert, und zwar nach ihre Lokalität. Gegeben sind zwei 16 x 16 Matrizen A und B und sie werden miteinander zu einer Ergebnismatrix C multipliziert. Der Zugriff auf einzelnen Elementen wird durch die Indizierung `A[i][j]`, `B[j][k]`, und `C[i][k]` ausgeführt. Je nach welcher Index am weitesten draußen oder drinnen in der Schleife angeordnet wird, kann es zu verschiedene Lokalitäten kommen. Insgesamt gibt es 6 Anordnungen, nämlich von außen zu innen: `ijk`. `ikj`, `jik`, `jki`, `kij`, `kji`. Jede Anordnung hat 2 mögliche Optimierungen außer `jik`, welches nur 1 hat.
 
 ### Analyse und Bewertung:
 - Die optimierten Caches mit Store-Back-Buffer zeigten eine verbesserte Effizienz in Bezug auf Zyklen.
