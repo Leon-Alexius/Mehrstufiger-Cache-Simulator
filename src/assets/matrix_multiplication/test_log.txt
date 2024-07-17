@@ -31,7 +31,7 @@ A. Without Optimization
 kij >= ikj > jik > ijk > kji > jki
 
 B. With Optimization (local variable)
-ikj > kij > jik > ijk > kji > jki
+ikj >= kij > jik > ijk > kji > jki
 
 C. With Optimization (Transpose)
 ijk > jik > kji > kij > jki
