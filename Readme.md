@@ -1,4 +1,4 @@
-# Project Report: Simulation, Analysis, and Optimization of Memory Hierarchy Systems
+# Project Report: Simulation, Analysis, and Optimization of Memory Hierarchy System
 
 ## Introduction
 This report documents the results of Project Group 150 on the simulation, analysis, and optimization of the L1 and L2 cache memory hierarchy systems in modern computer systems.
