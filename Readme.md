@@ -31,7 +31,8 @@ Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorüberge
 - Engpässe in der Simulation werden hauptsächlich durch das Warten auf das Abrufen von Daten aus dem Speicher verursacht.
 
 ### Matrix
-- Im Durchschnitt ist `jik_opt2` am schnellsten zu erledigen.
+- Bei allen Fällen ist `jik_opt2` am schnellsten zu erledigen. Bei einer exponentiell ansteigender Cachezeilengröße senkt die Zyklenanzahl alle Matrixmultiplikationen außer `ijk_opt1`, `ijk`, `kji`, `jki`, `kji_opt1`, `jki_opt1`.
+- Bei steigender L1 Zeilenanzahl ergibt sich kaum Verbesserung an Zyklenanzahl, während bei steigender L2 Zeilenanzahl nur `kij` und `ikj` erkennbare Senkung haben. Interessanterweise hat `jki_opt1` gar keine Treffer in L1 und `kji_opt1` auch keine in L2.
 
 ### Implementierung und Auswirkungen der Optimierungsstrategien:
 - **Store-Back-Buffer**: Verringerte durchschnittliche Schreibzugriffszeiten um ??
