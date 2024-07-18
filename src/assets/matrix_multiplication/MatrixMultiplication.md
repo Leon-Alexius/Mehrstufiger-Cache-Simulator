@@ -504,8 +504,6 @@ Based on the task provided, the cache simulator has been implemented with the fo
 6. Implementation of the Framework program
     > The framework program is implemented in C. It accepts and processes command line arguments in a manner similar to Linux command line programs. It has sensible default values for options (see `src/main/parser/terminal_parser.c`), and correctly catches incorrect or nonsensical options, outputting them to `stderr` with meaningful error messages and explanations.
 
-Sure, I can help formalize and add to your argument. Here's a revised version:
-
 # Accuracy Analysis
 
 The term **accuracy**, in the context of our cache simulator, is defined as **how closely the simulator emulates the actual behavior and performance of a cache in a real system**. 
