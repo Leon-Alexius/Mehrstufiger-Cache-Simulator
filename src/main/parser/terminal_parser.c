@@ -42,16 +42,37 @@ void print_help() {
  *  7. memoryLatency = 100 (default latency for memory access in cycles)
  *  8. numRequests = 0 (default number of requests is all requests in the file)
  *  9. tracefile = NULL (default trace file name) 
- *  10. input_filename = NULL (input filename)
- *  11. customNumRequest = false (flag for custom number of requests)
- *  12. prefetchBuffer = 0 (default prefetch buffer)
- *  13. storebackBuffer = 0 (default storeback buffer)
- *  14. prettyPrint = true (default pretty print flag)
- *  15. storebackBufferCondition = false (default storeback buffer condition)
+ *  10. customNumRequest = false (flag for custom number of requests)
+ *  11. prefetchBuffer = 0 (default prefetch buffer)
+ *  12. storebackBuffer = 0 (default storeback buffer)
+ *  13. prettyPrint = true (default pretty print flag)
+ *  14. storebackBufferCondition = false (default storeback buffer condition)
  * 
  * @author Lie Leon Alexius
  */
 Config* parse_user_input(int argc, char* argv[]) {
+    // Shortest possible input is `./cache filename.csv`
+    if (argc < 2) {
+        fprintf(stderr, "Invalid input: Filename is missing\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+        NOTES - DO NOT DELETE!
+        Faster way to check: Input filename should be the last argument (positional argument)
+
+        Alternative: using optind, but need to set optstring[0] to '+' and POSIXLY_CORRECT to 1
+        with downside of: need to loop through the arguments, then check if `optind + 1 != argc`
+        https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
+    */
+    const char* input_filename = argv[argc - 1];
+    size_t len = strlen(input_filename);
+    if (len <= 4 || strcmp(input_filename + len - 4, ".csv") != 0) {
+        fprintf(stderr, "Filename should be the last argument and ends with .csv\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
 
     // Default Values
     int cycles = INT32_MAX;
@@ -63,7 +84,6 @@ Config* parse_user_input(int argc, char* argv[]) {
     unsigned int memoryLatency = 100;
     size_t numRequests = 0; // unsigned integer
     const char* tracefile = NULL;
-    const char* input_filename = NULL;
     bool customNumRequest = false;
     bool prettyPrint = true;
 
@@ -99,10 +119,25 @@ Config* parse_user_input(int argc, char* argv[]) {
     char* endptr; // parsing error checker
 
     // ========================================================================================
+    
+    /*  
+        NOTES - DO NOT DELETE!
+        optind: index of the next option (or non-option) to be processed in argument vector 
+            (auto set to 1 by getopt_long, then incremented by getopt_long to the next option i.e. +2)
+        argv[0]: ./cache
+        argv[1]: --some-option-1
+        argv[2]: some-argument 
+        argv[3]: --some-option-2
+
+        getopt_long() permutates the argv so that all non-option arguments are at the end
+        Thus, optind will always point to the first non-option argument.
+
+        https://linux.die.net/man/3/optind
+    */
 
     // (arg count, arg array, legitimate option characters, long options, long options index)
     // https://linux.die.net/man/3/getopt_long
-    while ((opt = getopt_long(argc, argv, "c:p:h", long_options, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:p:h", long_options, &long_index)) != -1) {        
         switch (opt) {
             case 'c':
                 errno = 0;
@@ -249,36 +284,6 @@ Config* parse_user_input(int argc, char* argv[]) {
                 print_help();
                 exit(EXIT_FAILURE);
         }
-    }
-
-    // ========================================================================================
-
-    // Get the remaining argument: the input filename
-    // The variable optind is the index of the next element to be processed in argv.
-    // https://linux.die.net/man/3/optind
-    if (optind < argc) {
-        input_filename = argv[optind];
-    } 
-    else {
-        fprintf(stderr, "Input filename is required\n");
-        print_help();
-        exit(EXIT_FAILURE);
-    }
-
-    // Error checking: Validate input_filename
-    // check if NULL
-    if (input_filename == NULL) {
-        fprintf(stderr, "Input filename is missing\n");
-        print_help();
-        exit(EXIT_FAILURE);
-    }
-    
-    // Check if the filename ends with .csv
-    size_t len = strlen(input_filename);
-    if (len <= 4 || strcmp(input_filename + len - 4, ".csv") != 0) {
-        fprintf(stderr, "Invalid filename. Filename should end with .csv\n");
-        print_help();
-        exit(EXIT_FAILURE);
     }
 
     // ========================================================================================
