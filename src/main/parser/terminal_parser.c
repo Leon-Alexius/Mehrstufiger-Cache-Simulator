@@ -288,6 +288,15 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // ========================================================================================
 
+    // More than 1 filename check
+    if (optind + 1 != argc) {
+        fprintf(stderr, "Invalid input: Only one filename is allowed\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+
+    // ========================================================================================
+
     // Invalid cases check - throw error then quit
     // 1. If L1 cache size is greater than L2 cache size
     // 2. If L1 latency is greater than L2 latency or L2 latency is greater than memory latency
