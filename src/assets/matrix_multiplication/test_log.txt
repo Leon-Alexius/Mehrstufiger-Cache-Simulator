@@ -38,5 +38,3 @@ ijk > jik > kji > kij > jki
 
 Note that Transpose Metrix doesn't include the time needed to transpose the matrix!
 Average transpose time for a square-matrix of 1000: "0.004000 seconds"
-
-So, in "real time", all "*_opt2" is actually slower than "ikj"

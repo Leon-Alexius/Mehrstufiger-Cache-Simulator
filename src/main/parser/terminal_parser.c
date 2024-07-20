@@ -58,22 +58,6 @@ Config* parse_user_input(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    /*
-        NOTES - DO NOT DELETE!
-        Faster way to check: Input filename should be the last argument (positional argument)
-
-        Alternative: using optind, but need to set optstring[0] to '+' and POSIXLY_CORRECT to 1
-        with downside of: need to loop through the arguments, then check if `optind + 1 != argc`
-        https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
-    */
-    const char* input_filename = argv[argc - 1];
-    size_t len = strlen(input_filename);
-    if (len <= 4 || strcmp(input_filename + len - 4, ".csv") != 0) {
-        fprintf(stderr, "Filename should be the last argument and ends with .csv\n");
-        print_help();
-        exit(EXIT_FAILURE);
-    }
-
     // Default Values
     int cycles = INT32_MAX;
     unsigned int l1CacheLines = 64;
@@ -84,6 +68,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     unsigned int memoryLatency = 100;
     size_t numRequests = 0; // unsigned integer
     const char* tracefile = NULL;
+    const char* input_filename = NULL;
     bool customNumRequest = false;
     bool prettyPrint = true;
 
@@ -95,6 +80,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     // ========================================================================================
 
     // Long options array
+    // https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
     struct option long_options[] = {
         // {const char *name; int has_arg; int *flag; int val;}
         {"cycles", required_argument, 0, 'c'},
@@ -124,10 +110,17 @@ Config* parse_user_input(int argc, char* argv[]) {
         NOTES - DO NOT DELETE!
         optind: index of the next option (or non-option) to be processed in argument vector 
             (auto set to 1 by getopt_long, then incremented by getopt_long to the next option i.e. +2)
+
+        Example: ./cache --some-option-1 some-argument --some-option-2true
         argv[0]: ./cache
         argv[1]: --some-option-1
         argv[2]: some-argument 
-        argv[3]: --some-option-2
+        argv[3]: --some-option-2true
+
+        Using:
+        for (int i = 0; i < argc; i++) {
+            printf("argv[%d]: %s\n", i, argv[i]);
+        }
 
         getopt_long() permutates the argv so that all non-option arguments are at the end
         Thus, optind will always point to the first non-option argument.
@@ -279,8 +272,14 @@ Config* parse_user_input(int argc, char* argv[]) {
                     }
                 }
                 break;
+            case '?':
+                // getopt_long already prints an error message to stderr
+                // print usage and exit
+                print_help();
+                exit(EXIT_FAILURE);
             default:
                 // if flag is undefined, print_help then exit
+                // Should never be reached, but is a best-practice anyways
                 print_help();
                 exit(EXIT_FAILURE);
         }
@@ -291,6 +290,24 @@ Config* parse_user_input(int argc, char* argv[]) {
     // More than 1 filename (or non-option args) check
     if (optind + 1 != argc) {
         fprintf(stderr, "Invalid input: %s is not allowed here!\n", argv[optind]);
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+
+    // Get the input filename
+    input_filename = argv[optind];
+
+    // Error checking: Validate input_filename
+    if (input_filename == NULL) {
+        fprintf(stderr, "Input filename is missing\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+    
+    // Check if the filename ends with .csv
+    size_t len = strlen(input_filename);
+    if (len <= 4 || strcmp(input_filename + len - 4, ".csv") != 0) {
+        fprintf(stderr, "Invalid filename. Filename should end with .csv\n");
         print_help();
         exit(EXIT_FAILURE);
     }
