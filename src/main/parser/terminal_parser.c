@@ -288,7 +288,7 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // ========================================================================================
 
-    // More than 1 filename check
+    // More than 1 filename (or non-option args) check
     if (optind + 1 != argc) {
         fprintf(stderr, "Invalid input: %s is not allowed here!\n", argv[optind]);
         print_help();

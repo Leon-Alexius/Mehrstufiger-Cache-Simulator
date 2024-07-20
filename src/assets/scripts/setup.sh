@@ -4,6 +4,8 @@
 sudo apt-get update -y
 
 # Install specific versions of gcc and g++
+# https://gcc.gnu.org/projects/cxx-status.html - Default C++14 in GCC 6.1 up until GCC 10 (inclusive)
+# https://gcc.gnu.org/onlinedocs/ - Default C17 in GCC 11.5
 sudo apt-get install -y gcc-11 g++-10
 
 # Set gcc to ver. 11 and g++ to ver. 10
