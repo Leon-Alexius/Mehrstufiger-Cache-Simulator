@@ -290,7 +290,7 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // More than 1 filename check
     if (optind + 1 != argc) {
-        fprintf(stderr, "Invalid input: Only one filename is allowed\n");
+        fprintf(stderr, "Invalid input: %s is not allowed here!\n", argv[optind]);
         print_help();
         exit(EXIT_FAILURE);
     }

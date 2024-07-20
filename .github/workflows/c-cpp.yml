@@ -12,8 +12,16 @@ on:
       - 'main'
 
 jobs:
+  install-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: set-up environment
+      run: bash src/assets/scripts/setup.sh
+
   build:
     runs-on: ubuntu-latest
+    needs: install-dependencies
     steps:
     - uses: actions/checkout@v4
     - name: Make Test 1
@@ -25,7 +33,7 @@ jobs:
 
   input-tests:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [install-dependencies, build]
     steps:
     - uses: actions/checkout@v4
     - name: Run Input Tests
@@ -36,7 +44,7 @@ jobs:
     
   edge-case-tests:
     runs-on: ubuntu-latest
-    needs: [build, input-tests]
+    needs: [install-dependencies, build, input-tests]
     steps:
     - uses: actions/checkout@v4
     - name: Run Edge Case Tests

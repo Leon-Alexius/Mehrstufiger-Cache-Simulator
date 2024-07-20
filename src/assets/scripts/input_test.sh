@@ -27,7 +27,8 @@ run_test "./cache examples/ijk/ijk" "Filename should be the last argument and en
 run_test "./cache examples/ijk/ijk.csv --cycles 10000" "Filename should be the last argument and ends with .csv"
 
 # Test 4: Double filename (not implemented yet)
-run_test "./cache examples/ijk/ijk.csv examples/ijk/ijk.csv" "Invalid input: Only one filename is allowed"
+run_test "./cache examples/ijk/ijk_opt1.csv examples/ijk/ijk.csv" "Invalid input: examples/ijk/ijk_opt1.csv is not allowed here!"
+run_test "./cache leon examples/ijk/ijk.csv" "Invalid input: leon is not allowed here!"
 
 # Exit with the overall test status
 exit $test_status
