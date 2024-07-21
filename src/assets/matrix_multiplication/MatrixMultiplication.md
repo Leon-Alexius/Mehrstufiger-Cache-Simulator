@@ -369,6 +369,242 @@ From both parts, we can conclude:
 | kji_opt2        | 2.516000   |  | kji_opt2        | 2.517000   |  | kji_opt2        | 2.497000   |
 ```
 
+ ### Transposed Matrix Multiplication:
+
+```C
+/**
+ * @brief Transpose a square matrix of size `n`
+ * @author Lie Leon Alexius
+ */
+void transpose_matrix(const float* matrix, float* transposed_matrix, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            transposed_matrix[j * n + i] = matrix[i * n + j];
+        }
+    }
+}
+```
+Main memory Access per Matrix Multiplication = 1 + 1/n
+
+Speicher zugriff = 2n<sup>2</sup> <br>
+Hauptspeicher zugriff: $n^2 + n$
+
+```C
+/**
+ * @brief A[i][k] * B_T[j][k] = C[i][j]
+ * @note B is transposed
+ * @author Lie Leon Alexius
+ */
+void matrix_multiplication_ijk_opt2(const float* a, const float* b, float* result, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            float sum = 0.0f;
+            for (int k = 0; k < n; k++) {
+                sum += a[i * n + k] * b[j * n + k];
+            }
+            result[i * n + j] = sum;
+        }
+    }
+}
+```
+Total speicher-zugriff = 2n<sup>3</sup> + n<sup>2</sup> <br>
+Total main memory access:
+- `a[i * n + k]` = 1/n<sup>2</sup> <br>
+- `b[j * n + k]` = 1/n <br>
+- `result[i * n + j]` = 1/n<sup>2</sup> <br>
+
+Opt_1: 
+    $$ n^3 \times \frac{1}{n^2} + n^3 \times 1 + n^2 \times \frac{1}{n^2} $$
+Opt_2:
+    $$ n^3 \times \frac{1}{n^2} + n^3 \times \frac{1}{n} + n^2 \times \frac{1}{n^2} + n^2 + n $$
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| opt_1   | $$ n^3 + n + 1 $$ |
+| opt_2   | $$ 2n^2 + 2n + 1 $$ |
+
+```C
+/**
+ * @brief A[i][k] * B[k][j] = C[i][j]
+ * @author Lie Leon Alexius
+ */
+void matrix_multiplication_ikj_opt1(const float* a, const float* b, float* result, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int k = 0; k < n; k++) {
+            float rowA = a[i * n + k];
+            for (int j = 0; j < n; j++) {
+                result[i * n + j] += rowA * b[k * n + j];
+            }
+        }
+    }
+}
+```
+
+Total main memory access:
+- `a[i * n + k]` = 1/n<sup>2</sup> <br>
+- `b[j * n + k]` = 1/n <br>
+- `result[i * n + j]` = 1/n<sup>2</sup> <br>
+
+Opt_1: 
+    $$ n^2 \times \frac{1}{n^2} + n^3 \times \frac{1}{n} + n^3 \times \frac{1}{n^2} $$
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| opt_1   | $$ n^2 + n + 1 $$ |
+
+```C
+/**
+ * @brief A[i][k] * B[k][j] = C[i][j]
+ * @note B and C is transposed
+ * @author Lie Leon Alexius
+ */
+void matrix_multiplication_jik_opt2(const float* a, const float* b, float* result, int n) {
+    for (int j = 0; j < n; j++) {
+        for (int i = 0; i < n; i++) {
+            float sum = 0.0f;
+            for (int k = 0; k < n; k++) {
+                sum += a[i * n + k] * b[j * n + k];
+            }
+            result[j * n + i] = sum;
+        }
+    }
+}
+```
+
+Total main memory access:
+- `a[i * n + k]` = 1/n <br>
+- `b[j * n + k]` = 1/n<sup>2</sup> <br>
+- `result[j * n + i]` = 1/n<sup>2</sup> <br>
+
+Opt_1: 
+    $$ n^3 \times \frac{1}{n} + n^3 \times 1 + n^2 \times \frac{1}{n} $$
+Opt_2:
+    $$ n^3 \times \frac{1}{n} + n^3 \times \frac{1}{n^2} + n^2 \times \frac{1}{n^2} + n^2 + n + n^2 + n $$
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| opt_1   | $$ n^3 + n^2 + n $$ |
+| opt_2   | $$ 3n^2 + 3n + 1 $$ |
+
+```C
+/**
+ * @brief A[i][k] * B[k][j] = C[i][j]
+ * @note A, B, and C is transposed
+ * @author Lie Leon Alexius
+ */
+void matrix_multiplication_jki_opt2(const float* a, const float* b, float* result, int n) {
+    for (int j = 0; j < n; j++) {
+        for (int k = 0; k < n; k++) {
+            float colB = b[j * n + k];
+            for (int i = 0; i < n; i++) {
+                result[j * n + i] += a[k * n + i] * colB;
+            }
+        }
+    }
+}
+```
+
+Total main memory access:
+- `a[k * n + i]` = 1/n <br>
+- `b[j * n + k]` = 1/n<sup>2</sup> <br>
+- `result[j * n + i]` = 1/n<sup>2</sup> <br>
+
+Opt_1: 
+    $$ n^3 \times 1 + n^2 \times \frac{1}{n} + n^3 \times 1 $$
+Opt_2:
+    $$ n^3 \times \frac{1}{n} + n^2 \times \frac{1}{n^2} + n^3 \times \frac{1}{n^2} + n^2 + n + n^2 + n + n^2 + n $$
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| opt_1   | $$ 2n^3 + n $$ |
+| opt_2   | $$ 4n^2 + 4n + 1 $$ |
+
+```C
+/**
+ * @brief A[i][k] * B[k][j] = C[i][j]
+ * @note A is transposed
+ * @author Lie Leon Alexius
+ */
+void matrix_multiplication_kij_opt2(const float* a, const float* b, float* result, int n) {
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            float colA = a[k * n + i];
+            for (int j = 0; j < n; j++) {
+                result[i * n + j] += colA * b[k * n + j];
+            }
+        }
+    }
+}
+```
+
+Total main memory access:
+- `a[k * n + i]` = 1/n<sup>2</sup> <br>
+- `b[k * n + j]` = 1/n<sup>2</sup> <br>
+- `result[i * n + j]` = 1/n <br>
+
+Opt_1: 
+    $$ n^2 \times \frac{1}{n} + n^3 \times \frac{1}{n^2} + n^3 \times \frac{1}{n} $$
+Opt_2:
+    $$ n^2 \times \frac{1}{n^2} + n^3 \times \frac{1}{n^2} + n^3 \times \frac{1}{n} + n^2 + n $$
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| opt_1   | $$ n^2 + 2n $$ |
+| opt_2   | $$ 2n^2 + 2n + 1 $$ |
+
+```C
+/**
+ * @brief A[i][k] * B[k][j] = C[i][j]
+ * @note A and C is transposed
+ * @author Lie Leon Alexius
+ */
+void matrix_multiplication_kji_opt2(const float* a, const float* b, float* result, int n) {
+    for (int k = 0; k < n; k++) {
+        for (int j = 0; j < n; j++) {
+            float rowB = b[k * n + j];
+            for (int i = 0; i < n; i++) {
+                result[j * n + i] += a[k * n + i] * rowB;
+            }
+        }
+    }
+}
+```
+
+Total main memory access:
+- `a[k * n + i]` = 1/n<sup>2</sup> <br>
+- `b[k * n + j]` = 1/n<sup>2</sup> <br>
+- `result[j * n + i]` = 1/n <br>
+
+Opt_1: 
+    $$ n^3 \times 1 + n^2 \times \frac{1}{n^2} + n^3 \times 1 $$
+Opt_2:
+    $$ n^3 \times \frac{1}{n^2} + n^2 \times \frac{1}{n^2} + n^3 \times \frac{1}{n} + n^2 + n + n^2 + n $$
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| opt_1   | $$ 2n^3 + 1 $$ |
+| opt_2   | $$ 3n^2 + 3n + 1 $$ |
+
+**Insgesamt gilt:**
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| ijk_opt1   | $$ n^3 + n + 1 $$ |
+| jik_opt1   | $$ n^3 + n^2 + n $$ |
+|/////////|//////////////////////////////|
+| ikj_opt1   | $$ n^2 + n + 1 $$ |
+| kij_opt1   | $$ n^2 + 2n $$ |
+| kji_opt1   | $$ 2n^3 + 1 $$ |
+| jki_opt1   | $$ 2n^3 + n $$ |
+
+| pattern | Hauptspeicher Zugriff |
+|---------|------------------|
+| ijk_opt2   | $$ 2n^2 + 2n + 1 $$ |
+| jik_opt2   | $$ 3n^2 + 3n + 1 $$ |
+|/////////|//////////////////////////////|
+| kij_opt2   | $$ 2n^2 + 2n + 1 $$ |
+| kji_opt2   | $$ 3n^2 + 3n + 1 $$ |
+| jki_opt2   | $$ 4n^2 + 4n + 1 $$ |
+
 ### Analysis using Cache Simulator
 
 We can analyze the behaviour of the algorithm using the simulator.

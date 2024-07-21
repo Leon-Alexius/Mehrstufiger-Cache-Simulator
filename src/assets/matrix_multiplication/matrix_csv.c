@@ -25,11 +25,33 @@ void init_matrix(float* matrix, int n) {
  * @brief Transpose a square matrix of size `n`
  * @author Lie Leon Alexius
  */
-void transpose_matrix(const float* matrix, float* transposed_matrix, int n) {
+void transpose_matrix(const float* matrix, float* transposed_matrix, int n, const char* filename) {
+    // w+ is "write and read", file is created if it doesn't exist or truncated if exist
+    FILE* file = fopen(filename, "w+");
+    if (file == NULL) {
+        fprintf(stderr, "Failed to open file\n");
+        exit(EXIT_FAILURE);
+    }
+
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
+            fprintf(file, "R, 0x%08x, \n", (uint32_t)((uintptr_t)&matrix[i * n + j] & 0xFFFFFFFF));
+            fprintf(file, "W, 0x%08x, %d \n", (uint32_t)((uintptr_t)&transposed_matrix[j * n + i] & 0xFFFFFFFF), (unsigned int) matrix[i * n + j]);
+
             transposed_matrix[j * n + i] = matrix[i * n + j];
         }
+    }
+
+    // Flush the file buffer to ensure all data is written to the file
+    if (fflush(file) != 0) {
+        fprintf(stderr, "Failed to flush file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Close the file
+    if (fclose(file) != 0) {
+        fprintf(stderr, "Failed to close file\n");
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -863,8 +885,11 @@ int create_csv(const int n) {
     init_matrix(b, n);
 
     // Transpose the matrix
-    transpose_matrix(a, a_transposed, n);
-    transpose_matrix(b, b_transposed, n);
+    const char* file_a = "examples/transpose/a.csv";
+    const char* file_b = "examples/transpose/b.csv";
+    const char* file_c = "examples/transpose/c.csv";
+    transpose_matrix(a, a_transposed, n, file_a);
+    transpose_matrix(b, b_transposed, n, file_b);
 
     // ====================================================================================================
 
@@ -912,18 +937,18 @@ int create_csv(const int n) {
         }
         else if (strcmp(methods[m], "jik_opt2") == 0) {
             funcs[m](a, b_transposed, result_transposed, n);
-            transpose_matrix(result_transposed, result, n);
+            transpose_matrix(result_transposed, result, n, file_c);
         }
         else if (strcmp(methods[m], "jki_opt2") == 0) {
             funcs[m](a_transposed, b_transposed, result_transposed, n);
-            transpose_matrix(result_transposed, result, n);
+            transpose_matrix(result_transposed, result, n, file_c);
         }
         else if (strcmp(methods[m], "kij_opt2") == 0) {
             funcs[m](a_transposed, b, result, n);
         }
         else if (strcmp(methods[m], "kji_opt2") == 0) {
             funcs[m](a_transposed, b, result_transposed, n);
-            transpose_matrix(result_transposed, result, n);
+            transpose_matrix(result_transposed, result, n, file_c);
         }
         else {
             funcs[m](a, b, result, n);
