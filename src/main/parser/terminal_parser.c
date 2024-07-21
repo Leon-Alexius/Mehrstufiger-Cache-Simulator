@@ -42,16 +42,21 @@ void print_help() {
  *  7. memoryLatency = 100 (default latency for memory access in cycles)
  *  8. numRequests = 0 (default number of requests is all requests in the file)
  *  9. tracefile = NULL (default trace file name) 
- *  10. input_filename = NULL (input filename)
- *  11. customNumRequest = false (flag for custom number of requests)
- *  12. prefetchBuffer = 0 (default prefetch buffer)
- *  13. storebackBuffer = 0 (default storeback buffer)
- *  14. prettyPrint = true (default pretty print flag)
- *  15. storebackBufferCondition = false (default storeback buffer condition)
+ *  10. customNumRequest = false (flag for custom number of requests)
+ *  11. prefetchBuffer = 0 (default prefetch buffer)
+ *  12. storebackBuffer = 0 (default storeback buffer)
+ *  13. prettyPrint = true (default pretty print flag)
+ *  14. storebackBufferCondition = false (default storeback buffer condition)
  * 
  * @author Lie Leon Alexius
  */
 Config* parse_user_input(int argc, char* argv[]) {
+    // Shortest possible input is `./cache filename.csv`
+    if (argc < 2) {
+        fprintf(stderr, "Invalid input: Filename is missing\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
 
     // Default Values
     int cycles = INT32_MAX;
@@ -75,6 +80,7 @@ Config* parse_user_input(int argc, char* argv[]) {
     // ========================================================================================
 
     // Long options array
+    // https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
     struct option long_options[] = {
         // {const char *name; int has_arg; int *flag; int val;}
         {"cycles", required_argument, 0, 'c'},
@@ -99,10 +105,32 @@ Config* parse_user_input(int argc, char* argv[]) {
     char* endptr; // parsing error checker
 
     // ========================================================================================
+    
+    /*  
+        NOTES - DO NOT DELETE!
+        optind: index of the next option (or non-option) to be processed in argument vector 
+            (auto set to 1 by getopt_long, then incremented by getopt_long to the next option i.e. +2)
+
+        Example: ./cache --some-option-1 some-argument --some-option-2true
+        argv[0]: ./cache
+        argv[1]: --some-option-1
+        argv[2]: some-argument 
+        argv[3]: --some-option-2true
+
+        Using:
+        for (int i = 0; i < argc; i++) {
+            printf("argv[%d]: %s\n", i, argv[i]);
+        }
+
+        getopt_long() permutates the argv so that all non-option arguments are at the end
+        Thus, optind will always point to the first non-option argument.
+
+        https://linux.die.net/man/3/optind
+    */
 
     // (arg count, arg array, legitimate option characters, long options, long options index)
     // https://linux.die.net/man/3/getopt_long
-    while ((opt = getopt_long(argc, argv, "c:p:h", long_options, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:p:h", long_options, &long_index)) != -1) {        
         switch (opt) {
             case 'c':
                 errno = 0;
@@ -244,8 +272,14 @@ Config* parse_user_input(int argc, char* argv[]) {
                     }
                 }
                 break;
+            case '?':
+                // getopt_long already prints an error message to stderr
+                // print usage and exit
+                print_help();
+                exit(EXIT_FAILURE);
             default:
                 // if flag is undefined, print_help then exit
+                // Should never be reached, but is a best-practice anyways
                 print_help();
                 exit(EXIT_FAILURE);
         }
@@ -253,20 +287,17 @@ Config* parse_user_input(int argc, char* argv[]) {
 
     // ========================================================================================
 
-    // Get the remaining argument: the input filename
-    // The variable optind is the index of the next element to be processed in argv.
-    // https://linux.die.net/man/3/optind
-    if (optind < argc) {
-        input_filename = argv[optind];
-    } 
-    else {
-        fprintf(stderr, "Input filename is required\n");
+    // More than 1 filename (or non-option args) check
+    if (optind + 1 != argc) {
+        fprintf(stderr, "Invalid input: %s is not allowed here!\n", argv[optind]);
         print_help();
         exit(EXIT_FAILURE);
     }
 
+    // Get the input filename
+    input_filename = argv[optind];
+
     // Error checking: Validate input_filename
-    // check if NULL
     if (input_filename == NULL) {
         fprintf(stderr, "Input filename is missing\n");
         print_help();

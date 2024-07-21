@@ -19,11 +19,11 @@ Tested with n = 1000
 | kij_opt1        | 2.531000   |  | kij_opt1        | 2.546000   |  | kij_opt1        | 2.594000   |
 | kji_opt1        | 10.578000  |  | kji_opt1        | 10.400000  |  | kji_opt1        | 10.353000  |
 |-----------------|------------|  |-----------------|------------|  |-----------------|------------|
-| ijk_opt2        | 2.310000   |  | ijk_opt2        | 2.309000   |  | ijk_opt2        | 2.320000   |
-| jik_opt2        | 2.310000   |  | jik_opt2        | 2.319000   |  | jik_opt2        | 2.305000   |
-| jki_opt2        | 2.534000   |  | jki_opt2        | 2.530000   |  | jki_opt2        | 2.528000   |
-| kij_opt2        | 2.520000   |  | kij_opt2        | 2.517000   |  | kij_opt2        | 2.522000   |
-| kji_opt2        | 2.516000   |  | kji_opt2        | 2.517000   |  | kji_opt2        | 2.497000   |
+| ijk_opt2        | 2.314000   |  | ijk_opt2        | 2.309400   |  | ijk_opt2        | 2.324000   |
+| jik_opt2        | 2.318000   |  | jik_opt2        | 2.319800   |  | jik_opt2        | 2.313000   |
+| jki_opt2        | 2.538000   |  | jki_opt2        | 2.534000   |  | jki_opt2        | 2.532000   |
+| kij_opt2        | 2.528000   |  | kij_opt2        | 2.525000   |  | kij_opt2        | 2.530000   |
+| kji_opt2        | 2.528000   |  | kji_opt2        | 2.529000   |  | kji_opt2        | 2.509000   |
 
 Sorted method from fastest to slowest
 
@@ -31,12 +31,10 @@ A. Without Optimization
 kij >= ikj > jik > ijk > kji > jki
 
 B. With Optimization (local variable)
-ikj > kij > jik > ijk > kji > jki
+ikj >= kij > jik > ijk > kji > jki
 
 C. With Optimization (Transpose)
 ijk > jik > kji > kij > jki
 
-Note that Transpose Metrix doesn't include the time needed to transpose the matrix!
+Note that Transpose Metrix includes average duration of transposing a matrix!
 Average transpose time for a square-matrix of 1000: "0.004000 seconds"
-
-So, in "real time", all "*_opt2" is actually slower than "ikj"

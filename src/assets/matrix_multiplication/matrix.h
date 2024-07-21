@@ -56,6 +56,17 @@ void print_matrix(const float* matrix, int n) {
     }
 }
 
+/**
+ * @brief Compares square float matrix with another square float matrix and returns 1 if they are not equal, 0 otherwise.
+ * @param result The matrix to compare
+ * @param control The matrix to compare with
+ * @param n The size of the matrix
+ * @return 1 if the matrices are not equal, 0 otherwise
+ * @note The comparison is done with a tolerance of 1e-6
+ * @note The matrices are assumed to be of size n x n
+ * @note The matrices are assumed to be stored in row-major order
+ * @author Lie Leon Alexius
+ */
 int compare_matrices(const float* result, const float* control, int n) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {

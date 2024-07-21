@@ -6,7 +6,7 @@ test_status=0
 # Function to run a command and check for an expected error message
 run_test() {
     echo "Testing: $1"
-    output=$(eval $1 2>&1)
+    output=$(eval $1 2>&1 1>/dev/null)
     if [[ "$output" == *"$2"* ]]; then
         echo "PASS: Expected error received."
     else
