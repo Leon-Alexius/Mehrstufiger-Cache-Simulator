@@ -4,7 +4,7 @@ Caches sind eine Strategie zur Minderung des Von-Neumann-Flaschenhalses.
 Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorübergehend speichern, um die Zugriffszeit auf häufig verwendete Daten zu reduzieren. In modernen Prozessoren sind L1- (Level 1) und L2- (Level 2) Caches von entscheidender Bedeutung. Der L1-Cache ist der kleinste und schnellste Speicher, während der L2-Cache größer, aber etwas langsamer ist.
 ## Methodik
 ### Simulierte Cache-Architektur:
-- Erstellung eines Simulationsmodells der L1- und L2-Cache-Struktur mit SystemC.
+- Erstellung eines Simulationsmodells der L1- und L2-Cache-Struktur mit C, C++, SystemC.
 - Leistungstests und Analyse der Anfangszustände (ohne Optimierung).
 - Implementierung einer Befehlszeilenschnittstelle zur Eingabe von Simulationsparametern wie der Cache-Zeilengröße.
 ### Implementierung von Optimierungsstrategien:
