@@ -1,91 +1,72 @@
-# Cache Simulation Project
+# Projektbericht: Simulation, Analyse und Optimierung des Speicherhierarchiesystems
 
-## Overview
-This project aims to analyze the impact of multi-level caches on runtime and latency of an algorithm. It's build by simulating caches (its' size, architectures, and latencies) in modern processors. The implementation of the cache simulation used SystemC and C++, the framework program is in C.
+## Einführung
+Dieser Bericht dokumentiert die Ergebnisse der Projektgruppe 150 zur Simulation, Analyse und Optimierung der L1- und L2-Cache-Speicherhierarchiesysteme in modernen Computersystemen.
 
-## Requirements
+## Hintergrund
+Caches sind eine Strategie zur Minderung des Von-Neumann-Flaschenhalses.
 
-Ensure you have the following software installed on your system:
+Caches sind kleine, aber schnelle Speicher, die Daten und Anweisungen vorübergehend speichern, um die Zugriffszeit auf häufig verwendete Daten zu reduzieren. In modernen Prozessoren sind L1- (Level 1) und L2- (Level 2) Caches von entscheidender Bedeutung. Der L1-Cache ist der kleinste und schnellste Speicher, während der L2-Cache größer, aber etwas langsamer ist.
 
-| Language | Version |
-|----------|---------|
-| C        | C17     |
-| C++      | C++14   |
-| SystemC  | 2.3.3   |
+## Methodik
+### Simulation der aktuellen Cache-Architektur:
+- Erstellung eines Simulationsmodells der L1- und L2-Cache-Struktur.
+- Leistungstests und Analyse der Anfangszustände (ohne Optimierung).
+- Implementierung einer Befehlszeilenschnittstelle zur Eingabe von Simulationsparametern wie der Cache-Zeilengröße.
 
-More Details:
-- C Compiler (GCC recommended) supporting C17 standard
-- C++ Compiler (G++ recommended) supporting C++14 standard
-- SystemC library version 2.3.3
+### Implementierung von Optimierungsstrategien:
+- **Store-Back-Buffer**: Einführung eines Puffers, der Schreiboperationen zwischenspeichert, um den Speicherbus zu entlasten.
+- **Prefetch-Buffer**: Vorabrufen häufig benötigter Daten mit einer benutzerdefinierten Puffergröße.
 
-If you do not have these prerequisites installed, please refer to the respective documentation for installation instructions.
+### Analysierte Algorithmen
+- 17 Varianten von Matrixmultiplikationen werden analysiert, und zwar nach ihre Zyklenanzahl und Trefferquote aus den Caches. Gegeben sind zwei 16 x 16 `float`-Matrizen A und B und sie werden miteinander zu einer Ergebnismatrix C multipliziert. Der Zugriff auf einzelnen Elementen wird durch die Indizierung `A[i][j]`, `B[j][k]`, und `C[i][k]` ausgeführt. Je nach welcher Index am weitesten draußen oder drinnen in der Schleife angeordnet wird, kann es zu verschiedene Lokalitäten kommen. Insgesamt gibt es 6 Anordnungen, nämlich von außen zu innen: `ijk`. `ikj`, `jik`, `jki`, `kij`, `kji`. Jede Anordnung hat 2 mögliche Optimierungen außer `ikj`, welches nur 1 hat.
 
-## Installation
+### Analyse und Bewertung:
+- Analyse der Entwicklung von Zyklenanzahl, Hit-Rate, usw. der Matrixmultiplikaltionen nach Cachezeilengröße, L1- und L2- Zeilenanzahl, und verschiedene Latenzzeiten.  Es wird standardmäßig zur Analyse eine Cache mit 4 Zyklen für L1-Latenzzeit, 12 Zyklen für L2-Latenzzeit, und 100 Zyklen für Memory benutzt. Als Basis hat L1 4 Zeilen, L2 hat 16 Zeilen, und die Cachezeilengröße beträgt 16 Bytes.
+- Vergleich der Leistung vor und nach der Implementierung der Optimierungen.
+- Messung der Zugriffszeiten, Trefferquoten und der Gesamtleistung des Systems.
 
-1. **Clone the Repository**: Begin by cloning the project repository to your local machine. Open a terminal and execute the following command:
-`git clone https://github.com/Dark-Rosaleen/GRA-Abschlussprojekt.git`
+## Ergebnisse
+### Simulation der Speicherhierarchiesystem-Architektur:
+- Engpässe in der Simulation werden hauptsächlich durch das Warten auf das Abrufen von Daten aus dem Speicher verursacht.
 
-2. **Verify Installation of Prerequisites**: Ensure that the required versions of C, C++, and SystemC are installed on your system. If you are unsure or need to install the prerequisites, run the provided `setup.sh` script by executing: `bash ./src/assets/scripts/setup.sh`
-This script will guide you through the installation of any missing prerequisites.
+### Matrix
+- Bei allen Fällen ist `jik_opt2` am schnellsten zu erledigen. Bei einer exponentiell ansteigender Cachezeilengröße senkt die Zyklenanzahl alle Matrixmultiplikationen außer `ijk_opt1`, `ijk`, `kji`, `jki`, `kji_opt1`, `jki_opt1`.
+- Bei steigender L1 Zeilenanzahl ergibt sich kaum Verbesserung an Zyklenanzahl, während bei steigender L2 Zeilenanzahl nur `kij` und `ikj` erkennbare Senkung haben. Interessanterweise hat `jki_opt1` gar keine Treffer in L1 und `kji_opt1` auch keine in L2.
 
-3. **Build the Project**: With the prerequisites in place, compile the project using the `make` command. In the terminal, navigate to the project directory and execute: `make`
+### Implementierung und Auswirkungen der Optimierungsstrategien:
+- **Store-Back-Buffer**: Verringerte durchschnittliche Schreibzugriffszeiten um ??
+- **Prefetch-Buffer**: Erhöhte Trefferquoten im L2-Cache bei unserem Matrixmultiplikationsalgorithmus von 23,8 % auf 40,5 % durch Vorabrufen häufig benötigter Daten mit einer Puffergröße von 4 Cache-Zeilen.
 
-## Running the Simulation
+### Analyse und Bewertung:
+- Die optimierten Caches mit Store-Back-Buffer zeigten eine verbesserte Effizienz in Bezug auf Zyklen.
+- Die optimierten Caches mit Prefetch-Buffer zeigten eine signifikant verbesserte Effizienz in Bezug auf die Trefferquoten im L2-Cache.
 
-After successfully compiling the project, you can run the cache simulation with the following command: `./cache [FLAG(s)] filename.csv`
+## Diskussion
+Die Implementierung des Store-Back-Buffers und des Prefetch-Buffers zeigte das Potenzial zur Verbesserung der Cache-Leistung, insbesondere die Reduzierung der Schreibzugriffszeiten durch den Store-Back-Buffer und die Erhöhung der Trefferquoten durch das Vorabrufen von Daten.
 
-Replace `[FLAG(s)]` with any flags you wish to use during the simulation and `filename.csv` with the path to your input CSV file containing the simulation requests.
-
-### List of Available Flags
-
-| Flag              | Description                                                        | Default Value      |
-|-------------------|--------------------------------------------------------------------|--------------------|
-| `-c`, `--cycles`  | The number of cycles to be simulated                               | `INT32_MAX`        |
-| `--cacheline-size`| The size of a cache line in bytes                                  | `64`               |
-| `--l1-lines`      | The number of cache lines of the L1 cache                          | `64`               |
-| `--l2-lines`      | The number of cache lines of the L2 cache                          | `256`              |
-| `--l1-latency`    | The latency of the L1 cache in cycles                              | `4`                |
-| `--l2-latency`    | The latency of the L2 cache in cycles                              | `12`               |
-| `--memory-latency`| The latency of the main memory in cycles                           | `100`              |
-| `--tf=<filepath>` | Output file for a trace file with all signals                      | N/A                |
-| `--num-requests`  | Number of request to read from .csv file, default is all requests  | All requests       |
-| `--prefetch-buffer`     | The number of cache lines in the prefetch buffer             | `0`                |
-| `--storeback-buffer`    | The number of cache lines in the storeback buffer            | `0`                |
-| `--storeback-condition` | The condition for storeback buffer                           | `false`            |
-| `-p`, `--pretty-print`  | Pretty Print the Simulator (le.g. layout)                    | `true`             |
-| `-h`, `--help`    | Display this help and exit                                         | N/A                |
-
-## Theoretical Results
-Document the results of the theoretical part of your project here. This could include findings from your research on cache sizes, architectures, and latencies in modern processors.
-
-## Contributors
-For more details, the `@author` or `@authors` is included in each Docstring documentation of a function.
-
+## Mitwirkende
 ### Alexander Anthony Tang
-Alexander is primarily responsible for the development of `src/modules`, with additional contributions to the development of `src/main/simulator.cpp`
+Anthony war hauptsächlich für die Entwicklung von src/modules verantwortlich, mit zusätzlichen Beiträgen zur Entwicklung von src/main/simulator.cpp.
 
-Other contributions include:
-- Writing the `Makefile`
-- Writing the `build.sh` script
-- Initiating, Optimizing and Documenting the project
+Weitere Beiträge umfassen:
+- Schreiben des Makefile
+- Schreiben des build.sh-Skripts
+- Initiierung, Optimierung und Dokumentation des Projekts
 
 ### Lie Leon Alexius
-Leon is primarily responsible for the development of `examples`, `src/main` and `src/assets`, with additional contributions to the development of `src/modules`
+Leon war hauptsächlich für die Entwicklung von examples, src/main und src/assets verantwortlich, mit zusätzlichen Beiträgen zur Entwicklung von src/modules.
 
-Other contributions include:
-- Writing the `Makefile`
-- Writing the `build.sh` scripts
-- Authoring the `Readme.md`
-- Implementing automated tests
-- Initiating, Optimizing, Structuring and Documenting the project
+Weitere Beiträge umfassen:
+- Schreiben des Makefile
+- Schreiben der build.sh-Skripte
+- Verfassen der Readme.md
+- Implementierung automatisierter Tests
+- Initiierung, Optimierung, Strukturierung und Dokumentation des Projekts
 
 ### Trang Nguyen
-Trang is primarily responsible for the development of `src/modules`.
+Trang war hauptsächlich für die Entwicklung von src/modules verantwortlich.
 
-Other contributions include:
-- Initiating, Optimizing and Documenting the project
+Weitere Beiträge umfassen:
+- Initiierung, Optimierung und Dokumentation des Projekts
 
-## License
-All Rights Reserved © 2024 Team-150.
-
-This project and its contents are the property of Team-150. No reproduction, distribution, or transmission of the copyrighted materials in this project is permitted without the written permission of Team-150.
