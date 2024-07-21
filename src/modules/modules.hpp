@@ -478,18 +478,6 @@ struct CPU_L1_L2 {
         delete[] data_from_Memory_to_L2.read();
     }
 
-    void reset_cache() {
-        std::fill(l1->cache_blocks.begin(), l1->cache_blocks.end(), vector<char>(cacheLineSize));
-        std::fill(l1->tags.begin(), l1->tags.end(), 0);
-        std::fill(l1->valid.begin(), l1->valid.end(), 0);
-
-        std::fill(l2->cache_blocks.begin(), l2->cache_blocks.end(), vector<char>(cacheLineSize));
-        std::fill(l2->tags.begin(), l2->tags.end(), 0);
-        std::fill(l2->valid.begin(), l2->valid.end(), 0);
-
-        memset(memory->memory_blocks, 0, sizeof(memory->memory_blocks));
-
-    }
 
     /**
      * Calculates the total number of gates required for the memory system.
@@ -524,17 +512,24 @@ struct CPU_L1_L2 {
         
         unsigned total_gates_for_memory = gates_l1_memory + gates_l2_memory;
         //---------------------------------------------------------------------------------
+        // Address Latch Gates
+        unsigned address_latches = 4 * 32;
+
+
+        //---------------------------------------------------------------------------------
         // For accessing a certain cell
-        // To get a cell:
-        unsigned decoder_l1_row = l1CacheLines;
-        unsigned decoder_l2_row = l2CacheLines;
+        // Predecoder are used to alleviate the logical effort in the decoder
+        unsigned predecoder_l1 = (l1->log2_l1CacheLines + 2)/3 * 8;
+        unsigned predecoder_l2 = (l2->log2_l2CacheLines + 2)/3 * 8;
+
+        unsigned decoder_l1 = l1CacheLines;
+        unsigned decoder_l2 = l2CacheLines;
 
         // To get a certain column
         unsigned multiplexer_l1_column = cacheLineSize;
         unsigned multiplexer_l2_column = cacheLineSize;
 
-
-        unsigned total_addresser = decoder_l1_row + decoder_l2_row + multiplexer_l1_column + multiplexer_l2_column;
+        unsigned total_addresser = predecoder_l1 + predecoder_l2 + decoder_l1 + decoder_l2 + multiplexer_l1_column + multiplexer_l2_column;
         //---------------------------------------------------------------------------------
         // Comparison of tags:
         // This comparator just needs to compare if the tag in the table and the tag
@@ -544,7 +539,18 @@ struct CPU_L1_L2 {
 
         unsigned total_comparator = comparator_l1 + comparator_l2;
 
-        return total_gates_for_memory + total_addresser + total_comparator;
+        //---------------------------------------------------------------------------------
+        // Buffer
+        unsigned storeback_gates = (32 + 4) * 4 * ((storeback != nullptr) ? storeback->capacity : 0);
+        unsigned prefetch_gates = (32 + cacheLineSize) * 4 * ((prefetch != nullptr) ? prefetch->capacity : 0);
+
+        unsigned total_buffer_gate = storeback_gates + prefetch_gates;
+        
+        // Add comparator for write buffers
+        total_comparator += ((prefetch != nullptr) ? comparator_l2 : 0);
+
+
+        return total_gates_for_memory + total_addresser + address_latches + total_comparator + total_buffer_gate;
     }
 };
 

@@ -200,7 +200,7 @@ SC_MODULE(L2){
                 {
                     // If there is a storeback buffer -> check the tag and the address in the storeback buffer if the tag and address is there or not
                     if (storeback != nullptr && storeback->in_buffer((address_int >> log2_cacheLineSize))) {
-                        // If yes, flush all contents of the buffer into the memory
+                        // If unconditional, then always flush. Otherwise, if yes, flush all contents of the buffer into the memory
                         // NOTE: We can also flush the data with the same tag, while leaving the others,
                         // but this overcomplicates the structure of the buffer and will not make it
                         // FIFO again.
@@ -262,24 +262,33 @@ SC_MODULE(L2){
         }
     }
 
+
+    /**
+     *@brief This method waits for the prefetch buffer to get the data and then load it into L2
+     * */
     void read_from_prefetch() {
 
         char* data;
         uint32_t address_u;
 
+        //check each line of prefetch
         for (int i = 0; i < prefetch->capacity; i++) {
             
             // If no write was underway, then read from buffer. But if the buffer is empty, then
             // memory has finished its task and will await further instructions.
 
             while (!prefetch->read(data, address_u)) {
+                //wait until the prefetch has the data and address
                 wait();
                 wait(SC_ZERO_TIME);
                 wait(SC_ZERO_TIME);
             }
 
+            //store the address from the buffer
             uint32_t address_new = address_u;
+            //calculate cache index for new addess
             unsigned int index_new = ((address_new >> log2_cacheLineSize) & (power_of_two - 1)) % (l2CacheLines);;
+            //calculate cache tag for new address
             unsigned int tag_new = address_new >> (log2_cacheLineSize + log2_l2CacheLines - (power_of_two != l2CacheLines));;
             
             // Write to memory
@@ -287,7 +296,9 @@ SC_MODULE(L2){
                 cache_blocks[index_new][i] = data[i];
             }
 
+            //update the tag in the cache block of L2
             tags[index_new] = tag_new;
+            //mark the block as valid
             valid[index_new] = true;
 
             // Free the pointer from data
