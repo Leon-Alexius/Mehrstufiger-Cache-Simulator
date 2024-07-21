@@ -17,7 +17,7 @@ Analyse der Entwicklung von Zyklenanzahl, Hit-Rate, usw. der Matrixmultiplikatio
 ## Ergebnisse
 ### Matrix
 Zwischen der Basisvarianten ist `ikj` am schnellsten, während insgesamt ist `ijk_opt2` am schnellsten. Bei einer exponentiell ansteigender Cachezeilengröße senkt die Zyklenanzahl alle Matrixmultiplikationen außer `kji_opt1` und `jki_opt1`.
-Bei steigender L1 Zeilenanzahl ergibt sich kaum Verbesserung an Zyklenanzahl, während bei steigender L2 Zeilenanzahl nur kij und ikj erkennbare Senkung haben.
+Bei steigender L1 Zeilenanzahl ergibt sich kaum Verbesserung an Zyklenanzahl, während bei steigender L2 Zeilenanzahl nur `kij` und `ikj` erkennbare Senkung haben.
 ### Auswirkungen der Optimierungsstrategien:
 Store-Back-Buffer: Verringerte durchschnittliche Zyklenanzahl um 161.679 Zyklen mit einer Puffergröße von 1 Wort.
 Prefetch-Buffer: Erhöhte Trefferquoten im L2-Cache von 23,8 % auf 40,5 % durch Vorabrufen häufig benötigter Daten mit einer Puffergröße von 4 Cache-Zeilen.
