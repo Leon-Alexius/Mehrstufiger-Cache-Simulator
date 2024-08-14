@@ -58,6 +58,23 @@ Config* parse_user_input(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    // LATE FIX: 14/08/2024
+    // Should be another check here, to see if filename is at the end of the input
+    const char* temp = argv[argc - 1];
+    if (temp == NULL || strlen(temp) == 0) {
+        fprintf(stderr, "Invalid input: Filename is missing\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+    
+    // Check if the filename ends with .csv
+    size_t len_temp = strlen(temp);
+    if (len_temp <= 4 || strcmp(temp + len_temp - 4, ".csv") != 0) {
+        fprintf(stderr, "Invalid filename. Filename should end with .csv and at the last of the input\n");
+        print_help();
+        exit(EXIT_FAILURE);
+    }
+
     // Default Values
     int cycles = INT32_MAX;
     unsigned int l1CacheLines = 64;
